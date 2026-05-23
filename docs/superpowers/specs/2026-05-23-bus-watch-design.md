@@ -68,7 +68,7 @@ Returns the bus's current position along its route from the realtime feed. Inclu
 
 ### `GET /station/:stopId/schedule`
 
-Full schedule for a rail station: next N departures per line/direction. Static timetable only.
+Full schedule for a rail station: next 10 departures per line/direction. Static timetable only.
 
 ### `GET /routes?lat=X&lon=Y`
 
@@ -131,7 +131,7 @@ Shows nearby stops/stations list from `/nearby`. User taps one to see arrivals, 
 
 - Swipe up from main screen → nearby stops list
 - Swipe left → manual route/station picker (favorites at top)
-- Force touch / long press → switch between bus and rail mode manually
+- Long press → context menu to switch between bus and rail mode manually
 - Digital Crown → scroll through stop lists
 
 ### Complication (phase 2)
