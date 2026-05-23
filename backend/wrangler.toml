@@ -1,0 +1,10 @@
+name = "bus-watch"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+[triggers]
+crons = ["0 */6 * * *"]
+
+[[kv_namespaces]]
+binding = "KV"
+id = "PLACEHOLDER_KV_NAMESPACE_ID"
