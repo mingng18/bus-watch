@@ -1,3 +1,8 @@
+export interface Env {
+  KV: KVNamespace;
+  DB: D1Database;
+}
+
 // --- GTFS raw types ---
 
 export interface GtfsStop {
@@ -45,6 +50,13 @@ export interface GtfsCalendar {
   end_date: string;
 }
 
+export interface GtfsShape {
+  shape_id: string;
+  shape_pt_lat: string;
+  shape_pt_lon: string;
+  shape_pt_sequence: string;
+}
+
 // --- Processed types (stored in KV) ---
 
 export interface Stop {
@@ -69,6 +81,7 @@ export interface Trip {
   serviceId: string;
   headsign: string;
   directionId: number;
+  shapeId: string;
 }
 
 export interface TripStopEntry {
@@ -112,6 +125,8 @@ export interface NearbyStop {
   id: string;
   name: string;
   type: 'bus' | 'rail';
+  lat: number;
+  lon: number;
   distance_m: number;
   arrivals: Arrival[];
 }
@@ -122,6 +137,18 @@ export interface Arrival {
   destination: string;
   minutes: number;
   isRealtime: boolean;
+  tripId?: string;
+}
+
+export interface BusRouteEntry {
+  routeId: string;
+  routeShortName: string;
+  destination: string;
+  minutes: number;
+  tripId: string;
+  lat: number;
+  lon: number;
+  busNo?: string;
 }
 
 export interface BusProgressResponse {
@@ -161,6 +188,38 @@ export interface RouteInfo {
   type: 'bus' | 'rail';
 }
 
+export interface Frequency {
+  tripId: string;
+  startTime: string;
+  endTime: string;
+  headwaySecs: number;
+}
+
+export interface RouteDetailsResponse {
+  routeId: string;
+  buses: BusRouteEntry[];
+  shapes: {
+    id: string;
+    points: [number, number][]; // Array of [lat, lon]
+  }[];
+}
+
+// --- Prasarana Socket.IO bus data ---
+
+export interface PrasaranaBus {
+  bus_no: string;
+  route: string;
+  latitude: number;
+  longitude: number;
+  speed: number;
+  dir: number | null;
+  trip_rev_kind: string;
+  provider: string;
+  captain_id: string;
+  dt_gps: string;
+  dt_received: string;
+}
+
 // --- KV data aggregate ---
 
 export interface AgencyData {
@@ -169,4 +228,6 @@ export interface AgencyData {
   trips: Trip[];
   tripStops: Record<string, TripStopEntry[]>;
   calendar: CalendarEntry[];
+  frequencies: Frequency[];
+  shapes: Record<string, [number, number][]>;
 }
