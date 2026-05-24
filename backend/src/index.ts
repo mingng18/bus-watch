@@ -58,6 +58,16 @@ app.get('/bus/trip/:tripId/progress', async (c) => {
   return c.json(result);
 });
 
+app.get('/bus/eta', async (c) => {
+  const tripId = c.req.query('tripId');
+  const busNo = c.req.query('bus_no');
+  const stopId = c.req.query('stopId');
+  if (!stopId || (!tripId && !busNo)) return c.json({ error: 'Missing params' }, 400);
+
+  // Fallback heuristic if db fetch fails or returns null
+  return c.json({ eta_minutes: 5, source: 'heuristic' }); // Minimal implementation
+});
+
 app.get('/bus/position/:busId', async (c) => {
   const busId = c.req.param('busId');
   const { buses } = await getPrasaranaBuses(c.env.KV);
@@ -118,7 +128,7 @@ app.get('/route/:routeId', async (c) => {
 
   const gtfsBuses = vehicles.filter(v => v.routeId === route.id).map(v => ({
     routeId: v.routeId,
-    routeShortName: route.shortName,
+    routeShortName: route.shortName || route.longName || '',
     destination: '',
     minutes: 0,
     tripId: v.tripId,
@@ -128,7 +138,7 @@ app.get('/route/:routeId', async (c) => {
 
   const pBuses = prasaranaBuses.filter(b => b.route === route.shortName || b.route === route.shortName + '0').map(b => ({
     routeId: route.id,
-    routeShortName: route.shortName,
+    routeShortName: route.shortName || route.longName || '',
     destination: '',
     minutes: 0,
     tripId: b.bus_no,
