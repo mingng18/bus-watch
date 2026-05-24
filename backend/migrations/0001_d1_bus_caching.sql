@@ -1,4 +1,4 @@
--- backend/migrations/0001_caching_d1.sql
+-- backend/migrations/0001_d1_bus_caching.sql
 CREATE TABLE bus_positions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   bus_no TEXT NOT NULL,

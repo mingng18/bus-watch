@@ -231,3 +231,29 @@ export interface AgencyData {
   frequencies: Frequency[];
   shapes: Record<string, [number, number][]>;
 }
+
+export interface BusPosition {
+  id: number;
+  bus_no: string;
+  route: string;
+  source: string;
+  lat: number;
+  lon: number;
+  speed: number | null;
+  timestamp: number;
+  created_at: number;
+}
+
+export interface TravelTime {
+  id: number;
+  route: string;
+  from_stop_id: string;
+  to_stop_id: string;
+  from_lat: number;
+  from_lon: number;
+  to_lat: number;
+  to_lon: number;
+  avg_seconds: number;
+  sample_count: number;
+  updated_at: number;
+}
