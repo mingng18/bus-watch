@@ -10,7 +10,7 @@ CREATE TABLE bus_positions (
   timestamp INTEGER NOT NULL,
   created_at INTEGER NOT NULL DEFAULT (unixepoch())
 );
-CREATE INDEX idx_positions_bus_route ON bus_positions(bus_no, route, timestamp);
+CREATE INDEX idx_positions_route_time ON bus_positions(route, timestamp);
 
 CREATE TABLE travel_times (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -236,10 +236,12 @@ export interface BusPosition {
   id: number;
   bus_no: string;
   route: string;
+  /** 'gtfs' | 'prasarana' | string */
   source: string;
   lat: number;
   lon: number;
   speed: number | null;
+  /** Unix seconds */
   timestamp: number;
   created_at: number;
 }
@@ -253,6 +255,7 @@ export interface TravelTime {
   from_lon: number;
   to_lat: number;
   to_lon: number;
+  /** Average travel time in seconds */
   avg_seconds: number;
   sample_count: number;
   updated_at: number;
