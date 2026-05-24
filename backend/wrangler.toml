@@ -1,10 +1,17 @@
 name = "bus-watch"
 main = "src/index.ts"
 compatibility_date = "2024-12-01"
+account_id = "c61a5a669584340d8ecbad50c7deb8b3"
 
 [triggers]
-crons = ["0 */6 * * *"]
+crons = ["0 */6 * * *", "*/5 * * * *", "0 2 * * 1"]
 
 [[kv_namespaces]]
 binding = "KV"
-id = "7fb387fc2f5c44a3aaf9ed9c445bd447"
+id = "f09a730c231a4a23989fea24b64e0993"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "bus-watch-d1"
+database_id = "eb127f40-45d2-4d96-8c7e-3e070f11077a"
+preview_database_id = "eb127f40-45d2-4d96-8c7e-3e070f11077a"
