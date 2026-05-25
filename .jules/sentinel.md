@@ -1,0 +1,4 @@
+## 2024-05-25 - Missing Authentication on Admin Endpoint
+**Vulnerability:** The `/rail/ingest` POST endpoint was explicitly designed to be triggered manually for operations but lacked any authentication ("protected by obscurity" comment in the code). This could allow unauthenticated attackers to trigger expensive data ingestion processes or potentially manipulate data if the ingestion logic was compromised.
+**Learning:** Development endpoints meant for MVP or internal tooling often get pushed to production without proper security controls, relying on "security by obscurity" which is an anti-pattern.
+**Prevention:** All endpoints that perform administrative actions, write operations, or trigger heavy processing must have proper authentication mechanisms, such as API keys or JWT tokens, defined from the start, even for MVP versions.

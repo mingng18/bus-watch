@@ -162,7 +162,11 @@ app.get('/rail/schedule', async (c) => {
 });
 
 app.post('/rail/ingest', async (c) => {
-  // Manual trigger for testing / ops; protected by obscurity (no auth needed for MVP)
+  const authHeader = c.req.header('Authorization');
+  if (!c.env.ADMIN_API_KEY || authHeader !== `Bearer ${c.env.ADMIN_API_KEY}`) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
   try {
     const result = await ingestRailTimetables(c.env);
     return c.json({ status: 'ok', inserted: result.inserted });
