@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { getStationSchedule } from '../src/station';
-import { Stop, Route, Trip, TripStopEntry, CalendarEntry } from '../src/types';
+import { Stop, Route, Trip, TripStopEntry, CalendarEntry, Frequency } from '../src/types';
 
 const stops: Stop[] = [
   { id: 'st1', name: 'Bangsar LRT', lat: 3.1295, lon: 101.6750, type: 'rail', parentStation: '' },
@@ -11,8 +11,8 @@ const routes: Route[] = [
 ];
 
 const trips: Trip[] = [
-  { id: 't1', routeId: 'r1', serviceId: 'wk', headsign: 'Gombak', directionId: 0 },
-  { id: 't2', routeId: 'r1', serviceId: 'wk', headsign: 'Putra Heights', directionId: 1 },
+  { id: 't1', routeId: 'r1', serviceId: 'wk', headsign: 'Gombak', directionId: 0, shapeId: '' },
+  { id: 't2', routeId: 'r1', serviceId: 'wk', headsign: 'Putra Heights', directionId: 1, shapeId: '' },
 ];
 
 const tripStops: Record<string, TripStopEntry[]> = {
@@ -27,12 +27,14 @@ const tripStops: Record<string, TripStopEntry[]> = {
 };
 
 const calendar: CalendarEntry[] = [
-  { serviceId: 'wk', days: [true, true, true, true, true, true, true], startDate: '20260101', endDate: '20261231' },
+  { serviceId: 'wk', days: [true, true, true, true, true, true, true], startDate: '20000101', endDate: '20991231' },
 ];
+
+const frequencies: Frequency[] = [];
 
 describe('getStationSchedule', () => {
   it('returns departures for a station', () => {
-    const result = getStationSchedule('st1', stops, routes, trips, tripStops, calendar);
+    const result = getStationSchedule('st1', stops, routes, trips, tripStops, calendar, frequencies);
     expect(result.stopName).toBe('Bangsar LRT');
     expect(result.departures.length).toBe(2);
     expect(result.departures[0].line).toBe('Kelana Jaya');
@@ -40,11 +42,11 @@ describe('getStationSchedule', () => {
   });
 
   it('returns departures sorted by time', () => {
-    const result = getStationSchedule('st1', stops, routes, trips, tripStops, calendar);
+    const result = getStationSchedule('st1', stops, routes, trips, tripStops, calendar, frequencies);
     expect(result.departures[0].departureTime.localeCompare(result.departures[1].departureTime)).toBeLessThanOrEqual(0);
   });
 
   it('throws for unknown stop', () => {
-    expect(() => getStationSchedule('unknown', stops, routes, trips, tripStops, calendar)).toThrow();
+    expect(() => getStationSchedule('unknown', stops, routes, trips, tripStops, calendar, frequencies)).toThrow();
   });
 });

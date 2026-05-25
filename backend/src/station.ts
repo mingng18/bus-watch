@@ -1,4 +1,4 @@
-import { Stop, Route, Trip, TripStopEntry, CalendarEntry, StationScheduleResponse, Departure } from './types';
+import { Stop, Route, Trip, TripStopEntry, CalendarEntry, Frequency, StationScheduleResponse, Departure } from './types';
 import { getActiveServiceIds } from './gtfs-static';
 
 export function getStationSchedule(
@@ -8,6 +8,7 @@ export function getStationSchedule(
   trips: Trip[],
   tripStops: Record<string, TripStopEntry[]>,
   calendar: CalendarEntry[],
+  frequencies: Frequency[],
 ): StationScheduleResponse {
   const stop = stops.find(s => s.id === stopId);
   if (!stop) throw new Error(`Stop not found: ${stopId}`);
