@@ -1,0 +1,3 @@
+## 2024-03-21 - WatchOS SwiftUI Accessibility Patterns
+**Learning:** In SwiftUI watchOS applications, `Image(systemName:)` decorative icons (like error indicators or location prompts) are often read literally by VoiceOver unless hidden. Conversely, icon-only buttons need explicit `accessibilityLabel` modifiers to communicate their intent effectively. Semantic icons (like buses/trains) convey critical context that must be translated to VoiceOver text for full accessibility.
+**Action:** Consistently use `.accessibilityHidden(true)` for purely decorative status icons and explicitly label interactive/semantic icons with `.accessibilityLabel` in watchOS list and toolbar views.
