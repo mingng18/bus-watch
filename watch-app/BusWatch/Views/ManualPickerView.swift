@@ -15,6 +15,7 @@ struct ManualPickerView: View {
                         }) {
                             HStack {
                                 Image(systemName: stop.type == "rail" ? "train.side.front.car" : "bus")
+                                    .accessibilityHidden(true)
                                 Text(stop.name)
                                     .font(.caption)
                             }

@@ -11,6 +11,7 @@ struct NearbyListView: View {
                     HStack {
                         Image(systemName: stop.type == "rail" ? "train.side.front.car" : "bus")
                             .foregroundStyle(stop.type == "rail" ? .blue : .orange)
+                            .accessibilityHidden(true)
                         Text(stop.name)
                             .font(.caption)
                         Spacer()

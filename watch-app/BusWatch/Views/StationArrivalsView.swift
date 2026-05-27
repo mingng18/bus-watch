@@ -17,6 +17,7 @@ struct StationArrivalsView: View {
                         Circle()
                             .fill(dep.minutesUntil <= 3 ? Color.green : Color.blue)
                             .frame(width: 8, height: 8)
+                            .accessibilityHidden(true)
                         VStack(alignment: .leading) {
                             Text(dep.line)
                                 .font(.caption2)
