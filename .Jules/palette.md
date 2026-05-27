@@ -1,0 +1,3 @@
+## 2024-11-20 - SwiftUI WatchOS Accessibility Optimization
+**Learning:** In SwiftUI for watchOS apps, it is critical to explicitly apply `.accessibilityHidden(true)` to decorative SF Symbols and Shape elements (like `Image(systemName: ...)` or `Circle()`), because VoiceOver may otherwise read out unhelpful names (like "location.slash", "list.bullet", or "Circle"). This significantly clutters the screen reader experience on limited-screen devices like the Apple Watch.
+**Action:** Always add `.accessibilityHidden(true)` to decorative icons and shapes, and add explicit `.accessibilityLabel()` and `.accessibilityHint()` modifiers to icon-only buttons.
