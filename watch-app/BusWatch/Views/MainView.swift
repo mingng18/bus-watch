@@ -54,6 +54,7 @@ struct MainView: View {
                 Button(action: { showManual = true }) {
                     Image(systemName: "list.bullet")
                 }
+                .accessibilityLabel("Manual Selection")
             }
         }
         .sheet(isPresented: $showManual) {
