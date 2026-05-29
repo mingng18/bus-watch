@@ -1,0 +1,4 @@
+## 2024-05-29 - [CRITICAL] Missing Authentication on Admin Endpoints
+**Vulnerability:** Found administrative/operational endpoints (`/refresh` and `/rail/ingest` in `backend/src/index.ts`) completely exposed without any authentication. The `/rail/ingest` endpoint specifically noted "protected by obscurity" which is not a valid security control.
+**Learning:** Cloudflare Workers built with Hono can expose operational endpoints easily. Using `c.env.ADMIN_TOKEN` enables optional authentication that doesn't break environments where the secret isn't configured, but allows instant securing of production.
+**Prevention:** Always require an authentication header (e.g., Bearer token) matching an environment secret for any endpoint that mutates state, triggers heavy computation, or handles administrative tasks. Never rely on "security by obscurity" for operational routes.
