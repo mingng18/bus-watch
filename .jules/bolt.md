@@ -1,0 +1,3 @@
+## 2024-05-27 - Repeated array scans in nearby lookup loops
+**Learning:** Found multiple instances where large arrays (`trips`, `routes`) were searched linearly (`Array.prototype.find`) inside nested loops over vehicles or stops (like N+1 queries but in-memory). The `nearby.ts` methods are on the critical path since they return realtime proximity info.
+**Action:** Always inspect array scans inside nested iterations in data-heavy methods. Convert large reference lists to `Map`s for O(1) lookups beforehand if accessed repeatedly.
