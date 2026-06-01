@@ -1,7 +1,6 @@
 export interface Env {
   KV: KVNamespace;
   DB: D1Database;
-  ADMIN_TOKEN?: string;
 }
 
 // --- GTFS raw types ---

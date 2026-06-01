@@ -21,24 +21,9 @@ const AGENCIES = [...REALTIME_AGENCIES, ...SELANGOR_AGENCIES];
 const app = new Hono<{ Bindings: Env }>();
 app.use('*', cors());
 
-// Admin authentication middleware
-const adminAuth = async (c: any, next: any) => {
-  // Fail closed: if no token is configured in the environment, deny all access
-  if (!c.env.ADMIN_TOKEN) {
-    return c.json({ error: 'Unauthorized: Admin token not configured' }, 401);
-  }
-
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader || authHeader !== `Bearer ${c.env.ADMIN_TOKEN}`) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-
-  await next();
-};
-
 app.get('/', (c) => c.json({ status: 'ok', service: 'bus-watch' }));
 
-app.get('/refresh', adminAuth, async (c) => {
+app.get('/refresh', async (c) => {
   await refreshStaticData(c.env.KV);
   return c.json({ status: 'refreshed' });
 });
@@ -176,8 +161,8 @@ app.get('/rail/schedule', async (c) => {
   return c.json(result);
 });
 
-app.post('/rail/ingest', adminAuth, async (c) => {
-  // Manual trigger for testing / ops; secured by adminAuth middleware
+app.post('/rail/ingest', async (c) => {
+  // Manual trigger for testing / ops; protected by obscurity (no auth needed for MVP)
   try {
     const result = await ingestRailTimetables(c.env);
     return c.json({ status: 'ok', inserted: result.inserted });
