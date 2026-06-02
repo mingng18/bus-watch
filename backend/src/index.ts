@@ -24,6 +24,10 @@ app.use('*', cors());
 app.get('/', (c) => c.json({ status: 'ok', service: 'bus-watch' }));
 
 app.get('/refresh', async (c) => {
+  if (!c.env.ADMIN_TOKEN || c.req.header('Authorization') !== `Bearer ${c.env.ADMIN_TOKEN}`) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
   await refreshStaticData(c.env.KV);
   return c.json({ status: 'refreshed' });
 });
@@ -162,6 +166,10 @@ app.get('/rail/schedule', async (c) => {
 });
 
 app.post('/rail/ingest', async (c) => {
+  if (!c.env.ADMIN_TOKEN || c.req.header('Authorization') !== `Bearer ${c.env.ADMIN_TOKEN}`) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
   // Manual trigger for testing / ops; protected by obscurity (no auth needed for MVP)
   try {
     const result = await ingestRailTimetables(c.env);
