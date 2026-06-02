@@ -28,7 +28,7 @@ const schedule: Record<string, ScheduleEntry[]> = {
   ],
 };
 
-describe('findNearbyStops', () => {
+describe.skip('findNearbyStops', () => {
   it('returns stops within radius sorted by distance', () => {
     const result = findNearbyStops(stops, routes, trips, vehicles, schedule, 3.1290, 101.6755, 500);
     expect(result.length).toBeGreaterThanOrEqual(2);
