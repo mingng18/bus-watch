@@ -1,4 +1,5 @@
 export interface Env {
+  FRONTEND_URL?: string;
   KV: KVNamespace;
   DB: D1Database;
 }

@@ -19,7 +19,17 @@ const REALTIME_AGENCIES = ['rapid-bus-kl', 'rapid-bus-mrtfeeder'];
 const AGENCIES = [...REALTIME_AGENCIES, ...SELANGOR_AGENCIES];
 
 const app = new Hono<{ Bindings: Env }>();
-app.use('*', cors());
+app.use('*', cors({
+  origin: (origin, c) => {
+    const allowed = c.env.FRONTEND_URL || 'http://localhost:3000';
+    if (!origin || origin === allowed) {
+      return origin || allowed; // Return exact origin to allow request
+    }
+    return null; // Return null to explicitly block unauthorized origins
+  },
+  allowMethods: ['GET', 'POST', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+}));
 
 app.get('/', (c) => c.json({ status: 'ok', service: 'bus-watch' }));
 
