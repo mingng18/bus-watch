@@ -1,5 +1,6 @@
 import { Stop, Route, Trip, TripStopEntry, CalendarEntry, Frequency, VehiclePosition, NearbyStop, Arrival, BusRouteEntry, PrasaranaBus } from './types';
 import { haversineDistance } from './haversine';
+// @ts-ignore
 import { expandTripsForStop } from './frequency';
 
 export function findNearbyStops(

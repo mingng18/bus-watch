@@ -82,7 +82,7 @@ export interface Trip {
   serviceId: string;
   headsign: string;
   directionId: number;
-  shapeId: string;
+  shapeId?: string;
 }
 
 export interface TripStopEntry {
@@ -229,8 +229,8 @@ export interface AgencyData {
   trips: Trip[];
   tripStops: Record<string, TripStopEntry[]>;
   calendar: CalendarEntry[];
-  frequencies: Frequency[];
-  shapes: Record<string, [number, number][]>;
+  frequencies?: Frequency[];
+  shapes?: Record<string, [number, number][]>;
 }
 
 export interface BusPosition {
