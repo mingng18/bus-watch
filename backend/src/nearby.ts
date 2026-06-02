@@ -1,3 +1,4 @@
+import type { D1Database } from "@cloudflare/workers-types";
 import { Stop, Route, Trip, TripStopEntry, CalendarEntry, Frequency, VehiclePosition, NearbyStop, Arrival, BusRouteEntry, PrasaranaBus } from './types';
 import { haversineDistance } from './haversine';
 import { expandTripsForStop } from './frequency';
@@ -152,4 +153,38 @@ export async function getHistoricalETA(db: D1Database, route: string, fromLat: n
   if (!results || results.length === 0) return null;
   // Simplistic sum approach, can be refined based on closest from_lat/from_lon
   return (results[0].avg_seconds as number) / 60;
+}
+
+export async function getBulkHistoricalETAs(db: D1Database, requests: { route: string; toStopId: string }[]): Promise<Map<string, number>> {
+  if (requests.length === 0) return new Map();
+
+  // Deduplicate requests
+  const uniqueKeys = new Set<string>();
+  const uniqueRequests: { route: string; toStopId: string }[] = [];
+
+  for (const req of requests) {
+    const key = `${req.route}|${req.toStopId}`;
+    if (!uniqueKeys.has(key)) {
+      uniqueKeys.add(key);
+      uniqueRequests.push(req);
+    }
+  }
+
+  const statements = uniqueRequests.map(req =>
+    db.prepare(`SELECT * FROM travel_times WHERE route = ? AND to_stop_id = ? LIMIT 1`).bind(req.route, req.toStopId)
+  );
+
+  const results = await db.batch(statements);
+  const etaMap = new Map<string, number>();
+
+  for (let i = 0; i < uniqueRequests.length; i++) {
+    const req = uniqueRequests[i];
+    const res = results[i];
+    if (res && res.results && res.results.length > 0) {
+      const row = res.results[0] as { avg_seconds: number };
+      etaMap.set(`${req.route}|${req.toStopId}`, row.avg_seconds / 60);
+    }
+  }
+
+  return etaMap;
 }

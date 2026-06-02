@@ -10,7 +10,7 @@ import { findNearbyRoutes } from './routes';
 import { VehiclePosition, PrasaranaBus, BusRouteEntry, Env, Route } from './types';
 import { haversineDistance } from './haversine';
 import { sampleBusPositions, aggregateTravelTimes, cleanupOldPositions } from './sampling';
-import { getHistoricalETA } from './nearby';
+import { getHistoricalETA, getBulkHistoricalETAs } from './nearby';
 import { ingestRailTimetables } from './rail-ingest';
 import { getRailSchedule, searchRailStops } from './rail-schedule';
 
@@ -51,12 +51,25 @@ app.get('/nearby', async (c) => {
   const mergedBusRoutes = mergeBusRoutes(busRoutes, prasaranaNearby);
 
   // Enrich bus arrivals with historical ETA when available
+  const bulkRequests: { route: string; toStopId: string }[] = [];
   for (const stop of result) {
     if (stop.type === 'bus') {
       for (const arrival of stop.arrivals) {
         if (arrival.route) {
-          const eta = await getHistoricalETA(c.env.DB, arrival.route, 0, 0, stop.id);
-          if (eta !== null) {
+          bulkRequests.push({ route: arrival.route, toStopId: stop.id });
+        }
+      }
+    }
+  }
+
+  const etaMap = await getBulkHistoricalETAs(c.env.DB, bulkRequests);
+
+  for (const stop of result) {
+    if (stop.type === 'bus') {
+      for (const arrival of stop.arrivals) {
+        if (arrival.route) {
+          const eta = etaMap.get(`${arrival.route}|${stop.id}`);
+          if (eta !== undefined) {
             arrival.minutes = Math.round(eta);
           }
         }
