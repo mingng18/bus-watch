@@ -56,8 +56,7 @@ struct BusProgressView: View {
 
                 HStack {
                     Spacer()
-                    let remaining = progress.stops.filter { !$0.passed }.count
-                    Text("\(remaining) stops remaining")
+                    Text("\(progress.remainingStopsCount) stops remaining")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
