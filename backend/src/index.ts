@@ -167,7 +167,8 @@ app.post('/rail/ingest', async (c) => {
     const result = await ingestRailTimetables(c.env);
     return c.json({ status: 'ok', inserted: result.inserted });
   } catch (err: any) {
-    return c.json({ status: 'error', message: err?.message || String(err) }, 500);
+    console.error('Rail ingest failed:', err);
+    return c.json({ status: 'error', message: 'Failed to ingest rail timetables' }, 500);
   }
 });
 
