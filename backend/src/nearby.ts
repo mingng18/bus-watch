@@ -21,38 +21,53 @@ export function findNearbyStops(
     .sort((a, b) => a.distance - b.distance);
 
   return nearby.map(({ stop, distance }) => {
-    const arrivals: Arrival[] = [];
-
-    if (stop.type === 'bus') {
-      const nearbyVehicles = vehicles.filter(v => haversineDistance(stop.lat, stop.lon, v.lat, v.lon) <= 500);
-      const routeMap = new Map(routes.map(r => [r.id, r]));
-      const seen = new Set<string>();
-      for (const v of nearbyVehicles) {
-        const trip = trips.find(t => t.id === v.tripId);
-        const route = trip ? routeMap.get(trip.routeId) : null;
-        const key = route?.id || v.tripId;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        const d = haversineDistance(stop.lat, stop.lon, v.lat, v.lon);
-        arrivals.push({
-          route: route?.shortName || '',
-          destination: trip?.headsign || '',
-          minutes: Math.max(1, Math.round(d / 300)),
-          isRealtime: true,
-          tripId: v.tripId,
-        });
-      }
-    } else {
-      const expanded = expandTripsForStop(stop.id, trips, tripStops, routes, calendar, frequencies, now, 120);
-      for (const dep of expanded.slice(0, 3)) {
-        arrivals.push({ line: dep.line, destination: dep.destination, minutes: dep.minutesUntil, isRealtime: false });
-      }
-    }
+    const arrivals = getArrivalsForStop(stop, vehicles, routes, trips, tripStops, calendar, frequencies, now);
 
     return { id: stop.id, name: stop.name, type: stop.type, lat: stop.lat, lon: stop.lon, distance_m: Math.round(distance), arrivals: arrivals.slice(0, 3) };
   });
 }
 
+
+function getArrivalsForStop(
+  stop: Stop,
+  vehicles: VehiclePosition[],
+  routes: Route[],
+  trips: Trip[],
+  tripStops: Record<string, TripStopEntry[]>,
+  calendar: CalendarEntry[],
+  frequencies: Frequency[],
+  now: Date
+): Arrival[] {
+  const arrivals: Arrival[] = [];
+
+  if (stop.type === 'bus') {
+    const nearbyVehicles = vehicles.filter(v => haversineDistance(stop.lat, stop.lon, v.lat, v.lon) <= 500);
+    const routeMap = new Map(routes.map(r => [r.id, r]));
+    const seen = new Set<string>();
+    for (const v of nearbyVehicles) {
+      const trip = trips.find(t => t.id === v.tripId);
+      const route = trip ? routeMap.get(trip.routeId) : null;
+      const key = route?.id || v.tripId;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const d = haversineDistance(stop.lat, stop.lon, v.lat, v.lon);
+      arrivals.push({
+        route: route?.shortName || '',
+        destination: trip?.headsign || '',
+        minutes: Math.max(1, Math.round(d / 300)),
+        isRealtime: true,
+        tripId: v.tripId,
+      });
+    }
+  } else {
+    const expanded = expandTripsForStop(stop.id, trips, tripStops, routes, calendar, frequencies, now, 120);
+    for (const dep of expanded.slice(0, 3)) {
+      arrivals.push({ line: dep.line, destination: dep.destination, minutes: dep.minutesUntil, isRealtime: false });
+    }
+  }
+
+  return arrivals;
+}
 export function findNearbyBusRoutes(
   routes: Route[],
   trips: Trip[],
