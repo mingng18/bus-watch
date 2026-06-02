@@ -1,4 +1,3 @@
-import type { D1Database } from "@cloudflare/workers-types";
 import { Stop, Route, Trip, TripStopEntry, CalendarEntry, Frequency, VehiclePosition, NearbyStop, Arrival, BusRouteEntry, PrasaranaBus } from './types';
 import { haversineDistance } from './haversine';
 import { expandTripsForStop } from './frequency';
