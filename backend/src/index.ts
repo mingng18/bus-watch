@@ -136,7 +136,7 @@ app.get('/station/:stopId/schedule', async (c) => {
   const allCalendar = await getAllCalendar(c.env.KV);
   const allFrequencies = await getAllFrequencies(c.env.KV);
 
-  const result = getStationSchedule(stopId, allStops, allRoutes, allTrips, allTripStops, allCalendar, allFrequencies);
+  const result = getStationSchedule(stopId, allStops, allRoutes, allTrips, allTripStops, allCalendar);
   return c.json(result);
 });
 
@@ -208,7 +208,7 @@ app.get('/route/:routeId', async (c) => {
     const v = vehicles[i];
     if (v.routeId === tgtRouteId) {
       gtfsBuses.push({
-        routeId: v.routeId,
+        routeId: tgtRouteId,
         routeShortName,
         destination: '',
         minutes: 0,
