@@ -32,7 +32,8 @@ app.get('/nearby', async (c) => {
   const lat = parseFloat(c.req.query('lat') || '0');
   const lon = parseFloat(c.req.query('lon') || '0');
   const radius = parseInt(c.req.query('radius') || '500');
-  if (!lat || !lon) return c.json({ error: 'lat and lon required' }, 400);
+  if (!lat || !lon || Number.isNaN(lat) || Number.isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) return c.json({ error: 'invalid lat or lon' }, 400);
+  if (Number.isNaN(radius) || radius < 0 || radius > 50000) return c.json({ error: 'invalid radius' }, 400);
 
   const allStops = await getAllStops(c.env.KV);
   const allRoutes = await getAllRoutes(c.env.KV);
@@ -175,7 +176,8 @@ app.get('/routes', async (c) => {
   const lat = parseFloat(c.req.query('lat') || '0');
   const lon = parseFloat(c.req.query('lon') || '0');
   const radius = parseInt(c.req.query('radius') || '500');
-  if (!lat || !lon) return c.json({ error: 'lat and lon required' }, 400);
+  if (!lat || !lon || Number.isNaN(lat) || Number.isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) return c.json({ error: 'invalid lat or lon' }, 400);
+  if (Number.isNaN(radius) || radius < 0 || radius > 50000) return c.json({ error: 'invalid radius' }, 400);
 
   const allStops = await getAllStops(c.env.KV);
   const allRoutes = await getAllRoutes(c.env.KV);
