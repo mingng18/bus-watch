@@ -10,22 +10,7 @@ struct MainView: View {
             case .loading:
                 ProgressView("Locating...")
             case .noLocation:
-                VStack(spacing: 12) {
-                    Image(systemName: "location.slash")
-                        .font(.title2)
-                    Text("Location access needed")
-                        .font(.caption)
-                    Button("Open Settings") {
-                        if let url = URL(string: UIApplication.openSettingsURLString) {
-                            UIApplication.shared.open(url)
-                        }
-                    }
-                    .buttonStyle(.bordered)
-                    Button("Manual Selection") {
-                        showManual = true
-                    }
-                    .buttonStyle(.bordered)
-                }
+                noLocationView
             case .station(let stop, let schedule):
                 StationArrivalsView(stop: stop, schedule: schedule)
             case .onBus(let progress):
@@ -35,17 +20,7 @@ struct MainView: View {
                     engine.selectStation(stop)
                 }
             case .error(let message):
-                VStack(spacing: 12) {
-                    Image(systemName: "exclamationmark.triangle")
-                        .font(.title2)
-                        .foregroundStyle(.red)
-                    Text(message)
-                        .font(.caption)
-                    Button("Retry") {
-                        engine.start()
-                    }
-                    .buttonStyle(.bordered)
-                }
+                errorView(message: message)
             }
         }
         .navigationTitle("BusWatch")
@@ -63,4 +38,39 @@ struct MainView: View {
             engine.start()
         }
     }
+    @ViewBuilder
+    private var noLocationView: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "location.slash")
+                .font(.title2)
+            Text("Location access needed")
+                .font(.caption)
+            Button("Open Settings") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            .buttonStyle(.bordered)
+            Button("Manual Selection") {
+                showManual = true
+            }
+            .buttonStyle(.bordered)
+        }
+    }
+
+    @ViewBuilder
+    private func errorView(message: String) -> some View {
+        VStack(spacing: 12) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.title2)
+                .foregroundStyle(.red)
+            Text(message)
+                .font(.caption)
+            Button("Retry") {
+                engine.start()
+            }
+            .buttonStyle(.bordered)
+        }
+    }
+
 }
