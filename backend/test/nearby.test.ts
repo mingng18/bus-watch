@@ -30,19 +30,19 @@ const schedule: Record<string, ScheduleEntry[]> = {
 
 describe('findNearbyStops', () => {
   it('returns stops within radius sorted by distance', () => {
-    const result = findNearbyStops(stops, routes, trips, vehicles, schedule, 3.1290, 101.6755, 500);
+    const result = findNearbyStops(stops, routes, trips, schedule as any, [], [], vehicles, 3.1290, 101.6755, 500);
     expect(result.length).toBeGreaterThanOrEqual(2);
     expect(result[0].distance_m).toBeLessThan(200);
   });
 
   it('excludes stops beyond radius', () => {
-    const result = findNearbyStops(stops, routes, trips, vehicles, schedule, 3.1290, 101.6755, 500);
+    const result = findNearbyStops(stops, routes, trips, schedule as any, [], [], vehicles, 3.1290, 101.6755, 500);
     const ids = result.map(s => s.id);
     expect(ids).not.toContain('s3');
   });
 
   it('includes bus realtime arrivals', () => {
-    const result = findNearbyStops(stops, routes, trips, vehicles, schedule, 3.1290, 101.6755, 500);
+    const result = findNearbyStops(stops, routes, trips, schedule as any, [], [], vehicles, 3.1290, 101.6755, 500);
     const busStop = result.find(s => s.id === 's2');
     expect(busStop).toBeDefined();
     expect(busStop!.arrivals.length).toBeGreaterThan(0);
@@ -51,7 +51,7 @@ describe('findNearbyStops', () => {
   });
 
   it('includes rail scheduled arrivals', () => {
-    const result = findNearbyStops(stops, routes, trips, vehicles, schedule, 3.1290, 101.6755, 500);
+    const result = findNearbyStops(stops, routes, trips, schedule as any, [], [], vehicles, 3.1290, 101.6755, 500);
     const railStop = result.find(s => s.id === 's1');
     expect(railStop).toBeDefined();
     expect(railStop!.arrivals.length).toBeGreaterThan(0);

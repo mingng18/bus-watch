@@ -15,6 +15,8 @@ export function findNearbyStops(
   radiusM: number,
 ): NearbyStop[] {
   const now = new Date();
+  const routeMap = new Map(routes.map(r => [r.id, r]));
+  const tripMap = new Map(trips.map(t => [t.id, t]));
   const nearby = stops
     .map(stop => ({ stop, distance: haversineDistance(lat, lon, stop.lat, stop.lon) }))
     .filter(({ distance }) => distance <= radiusM)
@@ -25,10 +27,9 @@ export function findNearbyStops(
 
     if (stop.type === 'bus') {
       const nearbyVehicles = vehicles.filter(v => haversineDistance(stop.lat, stop.lon, v.lat, v.lon) <= 500);
-      const routeMap = new Map(routes.map(r => [r.id, r]));
       const seen = new Set<string>();
       for (const v of nearbyVehicles) {
-        const trip = trips.find(t => t.id === v.tripId);
+        const trip = tripMap.get(v.tripId);
         const route = trip ? routeMap.get(trip.routeId) : null;
         const key = route?.id || v.tripId;
         if (seen.has(key)) continue;
@@ -62,6 +63,7 @@ export function findNearbyBusRoutes(
   radiusM: number = 1000,
 ): BusRouteEntry[] {
   const routeMap = new Map(routes.map(r => [r.id, r]));
+  const tripMap = new Map(trips.map(t => [t.id, t]));
   const results: BusRouteEntry[] = [];
   const seen = new Set<string>();
 
@@ -69,7 +71,7 @@ export function findNearbyBusRoutes(
     const d = haversineDistance(lat, lon, v.lat, v.lon);
     if (d > radiusM) continue;
 
-    const trip = trips.find(t => t.id === v.tripId);
+    const trip = tripMap.get(v.tripId);
     const route = trip ? routeMap.get(trip.routeId) : null;
     const key = route?.id || v.tripId;
     if (seen.has(key)) continue;
@@ -98,10 +100,17 @@ export function findNearbyPrasaranaBuses(
   lon: number,
   radiusM: number = 1000,
 ): BusRouteEntry[] {
+  const tripMapByRoute = new Map<string, Trip>();
+  for (const t of trips) {
+    if (!tripMapByRoute.has(t.routeId)) {
+      tripMapByRoute.set(t.routeId, t);
+    }
+  }
+
   const routeNameMap = new Map<string, { route: Route; trip: Trip | undefined }>();
   for (const r of routes) {
     if (!routeNameMap.has(r.shortName)) {
-      const trip = trips.find(t => t.routeId === r.id);
+      const trip = tripMapByRoute.get(r.id);
       routeNameMap.set(r.shortName, { route: r, trip });
     }
   }
