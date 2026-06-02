@@ -12141,7 +12141,7 @@ __name(fetchVehiclePositions, "fetchVehiclePositions");
 
 // src/prasarana-socketio.ts
 async function fetchPrasaranaBuses(...args) {
-  return [];
+  return { buses: [] };
 }
 __name(fetchPrasaranaBuses, "fetchPrasaranaBuses");
 
@@ -12281,14 +12281,18 @@ async function getBulkHistoricalETAs(db, requests) {
   const statements = uniqueRequests.map(
     (req) => db.prepare(`SELECT * FROM travel_times WHERE route = ? AND to_stop_id = ? LIMIT 1`).bind(req.route, req.toStopId)
   );
-  const results = await db.batch(statements);
   const etaMap = /* @__PURE__ */ new Map();
-  for (let i = 0; i < uniqueRequests.length; i++) {
-    const req = uniqueRequests[i];
-    const res = results[i];
-    if (res && res.results && res.results.length > 0) {
-      const row = res.results[0];
-      etaMap.set(`${req.route}|${req.toStopId}`, row.avg_seconds / 60);
+  for (let i = 0; i < statements.length; i += 100) {
+    const chunkStatements = statements.slice(i, i + 100);
+    const chunkRequests = uniqueRequests.slice(i, i + 100);
+    const results = await db.batch(chunkStatements);
+    for (let j = 0; j < chunkRequests.length; j++) {
+      const req = chunkRequests[j];
+      const res = results[j];
+      if (res && res.results && res.results.length > 0) {
+        const row = res.results[0];
+        etaMap.set(`${req.route}|${req.toStopId}`, row.avg_seconds / 60);
+      }
     }
   }
   return etaMap;
