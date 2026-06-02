@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { fetchAndParseAgency } from './gtfs-static';
 import { fetchVehiclePositions } from './gtfs-realtime';
-import { fetchPrasaranaBuses } from './prasarana-socketio';
+
 import { findNearbyStops, findNearbyBusRoutes, findNearbyPrasaranaBuses } from './nearby';
 import { getBusTripProgress } from './bus-tracker';
 import { getStationSchedule } from './station';
