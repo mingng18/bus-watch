@@ -24,4 +24,12 @@ describe('parseCsv', () => {
     const result = parseCsv('');
     expect(result).toEqual([]);
   });
+
+  it('prevents prototype pollution', () => {
+    const input = '__proto__,polluted\n"{\\"polluted\\":true}","yes"\n';
+    const result = parseCsv(input);
+    expect(Object.getPrototypeOf(result[0])).toBeNull();
+    expect(result[0]['__proto__']).toBeUndefined();
+    expect(result[0]['polluted']).toBe('yes');
+  });
 });

@@ -1,0 +1,3 @@
+## 2025-06-02 - CSV Parser Prototype Pollution
+**Learning:** Initializing objects parsed from user input (like CSV rows) using `Object.create(null)` instead of object literals (`{}`) is an effective way to mitigate prototype pollution by removing the prototype chain, while explicitly filtering unsafe keys like `__proto__` and `constructor` adds defense-in-depth.
+**Action:** When creating objects from dynamic or untrusted keys, prefer `Object.create(null)` and validate/sanitize keys to prevent pollution of the global object prototype. Ensure security test assertions actually verify the absence of prototype pollution (e.g., `Object.getPrototypeOf(result[0]) === null`) rather than relying on false-positive assertions.
