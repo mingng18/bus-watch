@@ -136,7 +136,7 @@ app.get('/station/:stopId/schedule', async (c) => {
   const allCalendar = await getAllCalendar(c.env.KV);
   const allFrequencies = await getAllFrequencies(c.env.KV);
 
-  const result = getStationSchedule(stopId, allStops, allRoutes, allTrips, allTripStops, allCalendar, allFrequencies);
+  const result = getStationSchedule(stopId, allStops, allRoutes, allTrips, allTripStops, allCalendar);
   return c.json(result);
 });
 
