@@ -24,4 +24,13 @@ describe('parseCsv', () => {
     const result = parseCsv('');
     expect(result).toEqual([]);
   });
+
+  it('handles malformed data with more or fewer columns than headers', () => {
+    const input = 'a,b,c\n1,2\n4,5,6,7\n';
+    const result = parseCsv(input);
+    expect(result).toEqual([
+      { a: '1', b: '2', c: '' },
+      { a: '4', b: '5', c: '6' },
+    ]);
+  });
 });
