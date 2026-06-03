@@ -1,0 +1,4 @@
+## 2024-05-19 - [CRITICAL] Unprotected Administrative Endpoints
+**Vulnerability:** Administrative/ops endpoints (`/refresh` and `/rail/ingest`) were accessible to anyone without authentication. The code explicitly mentioned they were "protected by obscurity" which is a critical security risk.
+**Learning:** Security by obscurity is insufficient for operations that trigger heavy background processing or data mutations (e.g. `ingestRailTimetables` or `refreshStaticData`). Leaving such routes unprotected can lead to denial of service, unintended mutations, or rate-limit exhaustion with downstream dependencies.
+**Prevention:** Always "fail closed" by explicitly validating a strong, environment-configured secret like `ADMIN_TOKEN` before performing any administrative action. Default to 401 Unauthorized if the token is missing from the environment.
