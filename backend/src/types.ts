@@ -27,6 +27,7 @@ export interface GtfsTrip {
   service_id: string;
   trip_headsign: string;
   direction_id: string;
+  shape_id?: string;
 }
 
 export interface GtfsStopTime {
