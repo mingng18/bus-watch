@@ -1,0 +1,3 @@
+## 2024-03-24 - Missing ARIA Labels on Icon-Only SwiftUI Buttons
+**Learning:** SwiftUI `Image(systemName:)` elements used in icon-only buttons do not automatically receive an accessible label. Screen readers like VoiceOver will only announce them as "Button", which is not helpful to users. Similarly, decorative `Image(systemName:)` elements that accompany text need to be hidden from screen readers to prevent redundant or confusing announcements.
+**Action:** Always add `.accessibilityLabel("Description")` to icon-only buttons. For decorative images next to explanatory text, apply `.accessibilityHidden(true)` to avoid redundancy.
