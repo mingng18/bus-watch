@@ -8,6 +8,7 @@ export function getStationSchedule(
   trips: Trip[],
   tripStops: Record<string, TripStopEntry[]>,
   calendar: CalendarEntry[],
+  frequencies?: any[],
 ): StationScheduleResponse {
   const stop = stops.find(s => s.id === stopId);
   if (!stop) throw new Error(`Stop not found: ${stopId}`);

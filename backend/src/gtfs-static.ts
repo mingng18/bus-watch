@@ -90,6 +90,7 @@ export async function fetchAndParseAgency(agency: string): Promise<AgencyData> {
     serviceId: t.service_id,
     headsign: t.trip_headsign,
     directionId: parseInt(t.direction_id) || 0,
+    shapeId: t.shape_id || '',
   }));
 
   const tripStops: Record<string, TripStopEntry[]> = {};
@@ -118,7 +119,7 @@ export async function fetchAndParseAgency(agency: string): Promise<AgencyData> {
     endDate: c.end_date,
   }));
 
-  return { stops, routes, trips, tripStops, calendar };
+  return { stops, routes, trips, tripStops, calendar, frequencies: [], shapes: {} };
 }
 
 export function getActiveServiceIds(calendar: CalendarEntry[], date: Date): Set<string> {
