@@ -1,0 +1,4 @@
+## 2024-05-24 - Missing Authentication on Administrative Endpoints
+**Vulnerability:** Operational endpoints (`/refresh`, `/rail/ingest`) lacked authentication checks, making them vulnerable to unauthorized access and potential denial of service or unexpected data state modifications by any internet user.
+**Learning:** MVP operational endpoints may accidentally remain unauthenticated, assuming "security by obscurity". Internal/administrative endpoints must "fail closed" if configuration like an `ADMIN_TOKEN` is missing, otherwise they are fully exposed.
+**Prevention:** Always enforce authentication (e.g., via a bearer token from environment configuration) on administrative/refresh endpoints. Ensure `ADMIN_TOKEN` availability and default to `401 Unauthorized` when the token is omitted or empty.

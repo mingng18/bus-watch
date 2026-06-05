@@ -1,6 +1,7 @@
 export interface Env {
   KV: KVNamespace;
   DB: D1Database;
+  ADMIN_TOKEN?: string;
 }
 
 // --- GTFS raw types ---
@@ -64,7 +65,7 @@ export interface Stop {
   name: string;
   lat: number;
   lon: number;
-  type: 'bus' | 'rail';
+  type: "bus" | "rail";
   parentStation: string;
 }
 
@@ -124,7 +125,7 @@ export interface VehiclePosition {
 export interface NearbyStop {
   id: string;
   name: string;
-  type: 'bus' | 'rail';
+  type: "bus" | "rail";
   lat: number;
   lon: number;
   distance_m: number;
@@ -185,7 +186,7 @@ export interface RouteInfo {
   id: string;
   shortName: string;
   longName: string;
-  type: 'bus' | 'rail';
+  type: "bus" | "rail";
 }
 
 export interface Frequency {
