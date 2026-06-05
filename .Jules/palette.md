@@ -1,0 +1,3 @@
+## 2024-06-25 - SwiftUI Icon Accessibility
+**Learning:** In SwiftUI, icon-only toolbar buttons using `Image(systemName:)` do not automatically receive an accessible label and must be explicitly tagged with `.accessibilityLabel()`. Additionally, decorative `Image(systemName:)` elements should use `.accessibilityHidden(true)` to prevent redundant screen reader announcements that don't add value.
+**Action:** Always add `.accessibilityLabel()` to icon-only buttons and `.accessibilityHidden(true)` to purely decorative icons when building or modifying SwiftUI views.
