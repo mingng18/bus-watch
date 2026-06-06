@@ -1,0 +1,3 @@
+## 2024-03-21 - Accessible Labels for SwiftUI System Images
+**Learning:** SwiftUI's `Image(systemName:)` elements do not automatically receive accessible labels or hide themselves when used decoratively. When used as an icon-only button (e.g. in a Toolbar), it is invisible to screen readers without an `.accessibilityLabel`. When used alongside text (e.g., an icon next to text indicating a location), it should be hidden with `.accessibilityHidden(true)` to prevent redundant screen reader announcements.
+**Action:** When implementing SwiftUI views, especially toolbars and lists, explicitly add `.accessibilityLabel` to icon-only interactive elements and `.accessibilityHidden(true)` to decorative `Image(systemName:)` elements.
