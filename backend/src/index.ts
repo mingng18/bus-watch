@@ -25,6 +25,10 @@ app.use('*', cors());
 app.get('/', (c) => c.json({ status: 'ok', service: 'bus-watch' }));
 
 app.get('/refresh', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  if (!c.env.ADMIN_TOKEN || authHeader !== `Bearer ${c.env.ADMIN_TOKEN}`) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
   await refreshStaticData(c.env.KV);
   return c.json({ status: 'refreshed' });
 });
@@ -163,12 +167,15 @@ app.get('/rail/schedule', async (c) => {
 });
 
 app.post('/rail/ingest', async (c) => {
-  // Manual trigger for testing / ops; protected by obscurity (no auth needed for MVP)
+  const authHeader = c.req.header('Authorization');
+  if (!c.env.ADMIN_TOKEN || authHeader !== `Bearer ${c.env.ADMIN_TOKEN}`) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
   try {
     const result = await ingestRailTimetables(c.env);
     return c.json({ status: 'ok', inserted: result.inserted });
   } catch (err: any) {
-    return c.json({ status: 'error', message: err?.message || String(err) }, 500);
+    return c.json({ status: 'error', message: 'Internal Server Error' }, 500); // Do not leak error details
   }
 });
 
@@ -243,7 +250,7 @@ app.get('/route/:routeId', async (c) => {
 
   const allTrips = await getAllTrips(c.env.KV);
   const routeTrips = allTrips.filter(t => t.routeId === route!.id && t.shapeId);
-  
+
   const allShapes = await getAllShapes(c.env.KV);
   const shapeIds = Array.from(new Set(routeTrips.map(t => t.shapeId)));
   let shapes = shapeIds.filter(id => allShapes[id]).map(id => ({
@@ -411,7 +418,7 @@ export default {
       } catch (err) {
         console.error('Failed to fetch realtime data for sampling:', err);
       }
-      
+
       try {
         await sampleBusPositions(env, vehicles, buses);
         await aggregateTravelTimes(env);
