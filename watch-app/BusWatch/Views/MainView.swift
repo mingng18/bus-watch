@@ -13,7 +13,6 @@ struct MainView: View {
                 VStack(spacing: 12) {
                     Image(systemName: "location.slash")
                         .font(.title2)
-                        .accessibilityHidden(true)
                     Text("Location access needed")
                         .font(.caption)
                     Button("Open Settings") {
@@ -40,7 +39,6 @@ struct MainView: View {
                     Image(systemName: "exclamationmark.triangle")
                         .font(.title2)
                         .foregroundStyle(.red)
-                        .accessibilityHidden(true)
                     Text(message)
                         .font(.caption)
                     Button("Retry") {
@@ -56,7 +54,6 @@ struct MainView: View {
                 Button(action: { showManual = true }) {
                     Image(systemName: "list.bullet")
                 }
-                .accessibilityLabel("Manual Selection")
             }
         }
         .sheet(isPresented: $showManual) {

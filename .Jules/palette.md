@@ -1,3 +1,0 @@
-## 2026-05-25 - Improve VoiceOver for SwiftUI Status Views
-**Learning:** SwiftUI `Image(systemName:)` decorative icons inside status views lack `.accessibilityHidden(true)`, meaning VoiceOver reads them redundantly alongside the accompanying explanatory text (e.g., reading "Location slash" followed by "Location access needed"). Furthermore, icon-only toolbar buttons lack accessible labels.
-**Action:** When working on watchOS/SwiftUI views in this repository, proactively check `Image(systemName:)` usage. Apply `.accessibilityHidden(true)` to decorative/state icons that have adjacent text, and `.accessibilityLabel()` to icon-only buttons.
