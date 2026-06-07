@@ -201,26 +201,42 @@ app.get('/route/:routeId', async (c) => {
   // Get active buses
   const vehicles = await getRealtimeVehicles(c.env.KV);
 
-  const gtfsBuses = vehicles.filter(v => v.routeId === route!.id).map(v => ({
-    routeId: v.routeId,
-    routeShortName: route!.shortName || route!.longName || '',
-    destination: '',
-    minutes: 0,
-    tripId: v.tripId,
-    lat: v.lat,
-    lon: v.lon,
-  }));
+  const gtfsBuses: Array<{ routeId: string; routeShortName: string; destination: string; minutes: number; tripId: string; lat: number; lon: number; }> = [];
+  const routeShortName = route!.shortName || route!.longName || '';
+  const tgtRouteId = route!.id;
+  for (let i = 0, len = vehicles.length; i < len; i++) {
+    const v = vehicles[i];
+    if (v.routeId === tgtRouteId) {
+      gtfsBuses.push({
+        routeId: tgtRouteId,
+        routeShortName,
+        destination: '',
+        minutes: 0,
+        tripId: v.tripId,
+        lat: v.lat,
+        lon: v.lon,
+      });
+    }
+  }
 
-  const pBuses = prasaranaBuses.filter(b => b.route === route!.shortName || b.route === route!.shortName + '0').map(b => ({
-    routeId: route!.id,
-    routeShortName: route!.shortName || route!.longName || '',
-    destination: '',
-    minutes: 0,
-    tripId: b.bus_no,
-    lat: b.latitude,
-    lon: b.longitude,
-    busNo: b.bus_no
-  }));
+  const pBuses: Array<{ routeId: string; routeShortName: string; destination: string; minutes: number; tripId: string; lat: number; lon: number; busNo: string; }> = [];
+  const pTargetRoute1 = route!.shortName;
+  const pTargetRoute2 = route!.shortName + '0';
+  for (let i = 0, len = prasaranaBuses.length; i < len; i++) {
+    const b = prasaranaBuses[i];
+    if (b.route === pTargetRoute1 || b.route === pTargetRoute2) {
+      pBuses.push({
+        routeId: tgtRouteId,
+        routeShortName,
+        destination: '',
+        minutes: 0,
+        tripId: b.bus_no,
+        lat: b.latitude,
+        lon: b.longitude,
+        busNo: b.bus_no
+      });
+    }
+  }
 
   const mergedBuses = mergeBusRoutes(gtfsBuses, pBuses);
 
