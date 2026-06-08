@@ -47,14 +47,14 @@ with open('backend/src/index.ts', 'w') as f:
 # Fix nearby.ts
 with open('backend/src/frequency.ts', 'w') as f:
     f.write("""export function expandTripsForStop(
+  stopId: string,
   trips: any[],
   tripStops: Record<string, any[]>,
+  routes: any[],
+  calendar: any[],
   frequencies: any[],
-  stopId: string,
-  lat: number,
-  lon: number,
-  vehicles: any[],
-  date: Date
+  now: Date,
+  timeWindow: number
 ): any[] {
   return [];
 }
