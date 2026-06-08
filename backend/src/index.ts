@@ -14,6 +14,7 @@ import { sampleBusPositions, aggregateTravelTimes, cleanupOldPositions } from '.
 import { getHistoricalETA } from './nearby';
 import { ingestRailTimetables } from './rail-ingest';
 import { getRailSchedule, searchRailStops } from './rail-schedule';
+import { timingSafeEqual } from 'hono/utils/buffer';
 
 const SELANGOR_AGENCIES = ['selangor-mobility']; // optional, may be unavailable
 const REALTIME_AGENCIES = ['rapid-bus-kl', 'rapid-bus-mrtfeeder'];
@@ -26,7 +27,7 @@ app.get('/', (c) => c.json({ status: 'ok', service: 'bus-watch' }));
 
 app.get('/refresh', async (c) => {
   const authHeader = c.req.header('Authorization');
-  if (!c.env.ADMIN_TOKEN || authHeader !== `Bearer ${c.env.ADMIN_TOKEN}`) {
+  if (!c.env.ADMIN_TOKEN || !(await timingSafeEqual(authHeader || '', `Bearer ${c.env.ADMIN_TOKEN}`))) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
   await refreshStaticData(c.env.KV);
@@ -168,7 +169,7 @@ app.get('/rail/schedule', async (c) => {
 
 app.post('/rail/ingest', async (c) => {
   const authHeader = c.req.header('Authorization');
-  if (!c.env.ADMIN_TOKEN || authHeader !== `Bearer ${c.env.ADMIN_TOKEN}`) {
+  if (!c.env.ADMIN_TOKEN || !(await timingSafeEqual(authHeader || '', `Bearer ${c.env.ADMIN_TOKEN}`))) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
   try {
