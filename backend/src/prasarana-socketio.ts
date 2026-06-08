@@ -1,3 +1,4 @@
-export async function fetchPrasaranaBuses(provider: string): Promise<any[]> {
+import { PrasaranaBus } from "./types";
+export async function fetchPrasaranaBuses(provider: string): Promise<PrasaranaBus[]> {
     return [];
 }
