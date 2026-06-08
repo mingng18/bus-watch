@@ -1,3 +1,3 @@
-## 2024-05-19 - Avoid Chained Array Iterations for Critical Paths
-**Learning:** Chaining `.filter().map()` incurs an intermediate array allocation which degraded performance inside the hot path `index.ts`.
-**Action:** Replaced `.filter().map()` loops with highly optimized classic `for` loops containing precomputed property accesses (`routeId` / `routeShortName`), which yielded measurable execution speedups.
+## 2024-06-08 - Precompute Sets for lookup in loops
+**Learning:** Checking for inclusion in small, constant arrays via `.includes()` inside loops (like `['0', '1', '2'].includes(rt)`) over large datasets (e.g. `rawStopTimes`) incurs unnecessary array allocations and linearly bounded lookups during every iteration.
+**Action:** Always extract invariant arrays into precomputed `Set` objects outside loop boundaries to ensure O(1) lookups and eliminate allocations, reducing execution time significantly.
