@@ -8,7 +8,7 @@ vi.mock('../src/frequency', () => ({
   }]
 }));
 import { describe, it, expect } from 'vitest';
-import { findNearbyStops } from '../src/nearby';
+import { findNearbyStops, getHistoricalETA } from '../src/nearby';
 import { Stop, Route, Trip, VehiclePosition, ScheduleEntry } from '../src/types';
 
 const stops: Stop[] = [
@@ -65,5 +65,49 @@ describe('findNearbyStops', () => {
     expect(railStop).toBeDefined();
     expect(railStop!.arrivals.length).toBeGreaterThan(0);
     expect(railStop!.arrivals[0].isRealtime).toBe(false);
+  });
+});
+
+describe('getHistoricalETA', () => {
+  const createMockDb = (mockResults: any) => {
+    const bindFn = vi.fn().mockReturnThis();
+    const prepareFn = vi.fn().mockReturnThis();
+    const allFn = vi.fn().mockResolvedValue({ results: mockResults });
+
+    // Wire up the chain
+    prepareFn.mockImplementation(() => ({ bind: bindFn }));
+    bindFn.mockImplementation(() => ({ all: allFn }));
+
+    return {
+      prepare: prepareFn,
+      bind: bindFn,
+      all: allFn,
+    } as any;
+  };
+
+  it('returns null if no results are found', async () => {
+    const db = createMockDb([]);
+    const result = await getHistoricalETA(db, 'route1', 1, 2, 'stop1');
+    expect(result).toBeNull();
+  });
+
+  it('returns null if results is null/undefined', async () => {
+    const db = createMockDb(null);
+    const result = await getHistoricalETA(db, 'route1', 1, 2, 'stop1');
+    expect(result).toBeNull();
+  });
+
+  it('returns historical ETA in minutes based on avg_seconds', async () => {
+    const db = createMockDb([{ avg_seconds: 300 }]);
+    const result = await getHistoricalETA(db, 'route1', 1, 2, 'stop1');
+    expect(result).toBe(5); // 300 seconds / 60 = 5 minutes
+  });
+
+  it('binds parameters correctly', async () => {
+    const db = createMockDb([{ avg_seconds: 300 }]);
+    await getHistoricalETA(db, 'route1', 1, 2, 'stop1');
+    expect(db.prepare).toHaveBeenCalledWith('SELECT * FROM travel_times WHERE route = ? AND to_stop_id = ? LIMIT 1');
+    expect(db.bind).toHaveBeenCalledWith('route1', 'stop1');
+    expect(db.all).toHaveBeenCalled();
   });
 });
