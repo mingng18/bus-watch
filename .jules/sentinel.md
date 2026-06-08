@@ -1,4 +1,7 @@
-## 2024-06-07 - Secure Administrative Endpoints
-**Vulnerability:** Missing authentication on administrative endpoints (`/refresh`, `/rail/ingest`), relying on "security by obscurity" for MVP. Additionally, `/rail/ingest` leaked internal error details in its catch block.
-**Learning:** Even for MVPs, operational and administrative endpoints that trigger data ingestion or heavy background tasks must not rely on "security by obscurity." These endpoints can be discovered and abused to cause Denial of Service (DoS) or trigger unwanted state changes. Furthermore, returning raw error messages to the client exposes system internals.
-**Prevention:** Always implement authentication (e.g., a Bearer token check via `ADMIN_TOKEN` environment variable) for operational endpoints. Employ a "fail closed" approach: if the auth configuration is missing or validation fails, deny access (401 Unauthorized). Sanitize error responses to avoid leaking internal stack traces or database errors.
+## 2025-02-14 - Fix timing attack vulnerability in token authentication
+
+**Vulnerability:** String comparison operators (`===` and `!==`) used to verify `ADMIN_TOKEN` were susceptible to timing attacks, allowing an attacker to determine the correct token character-by-character by measuring the time taken for the comparison to fail.
+
+**Learning:** When comparing sensitive information like passwords, API keys, or security tokens, standard equality checks fail early. The time it takes to return false reveals how many initial characters match the secret string.
+
+**Prevention:** Always use constant-time comparison algorithms like `crypto.subtle.timingSafeEqual` (or `timingSafeEqual` from `hono/utils/buffer` when working with Hono) for sensitive string comparisons, regardless of token length.
