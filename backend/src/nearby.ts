@@ -12,7 +12,7 @@ import {
   PrasaranaBus,
 } from "./types";
 import { haversineDistance } from "./haversine";
-// @ts-ignore
+
 import { expandTripsForStop } from "./frequency";
 
 export function findNearbyStops(
@@ -209,7 +209,7 @@ function normalizeRouteCode(code: string): string {
   return code;
 }
 
-// @ts-ignore
+
 export async function getHistoricalETA(
   db: import('@cloudflare/workers-types').D1Database,
   route: string,
