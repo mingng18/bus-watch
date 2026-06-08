@@ -592,4 +592,3 @@ export default {
   },
 };
 export { refreshStaticData as __refreshStaticData_for_test };
-export { refreshStaticData as __refreshStaticData_for_test };
