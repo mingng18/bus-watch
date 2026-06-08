@@ -1,4 +1,4 @@
-## 2024-06-07 - Secure Administrative Endpoints
-**Vulnerability:** Missing authentication on administrative endpoints (`/refresh`, `/rail/ingest`), relying on "security by obscurity" for MVP. Additionally, `/rail/ingest` leaked internal error details in its catch block.
-**Learning:** Even for MVPs, operational and administrative endpoints that trigger data ingestion or heavy background tasks must not rely on "security by obscurity." These endpoints can be discovered and abused to cause Denial of Service (DoS) or trigger unwanted state changes. Furthermore, returning raw error messages to the client exposes system internals.
-**Prevention:** Always implement authentication (e.g., a Bearer token check via `ADMIN_TOKEN` environment variable) for operational endpoints. Employ a "fail closed" approach: if the auth configuration is missing or validation fails, deny access (401 Unauthorized). Sanitize error responses to avoid leaking internal stack traces or database errors.
+## 2025-02-14 - Prevent Data Leakage in Error Logs
+**Vulnerability:** Sensitive Data Leakage via Console Logs.
+**Learning:** Logging the raw error object directly (e.g., `console.error('...', err)`) can inadvertently leak sensitive application state, internal configuration, or authorization tokens. Furthermore, in TypeScript, directly accessing properties on caught errors requires explicit typing (e.g., `catch (err: any)`) to avoid `TS2339`.
+**Prevention:** Always sanitize error objects by extracting only non-sensitive details, such as `err?.message || 'Unknown error'`. Validate type safety of catch block assignments to ensure builds do not fail after security patches.
