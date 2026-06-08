@@ -1,3 +1,3 @@
-## 2024-05-19 - Avoid Chained Array Iterations for Critical Paths
-**Learning:** Chaining `.filter().map()` incurs an intermediate array allocation which degraded performance inside the hot path `index.ts`.
-**Action:** Replaced `.filter().map()` loops with highly optimized classic `for` loops containing precomputed property accesses (`routeId` / `routeShortName`), which yielded measurable execution speedups.
+## 2024-11-20 - Concurrent Data Fetching Using Promise.allSettled
+**Learning:** Using `Promise.allSettled(array.map(async () => { ...try/catch... }))` is a highly effective pattern for replacing sequential `for...of` loops involving independent network calls or I/O operations (like fetching API data and batching writes to a database or KV store). It speeds up execution dramatically without letting a single failure halt the rest of the batch.
+**Action:** When identifying bottlenecks in loops involving independent I/O (especially network fetches or separate database writes), switch from `for...of` sequentially awaited calls to concurrent mapped `Promise.allSettled` (or `Promise.all` with inner `try/catch` handlers) to maximize parallelism and fault-tolerance. Avoid committing unintended `pnpm-lock.yaml` file changes or broad code formatting side-effects when refactoring for performance.
