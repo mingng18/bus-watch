@@ -227,3 +227,28 @@ export async function getHistoricalETA(
   // Simplistic sum approach, can be refined based on closest from_lat/from_lon
   return (results[0].avg_seconds as number) / 60;
 }
+
+export async function getBatchedHistoricalETAs(
+  db: import('@cloudflare/workers-types').D1Database,
+  queries: {route: string, stopId: string}[],
+): Promise<Map<string, number>> {
+  const map = new Map<string, number>();
+  if (queries.length === 0) return map;
+
+  const stmt = db.prepare(
+    `SELECT * FROM travel_times WHERE route = ? AND to_stop_id = ? LIMIT 1`,
+  );
+
+  const dbQueries = queries.map((q) => stmt.bind(q.route, q.stopId));
+  const results = await db.batch<{avg_seconds: number, route: string, to_stop_id: string}>(dbQueries);
+
+  for (let i = 0; i < results.length; i++) {
+    const res = results[i].results;
+    if (res && res.length > 0) {
+      const q = queries[i];
+      map.set(`${q.route}-${q.stopId}`, (res[0].avg_seconds as number) / 60);
+    }
+  }
+
+  return map;
+}
