@@ -2,14 +2,14 @@ import { Route, TripStopEntry, VehiclePosition, BusProgressResponse, TripStopSta
 
 export function getBusTripProgress(
   tripId: string,
-  routes: Route[],
+  routeMap: Map<string, Route>,
   tripStops: Record<string, TripStopEntry[]>,
   vehicle: VehiclePosition | null,
 ): BusProgressResponse {
   const stops = tripStops[tripId];
   if (!stops) throw new Error(`Trip not found: ${tripId}`);
 
-  const route = routes.find(r => r.id === vehicle?.routeId);
+  const route = vehicle?.routeId ? routeMap.get(vehicle.routeId) : undefined;
   const destination = stops[stops.length - 1]?.stopName || '';
   const currentSeq = vehicle?.currentStopSequence || 0;
 
