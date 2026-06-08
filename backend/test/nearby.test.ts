@@ -8,7 +8,7 @@ vi.mock('../src/frequency', () => ({
   }]
 }));
 import { describe, it, expect } from 'vitest';
-import { findNearbyStops } from '../src/nearby';
+import { findNearbyStops, findNearbyBusRoutes } from '../src/nearby';
 import { Stop, Route, Trip, VehiclePosition, ScheduleEntry } from '../src/types';
 
 const stops: Stop[] = [
@@ -65,5 +65,52 @@ describe('findNearbyStops', () => {
     expect(railStop).toBeDefined();
     expect(railStop!.arrivals.length).toBeGreaterThan(0);
     expect(railStop!.arrivals[0].isRealtime).toBe(false);
+  });
+});
+describe('findNearbyBusRoutes', () => {
+  it('returns nearby bus routes sorted by ETA', () => {
+    // Add multiple vehicles at different distances to test sorting
+    const localVehicles: VehiclePosition[] = [
+      { tripId: 't2', routeId: 'r2', lat: 3.1301, lon: 101.6761, currentStopSequence: 5, timestamp: 1000, stopId: 's2' }, // Close
+      { tripId: 't1', routeId: 'r1', lat: 3.1350, lon: 101.6800, currentStopSequence: 2, timestamp: 1000, stopId: 's1' }, // Further
+    ];
+
+    // lat/lon near 'Close' vehicle
+    const result = findNearbyBusRoutes(routes, trips, localVehicles, 3.1290, 101.6755, 2000);
+
+    expect(result.length).toBe(2);
+    // Closest should be first (t2)
+    expect(result[0].tripId).toBe('t2');
+    expect(result[0].routeShortName).toBe('300');
+    expect(result[1].tripId).toBe('t1');
+    expect(result[1].routeShortName).toBe('Kelana Jaya');
+    expect(result[0].minutes).toBeLessThan(result[1].minutes);
+  });
+
+  it('excludes vehicles beyond radius', () => {
+    const localVehicles: VehiclePosition[] = [
+      { tripId: 't2', routeId: 'r2', lat: 3.1301, lon: 101.6761, currentStopSequence: 5, timestamp: 1000, stopId: 's2' }, // Close
+      { tripId: 't1', routeId: 'r1', lat: 3.2000, lon: 101.7000, currentStopSequence: 2, timestamp: 1000, stopId: 's3' }, // Very far
+    ];
+
+    const result = findNearbyBusRoutes(routes, trips, localVehicles, 3.1290, 101.6755, 1000); // 1km radius
+
+    expect(result.length).toBe(1);
+    expect(result[0].tripId).toBe('t2');
+  });
+
+  it('deduplicates by route ID', () => {
+    const localVehicles: VehiclePosition[] = [
+      // Two vehicles on the same route (r2)
+      { tripId: 't2', routeId: 'r2', lat: 3.1301, lon: 101.6761, currentStopSequence: 5, timestamp: 1000, stopId: 's2' }, // Close
+      { tripId: 't2', routeId: 'r2', lat: 3.1310, lon: 101.6770, currentStopSequence: 6, timestamp: 1000, stopId: 's2' }, // Slightly further
+    ];
+
+    const result = findNearbyBusRoutes(routes, trips, localVehicles, 3.1290, 101.6755, 1000);
+
+    expect(result.length).toBe(1);
+    expect(result[0].tripId).toBe('t2');
+    // First processed close vehicle is kept
+    expect(result[0].lat).toBe(3.1301);
   });
 });
