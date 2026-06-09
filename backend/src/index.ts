@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { timingSafeEqual } from 'hono/utils/buffer';
 import { fetchAndParseAgency } from './gtfs-static';
 import { fetchVehiclePositions } from './gtfs-realtime';
 // @ts-ignore
@@ -26,7 +27,11 @@ app.get('/', (c) => c.json({ status: 'ok', service: 'bus-watch' }));
 
 app.get('/refresh', async (c) => {
   const authHeader = c.req.header('Authorization');
-  if (!c.env.ADMIN_TOKEN || authHeader !== `Bearer ${c.env.ADMIN_TOKEN}`) {
+  if (!c.env.ADMIN_TOKEN || !authHeader) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+  const isEqual = await timingSafeEqual(`Bearer ${c.env.ADMIN_TOKEN}`, authHeader);
+  if (!isEqual) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
   await refreshStaticData(c.env.KV);
@@ -168,7 +173,11 @@ app.get('/rail/schedule', async (c) => {
 
 app.post('/rail/ingest', async (c) => {
   const authHeader = c.req.header('Authorization');
-  if (!c.env.ADMIN_TOKEN || authHeader !== `Bearer ${c.env.ADMIN_TOKEN}`) {
+  if (!c.env.ADMIN_TOKEN || !authHeader) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+  const isEqual = await timingSafeEqual(`Bearer ${c.env.ADMIN_TOKEN}`, authHeader);
+  if (!isEqual) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
   try {

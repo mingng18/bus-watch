@@ -1,4 +1,4 @@
-## 2024-06-07 - Secure Administrative Endpoints
-**Vulnerability:** Missing authentication on administrative endpoints (`/refresh`, `/rail/ingest`), relying on "security by obscurity" for MVP. Additionally, `/rail/ingest` leaked internal error details in its catch block.
-**Learning:** Even for MVPs, operational and administrative endpoints that trigger data ingestion or heavy background tasks must not rely on "security by obscurity." These endpoints can be discovered and abused to cause Denial of Service (DoS) or trigger unwanted state changes. Furthermore, returning raw error messages to the client exposes system internals.
-**Prevention:** Always implement authentication (e.g., a Bearer token check via `ADMIN_TOKEN` environment variable) for operational endpoints. Employ a "fail closed" approach: if the auth configuration is missing or validation fails, deny access (401 Unauthorized). Sanitize error responses to avoid leaking internal stack traces or database errors.
+## 2025-06-09 - Insecure Admin Token Comparison
+**Vulnerability:** Timing attack risk in admin token verification endpoint in Hono.
+**Learning:** `timingSafeEqual` should be used instead of standard string equality (`===`) for sensitive tokens to prevent leaking information via timing measurements. In the Hono/Cloudflare Workers environment, standard `crypto.subtle.timingSafeEqual` is not directly available, but `timingSafeEqual` from `hono/utils/buffer` can be used. Note that this function is asynchronous and must be `await`ed.
+**Prevention:** Always use constant-time comparison functions for passwords, auth tokens, API keys, and other secrets.
