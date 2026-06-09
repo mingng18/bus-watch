@@ -1,0 +1,3 @@
+## 2024-06-09 - SwiftUI Accessibility Labels for System Images
+**Learning:** In SwiftUI views, icon-only toolbar buttons using `Image(systemName:)` do not automatically receive an accessible label and must be explicitly tagged with `.accessibilityLabel()`. Additionally, decorative `Image(systemName:)` elements (like status icons) should use `.accessibilityHidden(true)` to prevent VoiceOver from making redundant or unhelpful announcements based on the system image name.
+**Action:** Always add `.accessibilityLabel("Descriptive Text")` to icon-only interactive elements and `.accessibilityHidden(true)` to purely visual system icons when building SwiftUI views.
