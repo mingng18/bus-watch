@@ -28,13 +28,18 @@ export function findNearbyStops(
   radiusM: number,
 ): NearbyStop[] {
   const now = new Date();
-  const nearby = stops
-    .map((stop) => ({
-      stop,
-      distance: haversineDistance(lat, lon, stop.lat, stop.lon),
-    }))
-    .filter(({ distance }) => distance <= radiusM)
-    .sort((a, b) => a.distance - b.distance);
+
+  // Performance optimization: Replace .map().filter() with a standard for loop to prevent
+  // intermediate array allocations. Measurably reduces execution time for large arrays.
+  const nearby: { stop: Stop; distance: number }[] = [];
+  for (let i = 0, len = stops.length; i < len; i++) {
+    const stop = stops[i];
+    const distance = haversineDistance(lat, lon, stop.lat, stop.lon);
+    if (distance <= radiusM) {
+      nearby.push({ stop, distance });
+    }
+  }
+  nearby.sort((a, b) => a.distance - b.distance);
 
   // Performance optimization: Precompute map to avoid O(N^2) lookups in loop
   const tripMap = new Map(trips.map((t) => [t.id, t]));
