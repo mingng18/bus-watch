@@ -1,0 +1,3 @@
+## 2024-06-25 - Missing accessibility modifiers on standalone Image(systemName:) components
+**Learning:** In SwiftUI, icon-only toolbar buttons using `Image(systemName:)` do not automatically receive an accessible label and must be explicitly tagged with `.accessibilityLabel()`. Additionally, decorative `Image(systemName:)` elements should use `.accessibilityHidden(true)` to prevent redundant screen reader announcements.
+**Action:** Always add `.accessibilityLabel()` to standalone icon buttons and `.accessibilityHidden(true)` to purely decorative icons to improve VoiceOver accessibility.
