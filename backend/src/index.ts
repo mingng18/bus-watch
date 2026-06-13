@@ -20,12 +20,7 @@ const REALTIME_AGENCIES = ['rapid-bus-kl', 'rapid-bus-mrtfeeder'];
 const AGENCIES = [...REALTIME_AGENCIES, ...SELANGOR_AGENCIES];
 
 const app = new Hono<{ Bindings: Env }>();
-app.use('*', async (c, next) => {
-  const corsMiddleware = cors({
-    origin: c.env.FRONTEND_URL || '',
-  });
-  return corsMiddleware(c, next);
-});
+app.use('*', cors());
 
 app.get('/', (c) => c.json({ status: 'ok', service: 'bus-watch' }));
 
