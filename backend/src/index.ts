@@ -100,7 +100,9 @@ app.get('/bus/trip/:tripId/progress', async (c) => {
   const vehicles = await getRealtimeVehicles(c.env.KV);
   const vehicle = vehicles.find(v => v.tripId === tripId) || null;
   const allTripStops = await getAllTripStops(c.env.KV);
-  const result = getBusTripProgress(tripId, allRoutes, allTripStops, vehicle);
+  const routeMap = new Map<string, Route>();
+  for (const r of allRoutes) routeMap.set(r.id, r);
+  const result = getBusTripProgress(tripId, routeMap, allTripStops, vehicle);
   return c.json(result);
 });
 
