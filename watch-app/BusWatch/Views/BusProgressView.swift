@@ -23,6 +23,7 @@ struct BusProgressView: View {
                             Image(systemName: "location.circle.fill")
                                 .font(.caption)
                                 .foregroundStyle(.green)
+                                .accessibilityHidden(true)
                         } else if stop.passed {
                             Circle()
                                 .fill(Color.gray)

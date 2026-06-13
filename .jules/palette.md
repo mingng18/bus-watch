@@ -1,0 +1,3 @@
+## 2024-06-13 - SwiftUI Image Accessibility
+**Learning:** In SwiftUI, icon-only buttons using `Image(systemName:)` don't automatically get an accessible label and need `.accessibilityLabel()`. Meanwhile, decorative `Image(systemName:)` elements read out raw system names to screen readers by default, confusing users, so they must be explicitly tagged with `.accessibilityHidden(true)`.
+**Action:** Always add `.accessibilityLabel()` to `Image(systemName:)` elements acting as buttons. Always apply `.accessibilityHidden(true)` to decorative `Image(systemName:)` icons that don't convey new information not already covered by surrounding text.
