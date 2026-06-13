@@ -20,6 +20,8 @@
 		ACEB1F382D22DFB521D8249D /* StationSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21E0063F5A9B12B461E2C33 /* StationSchedule.swift */; };
 		BA585B9B333A860100FE75F8 /* ContextEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C91CB86181B93248A4FCDAF3 /* ContextEngine.swift */; };
 		E0A2F83D9902D5F505984073 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7AC90DFF25D5C183D480F61 /* MainView.swift */; };
+		FE55AC52AA15A78A7D4A90F6 /* FavoriteStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CAF0D7C091574DC84AFF491 /* FavoriteStore.swift */; };
+		61C51A48485E0E4556691412 /* FavoriteStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A41178446D3441DFE97A81DF /* FavoriteStoreTests.swift */; };
 		F0A212E77EAA82348F650E80 /* WatchKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 06C7A620AA96C75AF147E067 /* WatchKit.framework */; };
 /* End PBXBuildFile section */
 
@@ -36,9 +38,11 @@
 /* Begin PBXFileReference section */
 		06C7A620AA96C75AF147E067 /* WatchKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchKit.framework; path = System/Library/Frameworks/WatchKit.framework; sourceTree = SDKROOT; };
 		0C9182C1585161C48872BE9C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		6CAF0D7C091574DC84AFF491 /* FavoriteStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteStore.swift; sourceTree = "<group>"; };
 		12DC90349DF54A6F1A6B00C5 /* BusWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BusWatch.entitlements; sourceTree = "<group>"; };
 		17E3AE33D4989CFFF80C7E61 /* BusWatchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BusWatchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3A40775DF6CF3FA724842FE0 /* BusTripProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusTripProgress.swift; sourceTree = "<group>"; };
+		A41178446D3441DFE97A81DF /* FavoriteStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteStoreTests.swift; sourceTree = "<group>"; };
 		4F0A9870EB9E5F712DC55BCA /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		660B1B1D915AC221A4B4B533 /* StationArrivalsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationArrivalsView.swift; sourceTree = "<group>"; };
 		794ADE0310958EC741BDE78F /* NearbyListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyListView.swift; sourceTree = "<group>"; };
@@ -107,6 +111,7 @@
 			children = (
 				4F0A9870EB9E5F712DC55BCA /* APIClient.swift */,
 				C91CB86181B93248A4FCDAF3 /* ContextEngine.swift */,
+				6CAF0D7C091574DC84AFF491 /* FavoriteStore.swift */,
 				FA23D7007211D6374E78CEBB /* LocationManager.swift */,
 			);
 			path = Services;
@@ -150,6 +155,7 @@
 		B7EBE68AFE1317D0AE0B1D8B /* BusWatchTests */ = {
 			isa = PBXGroup;
 			children = (
+				A41178446D3441DFE97A81DF /* FavoriteStoreTests.swift */,
 			);
 			path = BusWatchTests;
 			sourceTree = "<group>";
@@ -246,6 +252,7 @@
 				AAA323BB1666E3037B51BDF3 /* BusTripProgress.swift in Sources */,
 				77390DCF44FDFA9001C57624 /* BusWatchApp.swift in Sources */,
 				BA585B9B333A860100FE75F8 /* ContextEngine.swift in Sources */,
+				FE55AC52AA15A78A7D4A90F6 /* FavoriteStore.swift in Sources */,
 				04B1911148FE652AB32F0FD7 /* LocationManager.swift in Sources */,
 				E0A2F83D9902D5F505984073 /* MainView.swift in Sources */,
 				8F84E44B697A29FBF4B55D07 /* ManualPickerView.swift in Sources */,
@@ -260,6 +267,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				61C51A48485E0E4556691412 /* FavoriteStoreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -282,7 +290,6 @@
 				INFOPLIST_FILE = BusWatch/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_WKApplication = YES;
-				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.buswatch.watchapp;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -298,7 +305,6 @@
 				INFOPLIST_FILE = BusWatch/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_WKApplication = YES;
-				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.buswatch.watchapp;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MainView: View {
     @EnvironmentObject var engine: ContextEngine
+    @EnvironmentObject var favorites: FavoriteStore
     @State private var showManual = false
 
     var body: some View {
@@ -12,13 +13,13 @@ struct MainView: View {
             case .noLocation:
                 noLocationView
             case .station(let stop, let schedule):
-                StationArrivalsView(stop: stop, schedule: schedule)
+                StationArrivalsView(stop: stop, schedule: schedule, favorites: favorites)
             case .onBus(let progress):
                 BusProgressView(progress: progress)
             case .nearby(let response):
-                NearbyListView(response: response) { stop in
+                NearbyListView(response: response, onSelectStop: { stop in
                     engine.selectStation(stop)
-                }
+                }, favorites: favorites)
             case .error(let message):
                 errorView(message: message)
             }
@@ -32,7 +33,7 @@ struct MainView: View {
             }
         }
         .sheet(isPresented: $showManual) {
-            ManualPickerView(engine: engine)
+            ManualPickerView(engine: engine, favorites: favorites)
         }
         .onAppear {
             engine.start()
@@ -46,9 +47,11 @@ struct MainView: View {
             Text("Location access needed")
                 .font(.caption)
             Button("Open Settings") {
+                #if canImport(UIKit) && !os(watchOS)
                 if let url = URL(string: UIApplication.openSettingsURLString) {
                     UIApplication.shared.open(url)
                 }
+                #endif
             }
             .buttonStyle(.bordered)
             Button("Manual Selection") {

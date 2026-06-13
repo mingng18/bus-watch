@@ -24,7 +24,7 @@
 	<string>BusWatch needs your location to find nearby bus stops and train stations.</string>
 	<key>WKApplication</key>
 	<true/>
-	<key>WKRunsIndependentlyOfCompanionApp</key>
+	<key>WKWatchOnly</key>
 	<true/>
 </dict>
 </plist>
