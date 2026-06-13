@@ -12,7 +12,7 @@ import { findNearbyRoutes } from './routes';
 import { VehiclePosition, PrasaranaBus, BusRouteEntry, Env, Route } from './types';
 import { haversineDistance } from './haversine';
 import { sampleBusPositions, aggregateTravelTimes, cleanupOldPositions } from './sampling';
-import { getHistoricalETA } from './nearby';
+import { getHistoricalETA, getBatchedHistoricalETAs } from './nearby';
 import { ingestRailTimetables } from './rail-ingest';
 import { getRailSchedule, searchRailStops } from './rail-schedule';
 
@@ -57,13 +57,34 @@ app.get('/nearby', async (c) => {
   const mergedBusRoutes = mergeBusRoutes(busRoutes, prasaranaNearby);
 
   // Enrich bus arrivals with historical ETA when available
+  // Collect all unique route-stop pairs
+  const queries: { route: string; stopId: string }[] = [];
+  const seenQueries = new Set<string>();
   for (const stop of result) {
     if (stop.type === 'bus') {
       for (const arrival of stop.arrivals) {
         if (arrival.route) {
-          const eta = await getHistoricalETA(c.env.DB, arrival.route, 0, 0, stop.id);
-          if (eta !== null) {
-            arrival.minutes = Math.round(eta);
+          const key = `${arrival.route}-${stop.id}`;
+          if (!seenQueries.has(key)) {
+            seenQueries.add(key);
+            queries.push({ route: arrival.route, stopId: stop.id });
+          }
+        }
+      }
+    }
+  }
+
+  // Fetch all ETAs in a single batch
+  if (queries.length > 0) {
+    const etas = await getBatchedHistoricalETAs(c.env.DB, queries);
+    for (const stop of result) {
+      if (stop.type === 'bus') {
+        for (const arrival of stop.arrivals) {
+          if (arrival.route) {
+            const key = `${arrival.route}-${stop.id}`;
+            if (etas.has(key)) {
+              arrival.minutes = Math.round(etas.get(key)!);
+            }
           }
         }
       }
