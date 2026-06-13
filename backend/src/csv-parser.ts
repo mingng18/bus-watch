@@ -10,9 +10,11 @@ export function parseCsv(text: string): Record<string, string>[] {
     const line = lines[i].trim();
     if (!line) continue;
     const values = parseLine(line);
-    const row: Record<string, string> = {};
+    const row: Record<string, string> = Object.create(null);
     for (let j = 0; j < headers.length; j++) {
-      row[headers[j].trim()] = (values[j] || '').trim();
+      const header = headers[j].trim();
+      if (header === '__proto__' || header === 'constructor') continue;
+      row[header] = (values[j] || '').trim();
     }
     rows.push(row);
   }

@@ -2,7 +2,7 @@ import { unzipSync } from 'fflate';
 import { parseCsv } from './csv-parser';
 import {
   GtfsStop, GtfsRoute, GtfsTrip, GtfsStopTime, GtfsCalendar,
-  Stop, Route, Trip, TripStopEntry, CalendarEntry, AgencyData, Frequency
+  Stop, Route, Trip, TripStopEntry, CalendarEntry, AgencyData,
 } from './types';
 
 const STATIC_URLS = {
@@ -90,7 +90,6 @@ export async function fetchAndParseAgency(agency: string): Promise<AgencyData> {
     serviceId: t.service_id,
     headsign: t.trip_headsign,
     directionId: parseInt(t.direction_id) || 0,
-    shapeId: '', // Dummy value
   }));
 
   const tripStops: Record<string, TripStopEntry[]> = {};
@@ -119,7 +118,7 @@ export async function fetchAndParseAgency(agency: string): Promise<AgencyData> {
     endDate: c.end_date,
   }));
 
-  return { stops, routes, trips, tripStops, calendar, frequencies: [], shapes: {} };
+  return { stops, routes, trips, tripStops, calendar };
 }
 
 export function getActiveServiceIds(calendar: CalendarEntry[], date: Date): Set<string> {
