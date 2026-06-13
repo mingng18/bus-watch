@@ -1,5 +1,3 @@
-## 2025-03-02 - Optimize route lookups in bus tracking
-
-**Learning:** When retrieving bus trip progress and matching routes via `vehicle?.routeId` inside heavily called functions (`getBusTripProgress`), using `Array.prototype.find()` incurs an O(N) penalty (where N is number of routes). Since the routes rarely change per API invocation, precomputing a `Map<string, Route>` outside the function enables O(1) lookups and significantly reduces request latency.
-
-**Action:** Before passing large arrays into frequently called processing functions to perform `.find()`, convert them to a `Map` indexed by the search key for O(1) lookups.
+## 2025-06-11 - Fast CSV Parsing
+**Learning:** Manual index-based parsing (`indexOf` and `substring`) inside `csv-parser` provides a significant performance boost over regular expression or character-by-character loops, particularly for unquoted CSV fields, as it avoids generating numerous intermediate objects and multiple memory allocations.
+**Action:** When parsing large repetitive datasets, implement a fast-path that leverages native string searching before falling back to full structural parsing.
