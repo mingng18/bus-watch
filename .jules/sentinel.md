@@ -2,3 +2,7 @@
 **Vulnerability:** Missing authentication on administrative endpoints (`/refresh`, `/rail/ingest`), relying on "security by obscurity" for MVP. Additionally, `/rail/ingest` leaked internal error details in its catch block.
 **Learning:** Even for MVPs, operational and administrative endpoints that trigger data ingestion or heavy background tasks must not rely on "security by obscurity." These endpoints can be discovered and abused to cause Denial of Service (DoS) or trigger unwanted state changes. Furthermore, returning raw error messages to the client exposes system internals.
 **Prevention:** Always implement authentication (e.g., a Bearer token check via `ADMIN_TOKEN` environment variable) for operational endpoints. Employ a "fail closed" approach: if the auth configuration is missing or validation fails, deny access (401 Unauthorized). Sanitize error responses to avoid leaking internal stack traces or database errors.
+## 2024-05-24 - Timing Attack in Authentication
+**Vulnerability:** String comparison operator (`!==`) was used to check authentication tokens (`authHeader !== \`Bearer ${c.env.ADMIN_TOKEN}\``). This makes it possible for an attacker to determine the correct token via a timing attack since the comparison exits early on the first mismatched character.
+**Learning:** Standard string equality checks are unsafe for secrets (passwords, tokens, API keys).
+**Prevention:** Always use constant-time comparison functions for comparing sensitive strings. In Hono/Cloudflare Workers, use `await timingSafeEqual(a, b)` from `hono/utils/buffer`.
