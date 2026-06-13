@@ -10,6 +10,5 @@ export function expandTripsForStop(
   now: Date,
   windowMinutes: number
 ): { line: string; destination: string; minutesUntil: number }[] {
-  // Stub implementation
   return [];
 }
