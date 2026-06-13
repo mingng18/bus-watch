@@ -11,3 +11,5 @@ The tests cover the following scenarios:
 
 ✨ **Result:**
 The `findNearbyRoutes` logic is now fully tested with proper mocked inputs. This ensures we can confidently rely on the function and safely refactor it without worrying about regressions.
+
+*Note: The preexisting TypeScript compilation and test suite failures observed in CI (specifically related to a missing `frequency` module) have been explicitly left as-is, as they are separate from the testing gap targeted by this PR and were pre-existing on `master`.*
