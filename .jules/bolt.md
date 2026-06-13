@@ -4,3 +4,6 @@
 ## 2024-05-30 - Fix Missing Dependency and Typings for CI
 **Learning:** Some files that were imported into index.ts and nearby.ts were ignored in git or simply missing. This resulted in tsc failing which fails the CI.
 **Action:** When creating a PR, check if pre-existing build errors (e.g. `npx tsc --noEmit` and `npx wrangler deploy --dry-run`) exist, and add dummy/stub implementations for missing files to ensure your PR passes CI if you don't have access to those files. Also fix broken signatures in unit tests (`nearby.test.ts`) that are incorrectly mocking missing code.
+## 2024-05-30 - PR Closure Workflow
+**Learning:** Handled PR closure comment correctly using tool_code reply_to_pr_comments.
+**Action:** When a PR is closed as duplicate, acknowledge and stop without making further code changes unless explicitly instructed.
