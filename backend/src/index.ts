@@ -408,22 +408,24 @@ function mergeBusRoutes(gtfsRoutes: BusRouteEntry[], prasaranaRoutes: BusRouteEn
 // --- Scheduled handler ---
 
 async function refreshStaticData(kv: KVNamespace) {
-  for (const agency of AGENCIES) {
-    try {
-      const data = await fetchAndParseAgency(agency);
-      await Promise.all([
-        kv.put(`stops:${agency}`, JSON.stringify(data.stops)),
-        kv.put(`routes:${agency}`, JSON.stringify(data.routes)),
-        kv.put(`trips:${agency}`, JSON.stringify(data.trips)),
-        kv.put(`tripStops:${agency}`, JSON.stringify(data.tripStops)),
-        kv.put(`calendar:${agency}`, JSON.stringify(data.calendar)),
-        kv.put(`frequencies:${agency}`, JSON.stringify(data.frequencies)),
-        kv.put(`shapes:${agency}`, JSON.stringify(data.shapes)),
-      ]);
-    } catch (err) {
-      console.error(`Failed to refresh ${agency}:`, err);
-    }
-  }
+  await Promise.allSettled(
+    AGENCIES.map(async (agency) => {
+      try {
+        const data = await fetchAndParseAgency(agency);
+        await Promise.all([
+          kv.put(`stops:${agency}`, JSON.stringify(data.stops)),
+          kv.put(`routes:${agency}`, JSON.stringify(data.routes)),
+          kv.put(`trips:${agency}`, JSON.stringify(data.trips)),
+          kv.put(`tripStops:${agency}`, JSON.stringify(data.tripStops)),
+          kv.put(`calendar:${agency}`, JSON.stringify(data.calendar)),
+          kv.put(`frequencies:${agency}`, JSON.stringify(data.frequencies)),
+          kv.put(`shapes:${agency}`, JSON.stringify(data.shapes)),
+        ]);
+      } catch (err) {
+        console.error(`Failed to refresh ${agency}:`, err);
+      }
+    })
+  );
 }
 
 export default {
