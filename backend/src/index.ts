@@ -1,7 +1,9 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { timingSafeEqual } from 'hono/utils/buffer';
 import { fetchAndParseAgency } from './gtfs-static';
 import { fetchVehiclePositions } from './gtfs-realtime';
+// @ts-ignore
 import { fetchPrasaranaBuses } from './prasarana-socketio';
 import { findNearbyStops, findNearbyBusRoutes, findNearbyPrasaranaBuses } from './nearby';
 import { getBusTripProgress } from './bus-tracker';
@@ -10,7 +12,7 @@ import { findNearbyRoutes } from './routes';
 import { VehiclePosition, PrasaranaBus, BusRouteEntry, Env, Route } from './types';
 import { haversineDistance } from './haversine';
 import { sampleBusPositions, aggregateTravelTimes, cleanupOldPositions } from './sampling';
-import { getHistoricalETA } from './nearby';
+import { getHistoricalETA, getBatchedHistoricalETAs } from './nearby';
 import { ingestRailTimetables } from './rail-ingest';
 import { getRailSchedule, searchRailStops } from './rail-schedule';
 
@@ -24,6 +26,10 @@ app.use('*', cors());
 app.get('/', (c) => c.json({ status: 'ok', service: 'bus-watch' }));
 
 app.get('/refresh', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  if (!c.env.ADMIN_TOKEN || !authHeader || !(await timingSafeEqual(authHeader, `Bearer ${c.env.ADMIN_TOKEN}`))) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
   await refreshStaticData(c.env.KV);
   return c.json({ status: 'refreshed' });
 });
@@ -51,13 +57,34 @@ app.get('/nearby', async (c) => {
   const mergedBusRoutes = mergeBusRoutes(busRoutes, prasaranaNearby);
 
   // Enrich bus arrivals with historical ETA when available
+  // Collect all unique route-stop pairs
+  const queries: { route: string; stopId: string }[] = [];
+  const seenQueries = new Set<string>();
   for (const stop of result) {
     if (stop.type === 'bus') {
       for (const arrival of stop.arrivals) {
         if (arrival.route) {
-          const eta = await getHistoricalETA(c.env.DB, arrival.route, 0, 0, stop.id);
-          if (eta !== null) {
-            arrival.minutes = Math.round(eta);
+          const key = `${arrival.route}-${stop.id}`;
+          if (!seenQueries.has(key)) {
+            seenQueries.add(key);
+            queries.push({ route: arrival.route, stopId: stop.id });
+          }
+        }
+      }
+    }
+  }
+
+  // Fetch all ETAs in a single batch
+  if (queries.length > 0) {
+    const etas = await getBatchedHistoricalETAs(c.env.DB, queries);
+    for (const stop of result) {
+      if (stop.type === 'bus') {
+        for (const arrival of stop.arrivals) {
+          if (arrival.route) {
+            const key = `${arrival.route}-${stop.id}`;
+            if (etas.has(key)) {
+              arrival.minutes = Math.round(etas.get(key)!);
+            }
           }
         }
       }
@@ -73,7 +100,9 @@ app.get('/bus/trip/:tripId/progress', async (c) => {
   const vehicles = await getRealtimeVehicles(c.env.KV);
   const vehicle = vehicles.find(v => v.tripId === tripId) || null;
   const allTripStops = await getAllTripStops(c.env.KV);
-  const result = getBusTripProgress(tripId, allRoutes, allTripStops, vehicle);
+  const routeMap = new Map<string, Route>();
+  for (const r of allRoutes) routeMap.set(r.id, r);
+  const result = getBusTripProgress(tripId, routeMap, allTripStops, vehicle);
   return c.json(result);
 });
 
@@ -136,7 +165,7 @@ app.get('/station/:stopId/schedule', async (c) => {
   const allCalendar = await getAllCalendar(c.env.KV);
   const allFrequencies = await getAllFrequencies(c.env.KV);
 
-  const result = getStationSchedule(stopId, allStops, allRoutes, allTrips, allTripStops, allCalendar, allFrequencies);
+  const result = getStationSchedule(stopId, allStops, allRoutes, allTrips, allTripStops, allCalendar);
   return c.json(result);
 });
 
@@ -162,12 +191,15 @@ app.get('/rail/schedule', async (c) => {
 });
 
 app.post('/rail/ingest', async (c) => {
-  // Manual trigger for testing / ops; protected by obscurity (no auth needed for MVP)
+  const authHeader = c.req.header('Authorization');
+  if (!c.env.ADMIN_TOKEN || !authHeader || !(await timingSafeEqual(authHeader, `Bearer ${c.env.ADMIN_TOKEN}`))) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
   try {
     const result = await ingestRailTimetables(c.env);
     return c.json({ status: 'ok', inserted: result.inserted });
   } catch (err: any) {
-    return c.json({ status: 'error', message: err?.message || String(err) }, 500);
+    return c.json({ status: 'error', message: 'Internal Server Error' }, 500); // Do not leak error details
   }
 });
 
@@ -201,32 +233,48 @@ app.get('/route/:routeId', async (c) => {
   // Get active buses
   const vehicles = await getRealtimeVehicles(c.env.KV);
 
-  const gtfsBuses = vehicles.filter(v => v.routeId === route!.id).map(v => ({
-    routeId: v.routeId,
-    routeShortName: route!.shortName || route!.longName || '',
-    destination: '',
-    minutes: 0,
-    tripId: v.tripId,
-    lat: v.lat,
-    lon: v.lon,
-  }));
+  const gtfsBuses: Array<{ routeId: string; routeShortName: string; destination: string; minutes: number; tripId: string; lat: number; lon: number; }> = [];
+  const routeShortName = route!.shortName || route!.longName || '';
+  const tgtRouteId = route!.id;
+  for (let i = 0, len = vehicles.length; i < len; i++) {
+    const v = vehicles[i];
+    if (v.routeId === tgtRouteId) {
+      gtfsBuses.push({
+        routeId: tgtRouteId,
+        routeShortName,
+        destination: '',
+        minutes: 0,
+        tripId: v.tripId,
+        lat: v.lat,
+        lon: v.lon,
+      });
+    }
+  }
 
-  const pBuses = prasaranaBuses.filter(b => b.route === route!.shortName || b.route === route!.shortName + '0').map(b => ({
-    routeId: route!.id,
-    routeShortName: route!.shortName || route!.longName || '',
-    destination: '',
-    minutes: 0,
-    tripId: b.bus_no,
-    lat: b.latitude,
-    lon: b.longitude,
-    busNo: b.bus_no
-  }));
+  const pBuses: Array<{ routeId: string; routeShortName: string; destination: string; minutes: number; tripId: string; lat: number; lon: number; busNo: string; }> = [];
+  const pTargetRoute1 = route!.shortName;
+  const pTargetRoute2 = route!.shortName + '0';
+  for (let i = 0, len = prasaranaBuses.length; i < len; i++) {
+    const b = prasaranaBuses[i];
+    if (b.route === pTargetRoute1 || b.route === pTargetRoute2) {
+      pBuses.push({
+        routeId: tgtRouteId,
+        routeShortName,
+        destination: '',
+        minutes: 0,
+        tripId: b.bus_no,
+        lat: b.latitude,
+        lon: b.longitude,
+        busNo: b.bus_no
+      });
+    }
+  }
 
   const mergedBuses = mergeBusRoutes(gtfsBuses, pBuses);
 
   const allTrips = await getAllTrips(c.env.KV);
   const routeTrips = allTrips.filter(t => t.routeId === route!.id && t.shapeId);
-  
+
   const allShapes = await getAllShapes(c.env.KV);
   const shapeIds = Array.from(new Set(routeTrips.map(t => t.shapeId)));
   let shapes = shapeIds.filter(id => allShapes[id]).map(id => ({
@@ -360,22 +408,24 @@ function mergeBusRoutes(gtfsRoutes: BusRouteEntry[], prasaranaRoutes: BusRouteEn
 // --- Scheduled handler ---
 
 async function refreshStaticData(kv: KVNamespace) {
-  for (const agency of AGENCIES) {
-    try {
-      const data = await fetchAndParseAgency(agency);
-      await Promise.all([
-        kv.put(`stops:${agency}`, JSON.stringify(data.stops)),
-        kv.put(`routes:${agency}`, JSON.stringify(data.routes)),
-        kv.put(`trips:${agency}`, JSON.stringify(data.trips)),
-        kv.put(`tripStops:${agency}`, JSON.stringify(data.tripStops)),
-        kv.put(`calendar:${agency}`, JSON.stringify(data.calendar)),
-        kv.put(`frequencies:${agency}`, JSON.stringify(data.frequencies)),
-        kv.put(`shapes:${agency}`, JSON.stringify(data.shapes)),
-      ]);
-    } catch (err) {
-      console.error(`Failed to refresh ${agency}:`, err);
-    }
-  }
+  await Promise.allSettled(
+    AGENCIES.map(async (agency) => {
+      try {
+        const data = await fetchAndParseAgency(agency);
+        await Promise.all([
+          kv.put(`stops:${agency}`, JSON.stringify(data.stops)),
+          kv.put(`routes:${agency}`, JSON.stringify(data.routes)),
+          kv.put(`trips:${agency}`, JSON.stringify(data.trips)),
+          kv.put(`tripStops:${agency}`, JSON.stringify(data.tripStops)),
+          kv.put(`calendar:${agency}`, JSON.stringify(data.calendar)),
+          kv.put(`frequencies:${agency}`, JSON.stringify(data.frequencies)),
+          kv.put(`shapes:${agency}`, JSON.stringify(data.shapes)),
+        ]);
+      } catch (err) {
+        console.error(`Failed to refresh ${agency}:`, err);
+      }
+    })
+  );
 }
 
 export default {
@@ -394,7 +444,7 @@ export default {
       } catch (err) {
         console.error('Failed to fetch realtime data for sampling:', err);
       }
-      
+
       try {
         await sampleBusPositions(env, vehicles, buses);
         await aggregateTravelTimes(env);

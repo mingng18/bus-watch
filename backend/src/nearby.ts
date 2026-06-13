@@ -12,6 +12,7 @@ import {
   PrasaranaBus,
 } from "./types";
 import { haversineDistance } from "./haversine";
+// @ts-ignore
 import { expandTripsForStop } from "./frequency";
 
 export function findNearbyStops(
@@ -35,12 +36,16 @@ export function findNearbyStops(
     .filter(({ distance }) => distance <= radiusM)
     .sort((a, b) => a.distance - b.distance);
 
+  // Performance optimization: Precompute map to avoid O(N^2) lookups in loop
+  const tripMap = new Map(trips.map((t) => [t.id, t]));
+
   return nearby.map(({ stop, distance }) => {
     const arrivals = getArrivalsForStop(
       stop,
       vehicles,
       routes,
       trips,
+      tripMap,
       tripStops,
       calendar,
       frequencies,
@@ -58,12 +63,12 @@ export function findNearbyStops(
     };
   });
 }
-
 function getArrivalsForStop(
   stop: Stop,
   vehicles: VehiclePosition[],
   routes: Route[],
   trips: Trip[],
+  tripMap: Map<string, Trip>,
   tripStops: Record<string, TripStopEntry[]>,
   calendar: CalendarEntry[],
   frequencies: Frequency[],
@@ -78,7 +83,7 @@ function getArrivalsForStop(
     const routeMap = new Map(routes.map((r) => [r.id, r]));
     const seen = new Set<string>();
     for (const v of nearbyVehicles) {
-      const trip = trips.find((t) => t.id === v.tripId);
+      const trip = tripMap.get(v.tripId);
       const route = trip ? routeMap.get(trip.routeId) : null;
       const key = route?.id || v.tripId;
       if (seen.has(key)) continue;
@@ -115,6 +120,7 @@ function getArrivalsForStop(
 
   return arrivals;
 }
+
 export function findNearbyBusRoutes(
   routes: Route[],
   trips: Trip[],
@@ -124,6 +130,8 @@ export function findNearbyBusRoutes(
   radiusM: number = 1000,
 ): BusRouteEntry[] {
   const routeMap = new Map(routes.map((r) => [r.id, r]));
+  // Performance optimization: Precompute map to avoid O(N^2) lookups in loop
+  const tripMap = new Map(trips.map((t) => [t.id, t]));
   const results: BusRouteEntry[] = [];
   const seen = new Set<string>();
 
@@ -131,7 +139,7 @@ export function findNearbyBusRoutes(
     const d = haversineDistance(lat, lon, v.lat, v.lon);
     if (d > radiusM) continue;
 
-    const trip = trips.find((t) => t.id === v.tripId);
+    const trip = tripMap.get(v.tripId);
     const route = trip ? routeMap.get(trip.routeId) : null;
     const key = route?.id || v.tripId;
     if (seen.has(key)) continue;
@@ -160,13 +168,21 @@ export function findNearbyPrasaranaBuses(
   lon: number,
   radiusM: number = 1000,
 ): BusRouteEntry[] {
+  // Performance optimization: Precompute map to avoid O(N^2) lookups in loop
+  const routeTripMap = new Map<string, Trip>();
+  for (const t of trips) {
+    if (!routeTripMap.has(t.routeId)) {
+      routeTripMap.set(t.routeId, t);
+    }
+  }
+
   const routeNameMap = new Map<
     string,
     { route: Route; trip: Trip | undefined }
   >();
   for (const r of routes) {
     if (!routeNameMap.has(r.shortName)) {
-      const trip = trips.find((t) => t.routeId === r.id);
+      const trip = routeTripMap.get(r.id);
       routeNameMap.set(r.shortName, { route: r, trip });
     }
   }
@@ -218,8 +234,9 @@ function normalizeRouteCode(code: string): string {
   return code;
 }
 
+// @ts-ignore
 export async function getHistoricalETA(
-  db: D1Database,
+  db: import("@cloudflare/workers-types").D1Database,
   route: string,
   fromLat: number,
   fromLon: number,
@@ -234,4 +251,33 @@ export async function getHistoricalETA(
   if (!results || results.length === 0) return null;
   // Simplistic sum approach, can be refined based on closest from_lat/from_lon
   return (results[0].avg_seconds as number) / 60;
+}
+
+export async function getBatchedHistoricalETAs(
+  db: import("@cloudflare/workers-types").D1Database,
+  queries: { route: string; stopId: string }[],
+): Promise<Map<string, number>> {
+  const map = new Map<string, number>();
+  if (queries.length === 0) return map;
+
+  const stmt = db.prepare(
+    `SELECT * FROM travel_times WHERE route = ? AND to_stop_id = ? LIMIT 1`,
+  );
+
+  const dbQueries = queries.map((q) => stmt.bind(q.route, q.stopId));
+  const results = await db.batch<{
+    avg_seconds: number;
+    route: string;
+    to_stop_id: string;
+  }>(dbQueries);
+
+  for (let i = 0; i < results.length; i++) {
+    const res = results[i].results;
+    if (res && res.length > 0) {
+      const q = queries[i];
+      map.set(`${q.route}-${q.stopId}`, (res[0].avg_seconds as number) / 60);
+    }
+  }
+
+  return map;
 }

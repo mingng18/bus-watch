@@ -1,6 +1,3 @@
-import { PrasaranaBus } from './types';
-
-export async function fetchPrasaranaBuses(region: string): Promise<PrasaranaBus[]> {
-  // Stub implementation
-  return [];
+export async function fetchPrasaranaBuses(provider: string): Promise<any[]> {
+    return [];
 }

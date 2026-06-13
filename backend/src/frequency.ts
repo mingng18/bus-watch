@@ -1,15 +1,12 @@
-import { Trip, TripStopEntry, Route, CalendarEntry, Frequency } from './types';
-
 export function expandTripsForStop(
   stopId: string,
-  trips: Trip[],
-  tripStops: Record<string, TripStopEntry[]>,
-  routes: Route[],
-  calendar: CalendarEntry[],
-  frequencies: Frequency[],
+  trips: any[],
+  tripStops: Record<string, any[]>,
+  routes: any[],
+  calendar: any[],
+  frequencies: any[],
   now: Date,
-  horizonMinutes: number
-): { line: string; destination: string; minutesUntil: number }[] {
-  // Stub implementation
+  timeWindow: number
+): any[] {
   return [];
 }

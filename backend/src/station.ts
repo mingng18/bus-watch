@@ -17,6 +17,10 @@ export function getStationSchedule(
 
   const departures: Departure[] = [];
 
+  // Performance optimization: Hoist current time calculation outside of loop
+  const now = new Date();
+  const nowSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+
   for (const trip of trips) {
     if (!activeServiceIds.has(trip.serviceId)) continue;
 
@@ -27,10 +31,16 @@ export function getStationSchedule(
     if (!stopEntry) continue;
 
     const route = routeMap.get(trip.routeId);
-    const parts = stopEntry.departureTime.split(':').map(Number);
-    const depSeconds = (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
-    const now = new Date();
-    const nowSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+
+    // Performance optimization: Replace string split/map with faster zero-allocation index search
+    const time = stopEntry.departureTime;
+    const c1 = time.indexOf(':');
+    const c2 = time.indexOf(':', c1 + 1);
+    const h = parseInt(time.substring(0, c1), 10) || 0;
+    const m = parseInt(time.substring(c1 + 1, c2 !== -1 ? c2 : undefined), 10) || 0;
+    const s = c2 !== -1 ? parseInt(time.substring(c2 + 1), 10) || 0 : 0;
+
+    const depSeconds = h * 3600 + m * 60 + s;
     const minutesUntil = Math.round((depSeconds - nowSeconds) / 60);
 
     departures.push({

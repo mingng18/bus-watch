@@ -2,9 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { getBusTripProgress } from '../src/bus-tracker';
 import { Route, TripStopEntry, VehiclePosition } from '../src/types';
 
-const routes: Route[] = [
-  { id: 'r300', shortName: '300', longName: 'Route 300', type: 3 },
-];
+const routeMap = new Map<string, Route>([
+  ['r300', { id: 'r300', shortName: '300', longName: 'Route 300', type: 3 }]
+]);
 
 const tripStops: Record<string, TripStopEntry[]> = {
   t1: [
@@ -26,7 +26,7 @@ const vehicle: VehiclePosition = {
 
 describe('getBusTripProgress', () => {
   it('returns trip progress with current stop highlighted', () => {
-    const result = getBusTripProgress('t1', routes, tripStops, vehicle);
+    const result = getBusTripProgress('t1', routeMap, tripStops, vehicle);
     expect(result.tripId).toBe('t1');
     expect(result.routeShortName).toBe('300');
     expect(result.destination).toBe('KL Sentral');
@@ -34,25 +34,25 @@ describe('getBusTripProgress', () => {
   });
 
   it('marks stops before current as passed', () => {
-    const result = getBusTripProgress('t1', routes, tripStops, vehicle);
+    const result = getBusTripProgress('t1', routeMap, tripStops, vehicle);
     expect(result.stops[0].passed).toBe(true);
     expect(result.stops[1].isCurrent).toBe(true);
     expect(result.stops[2].passed).toBe(false);
   });
 
   it('computes progress percentage', () => {
-    const result = getBusTripProgress('t1', routes, tripStops, vehicle);
+    const result = getBusTripProgress('t1', routeMap, tripStops, vehicle);
     expect(result.progressPercent).toBeGreaterThanOrEqual(0);
     expect(result.progressPercent).toBeLessThanOrEqual(100);
   });
 
   it('works without vehicle position', () => {
-    const result = getBusTripProgress('t1', routes, tripStops, null);
+    const result = getBusTripProgress('t1', routeMap, tripStops, null);
     expect(result.busPosition).toBeNull();
     expect(result.stops.length).toBe(3);
   });
 
   it('throws for unknown trip', () => {
-    expect(() => getBusTripProgress('unknown', routes, tripStops, vehicle)).toThrow();
+    expect(() => getBusTripProgress('unknown', routeMap, tripStops, vehicle)).toThrow();
   });
 });
