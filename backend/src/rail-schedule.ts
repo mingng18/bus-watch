@@ -1,4 +1,4 @@
-import { Env } from './types';
+import { Env } from "./types";
 
 export interface RailArrival {
   trip_id: string;
@@ -28,7 +28,17 @@ export interface RailStopResult {
  * total minutes since midnight.
  */
 function gtfsTimeToMinutes(t: string): number {
-  const [h, m] = t.split(':').map(Number);
+  // ⚡ Bolt optimization: Use zero-allocation index scanning instead of .split(':').map(Number)
+  const firstColon = t.indexOf(":");
+  const h = parseInt(t.substring(0, firstColon), 10) || 0;
+
+  const secondColon = t.indexOf(":", firstColon + 1);
+  const mStr =
+    secondColon !== -1
+      ? t.substring(firstColon + 1, secondColon)
+      : t.substring(firstColon + 1);
+  const m = parseInt(mStr, 10) || 0;
+
   return h * 60 + m;
 }
 
@@ -37,20 +47,32 @@ function gtfsTimeToMinutes(t: string): number {
  * wrapping times >= 24h back to the next-day equivalent.
  */
 function formatGtfsTime(t: string): string {
-  const [h, m] = t.split(':').map(Number);
+  // ⚡ Bolt optimization: Use zero-allocation index scanning instead of .split(':').map(Number)
+  const firstColon = t.indexOf(":");
+  const h = parseInt(t.substring(0, firstColon), 10) || 0;
+
+  const secondColon = t.indexOf(":", firstColon + 1);
+  const mStr =
+    secondColon !== -1
+      ? t.substring(firstColon + 1, secondColon)
+      : t.substring(firstColon + 1);
+  const m = parseInt(mStr, 10) || 0;
+
   const hWrapped = h % 24;
-  return `${String(hWrapped).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  return `${String(hWrapped).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
 export async function getRailSchedule(
   env: Env,
   stopId: string,
-  windowMinutes = 120
+  windowMinutes = 120,
 ): Promise<RailScheduleResponse | null> {
   // 1. Fetch stop info
   const stopRow = await env.DB.prepare(
-    `SELECT stop_id, stop_name FROM rail_stops WHERE stop_id = ?`
-  ).bind(stopId).first<{ stop_id: string; stop_name: string }>();
+    `SELECT stop_id, stop_name FROM rail_stops WHERE stop_id = ?`,
+  )
+    .bind(stopId)
+    .first<{ stop_id: string; stop_name: string }>();
 
   if (!stopRow) return null;
 
@@ -81,17 +103,19 @@ export async function getRailSchedule(
        AND (CAST(substr(rst.departure_time, 1, 2) AS INTEGER) * 60 + CAST(substr(rst.departure_time, 4, 2) AS INTEGER))
            BETWEEN ? AND ?
      ORDER BY departure_minutes ASC
-     LIMIT 20`
-  ).bind(stopId, currentMinutes, upperMinutes).all<{
-    departure_time: string;
-    trip_id: string;
-    headsign: string;
-    route_short_name: string;
-    route_long_name: string;
-    departure_minutes: number;
-  }>();
+     LIMIT 20`,
+  )
+    .bind(stopId, currentMinutes, upperMinutes)
+    .all<{
+      departure_time: string;
+      trip_id: string;
+      headsign: string;
+      route_short_name: string;
+      route_long_name: string;
+      departure_minutes: number;
+    }>();
 
-  const arrivals: RailArrival[] = results.map(row => ({
+  const arrivals: RailArrival[] = results.map((row) => ({
     trip_id: row.trip_id,
     route_short_name: row.route_short_name,
     route_long_name: row.route_long_name,
@@ -102,7 +126,7 @@ export async function getRailSchedule(
 
   // 4. Check staleness
   const metaRow = await env.DB.prepare(
-    `SELECT value FROM rail_ingest_meta WHERE key = 'last_ingested_at'`
+    `SELECT value FROM rail_ingest_meta WHERE key = 'last_ingested_at'`,
   ).first<{ value: string }>();
 
   let stale = false;
@@ -128,15 +152,17 @@ export async function getRailSchedule(
  */
 export async function searchRailStops(
   env: Env,
-  query: string
+  query: string,
 ): Promise<RailStopResult[]> {
   const { results } = await env.DB.prepare(
     `SELECT stop_id, stop_name, lat, lon
      FROM rail_stops
      WHERE LOWER(stop_name) LIKE LOWER(?)
      ORDER BY stop_name ASC
-     LIMIT 20`
-  ).bind(`%${query}%`).all<RailStopResult>();
+     LIMIT 20`,
+  )
+    .bind(`%${query}%`)
+    .all<RailStopResult>();
 
   return results;
 }
