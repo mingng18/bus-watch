@@ -1,6 +1,3 @@
-## 2024-05-19 - Avoid Chained Array Iterations for Critical Paths
-**Learning:** Chaining `.filter().map()` incurs an intermediate array allocation which degraded performance inside the hot path `index.ts`.
-**Action:** Replaced `.filter().map()` loops with highly optimized classic `for` loops containing precomputed property accesses (`routeId` / `routeShortName`), which yielded measurable execution speedups.
-## 2025-06-12 - Hoisting Date Instantiation
-**Learning:** Instantiating `new Date()` inside an array iteration over thousands of GTFS trips introduces severe performance overhead due to object allocation and garbage collection.
-**Action:** Always hoist timestamp instantiation and standard calculations outside of tight loops if the time offset throughout the iteration is negligible.
+## 2025-06-11 - Fast CSV Parsing
+**Learning:** Manual index-based parsing (`indexOf` and `substring`) inside `csv-parser` provides a significant performance boost over regular expression or character-by-character loops, particularly for unquoted CSV fields, as it avoids generating numerous intermediate objects and multiple memory allocations.
+**Action:** When parsing large repetitive datasets, implement a fast-path that leverages native string searching before falling back to full structural parsing.
