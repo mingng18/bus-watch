@@ -9,10 +9,12 @@
 /* Begin PBXBuildFile section */
 		04B1911148FE652AB32F0FD7 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA23D7007211D6374E78CEBB /* LocationManager.swift */; };
 		0AA434EB051E74BD6DDB0692 /* NearbyResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9119CEEDDA6CF6EEC99A61D /* NearbyResponse.swift */; };
+		11A2B3C4D5E6F708091A2B3C /* DeparturesTowardViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22B3C4D5E6F708091A2B3C4D /* DeparturesTowardViewTests.swift */; };
 		2828DFB33F6CC9C2946AA616 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0C9182C1585161C48872BE9C /* Assets.xcassets */; };
 		4953B94A2AD39E266A5972BE /* NearbyListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 794ADE0310958EC741BDE78F /* NearbyListView.swift */; };
 		6F4D412C4E1901FDC9E8BD3A /* StationArrivalsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 660B1B1D915AC221A4B4B533 /* StationArrivalsView.swift */; };
 		77390DCF44FDFA9001C57624 /* BusWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA347DACA1EBECB9EDFF1B9E /* BusWatchApp.swift */; };
+		7A8B9C0D1E2F304050607080 /* DeparturesTowardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B9C0D1E2F3040506070809 /* DeparturesTowardView.swift */; };
 		78CCFA0C37CC94900C96E2ED /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0A9870EB9E5F712DC55BCA /* APIClient.swift */; };
 		8B7F8F25766982E5F2920A20 /* BusProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 896F8B54C63F85B2691064DC /* BusProgressView.swift */; };
 		8F84E44B697A29FBF4B55D07 /* ManualPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE38A0AB7618D4AAC05DB505 /* ManualPickerView.swift */; };
@@ -38,9 +40,11 @@
 		0C9182C1585161C48872BE9C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		12DC90349DF54A6F1A6B00C5 /* BusWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BusWatch.entitlements; sourceTree = "<group>"; };
 		17E3AE33D4989CFFF80C7E61 /* BusWatchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BusWatchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		22B3C4D5E6F708091A2B3C4D /* DeparturesTowardViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeparturesTowardViewTests.swift; sourceTree = "<group>"; };
 		3A40775DF6CF3FA724842FE0 /* BusTripProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusTripProgress.swift; sourceTree = "<group>"; };
 		4F0A9870EB9E5F712DC55BCA /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		660B1B1D915AC221A4B4B533 /* StationArrivalsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationArrivalsView.swift; sourceTree = "<group>"; };
+		8B9C0D1E2F3040506070809 /* DeparturesTowardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeparturesTowardView.swift; sourceTree = "<group>"; };
 		794ADE0310958EC741BDE78F /* NearbyListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyListView.swift; sourceTree = "<group>"; };
 		896F8B54C63F85B2691064DC /* BusProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusProgressView.swift; sourceTree = "<group>"; };
 		941DE2EAC800BA77EAD42D5F /* BusWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BusWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -115,6 +119,7 @@
 		A4D92BC5E23747AA061C8FCF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				8B9C0D1E2F3040506070809 /* DeparturesTowardView.swift */,
 				896F8B54C63F85B2691064DC /* BusProgressView.swift */,
 				A7AC90DFF25D5C183D480F61 /* MainView.swift */,
 				AE38A0AB7618D4AAC05DB505 /* ManualPickerView.swift */,
@@ -150,6 +155,7 @@
 		B7EBE68AFE1317D0AE0B1D8B /* BusWatchTests */ = {
 			isa = PBXGroup;
 			children = (
+				22B3C4D5E6F708091A2B3C4D /* DeparturesTowardViewTests.swift */,
 			);
 			path = BusWatchTests;
 			sourceTree = "<group>";
@@ -246,6 +252,7 @@
 				AAA323BB1666E3037B51BDF3 /* BusTripProgress.swift in Sources */,
 				77390DCF44FDFA9001C57624 /* BusWatchApp.swift in Sources */,
 				BA585B9B333A860100FE75F8 /* ContextEngine.swift in Sources */,
+				7A8B9C0D1E2F304050607080 /* DeparturesTowardView.swift in Sources */,
 				04B1911148FE652AB32F0FD7 /* LocationManager.swift in Sources */,
 				E0A2F83D9902D5F505984073 /* MainView.swift in Sources */,
 				8F84E44B697A29FBF4B55D07 /* ManualPickerView.swift in Sources */,
@@ -260,6 +267,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				11A2B3C4D5E6F708091A2B3C /* DeparturesTowardViewTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -20,6 +20,13 @@ class APIClient {
         return try await fetch(url)
     }
 
+    func fetchDeparturesToward(stopId: String, destinationStopId: String, limit: Int = 5) async throws -> StationScheduleResponse {
+        let encodedStop = stopId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? stopId
+        let encodedDest = destinationStopId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? destinationStopId
+        let url = URL(string: "\(baseURL)/station/\(encodedStop)/schedule/toward?destinationStopId=\(encodedDest)&limit=\(limit)")!
+        return try await fetch(url)
+    }
+
     func fetchBusProgress(tripId: String) async throws -> BusProgressResponse {
         let encoded = tripId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? tripId
         let url = URL(string: "\(baseURL)/bus/trip/\(encoded)/progress")!

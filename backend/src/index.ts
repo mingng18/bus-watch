@@ -15,6 +15,7 @@ import { sampleBusPositions, aggregateTravelTimes, cleanupOldPositions } from '.
 import { getHistoricalETA, getBatchedHistoricalETAs } from './nearby';
 import { ingestRailTimetables } from './rail-ingest';
 import { getRailSchedule, searchRailStops } from './rail-schedule';
+import { getDeparturesTowardDestination } from './departures-toward';
 
 const SELANGOR_AGENCIES = ['selangor-mobility']; // optional, may be unavailable
 const REALTIME_AGENCIES = ['rapid-bus-kl', 'rapid-bus-mrtfeeder'];
@@ -166,6 +167,25 @@ app.get('/station/:stopId/schedule', async (c) => {
   const allFrequencies = await getAllFrequencies(c.env.KV);
 
   const result = getStationSchedule(stopId, allStops, allRoutes, allTrips, allTripStops, allCalendar);
+  return c.json(result);
+});
+
+app.get('/station/:stopId/schedule/toward', async (c) => {
+  const stopId = c.req.param('stopId');
+  const destinationStopId = c.req.query('destinationStopId');
+  if (!destinationStopId) return c.json({ error: 'destinationStopId is required' }, 400);
+
+  const limit = parseInt(c.req.query('limit') || '5');
+
+  const allStops = await getAllStops(c.env.KV);
+  const allRoutes = await getAllRoutes(c.env.KV);
+  const allTrips = await getAllTrips(c.env.KV);
+  const allTripStops = await getAllTripStops(c.env.KV);
+  const allCalendar = await getAllCalendar(c.env.KV);
+
+  const result = getDeparturesTowardDestination(
+    stopId, destinationStopId, allStops, allRoutes, allTrips, allTripStops, allCalendar, limit,
+  );
   return c.json(result);
 });
 
