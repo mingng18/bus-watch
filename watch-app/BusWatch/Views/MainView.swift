@@ -29,6 +29,7 @@ struct MainView: View {
             ToolbarItem(placement: .cancellationAction) {
                 Button(action: { showManual = true }) {
                     Image(systemName: "list.bullet")
+                        .accessibilityLabel("Manual Selection")
                 }
             }
         }
