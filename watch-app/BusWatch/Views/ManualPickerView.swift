@@ -58,7 +58,7 @@ struct ManualPickerView: View {
                 if let favorites, favorites.isHome(stop.id) {
                     Image(systemName: "house.fill")
                         .foregroundStyle(.yellow)
-                        .accessibilityLabel("Home stop")
+                        .accessibilityHidden(true)
                 }
                 if favorites?.contains(stop.id) == true {
                     Image(systemName: "star.fill")
@@ -67,6 +67,11 @@ struct ManualPickerView: View {
                 }
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(stopRowLabel(stop))
+        .accessibilityHint(stop.type == "rail"
+                           ? "Shows arrivals for this station."
+                           : "Bus stop. No live arrivals.")
         .swipeActions(edge: .leading, allowsFullSwipe: true) {
             if let favorites {
                 Button {
@@ -89,5 +94,17 @@ struct ManualPickerView: View {
                 .tint(.yellow)
             }
         }
+    }
+
+    /// Rider-facing VoiceOver label for a manual-pick stop row. Combines the
+    /// stop name with home/favorite state so it isn't conveyed by glyph
+    /// color alone; matches `NearbyListView.stopRowLabel`.
+    private func stopRowLabel(_ stop: NearbyStop) -> String {
+        var parts = [stop.name]
+        if let favorites {
+            if favorites.isHome(stop.id) { parts.append("home stop") }
+            if favorites.contains(stop.id) { parts.append("favorited") }
+        }
+        return parts.joined(separator: ", ")
     }
 }
