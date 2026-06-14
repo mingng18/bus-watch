@@ -12,8 +12,8 @@ struct MainView: View {
                 ProgressView("Locating...")
             case .noLocation:
                 noLocationView
-            case .station(let stop, let schedule):
-                StationArrivalsView(stop: stop, schedule: schedule, favorites: favorites)
+            case .station(let stop, let schedule, let isOffline):
+                StationArrivalsView(stop: stop, schedule: schedule, favorites: favorites, isOffline: isOffline)
             case .onBus(let progress):
                 BusProgressView(progress: progress)
             case .nearby(let response):

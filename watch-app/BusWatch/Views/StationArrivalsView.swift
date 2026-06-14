@@ -4,6 +4,9 @@ struct StationArrivalsView: View {
     let stop: NearbyStop
     let schedule: StationScheduleResponse
     var favorites: FavoriteStore? = nil
+    /// When true, the displayed schedule came from the on-device cache
+    /// because the network fetch failed or was stale.
+    var isOffline: Bool = false
     @EnvironmentObject private var notifications: NotificationService
 
     @State private var reminderMinutes: Int = 5
@@ -19,6 +22,10 @@ struct StationArrivalsView: View {
 
                 favoriteControls
                     .padding(.top, 2)
+
+                if isOffline {
+                    offlineBanner
+                }
 
                 Divider()
 
@@ -109,6 +116,23 @@ struct StationArrivalsView: View {
             await notifications.fireImmediateArrivalAlert(for: departure, stopName: stop.name)
             scheduledReminderId = "immediate-\(departure.id)"
         }
+    }
+
+    /// Explicit "offline / scheduled" indicator shown when the displayed
+    /// timetable came from the on-device cache rather than a live fetch.
+    @ViewBuilder
+    private var offlineBanner: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "wifi.slash")
+                .font(.caption2)
+                .foregroundStyle(.orange)
+                .accessibilityHidden(true)
+            Text("Offline — showing scheduled times")
+                .font(.caption2)
+                .foregroundStyle(.orange)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Offline. Showing cached scheduled times.")
     }
 
     @ViewBuilder

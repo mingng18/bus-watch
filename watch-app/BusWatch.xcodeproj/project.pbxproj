@@ -15,7 +15,9 @@
 		2AEA7686A271377F83373CBF /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866C2AF86EA5F3614981EDEC /* NotificationService.swift */; };
 		4953B94A2AD39E266A5972BE /* NearbyListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 794ADE0310958EC741BDE78F /* NearbyListView.swift */; };
 		67282E8DD2D0CA451A52963C /* FavoriteStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB36B0779CD1EA4C52BA132E /* FavoriteStoreTests.swift */; };
+		6D08BDBA7108DA727FC6A678 /* ScheduleCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0683D0C6D4C6B84471D70B3 /* ScheduleCache.swift */; };
 		6F4D412C4E1901FDC9E8BD3A /* StationArrivalsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 660B1B1D915AC221A4B4B533 /* StationArrivalsView.swift */; };
+		70EC8754E53497421BF64466 /* ScheduleCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0201780118097EB4794658BD /* ScheduleCacheTests.swift */; };
 		7260C15D4B96B71E84A75149 /* DeparturesTowardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD3BBC712474F9E78DC7656 /* DeparturesTowardView.swift */; };
 		77390DCF44FDFA9001C57624 /* BusWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA347DACA1EBECB9EDFF1B9E /* BusWatchApp.swift */; };
 		78CCFA0C37CC94900C96E2ED /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0A9870EB9E5F712DC55BCA /* APIClient.swift */; };
@@ -41,6 +43,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0201780118097EB4794658BD /* ScheduleCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleCacheTests.swift; sourceTree = "<group>"; };
 		06C7A620AA96C75AF147E067 /* WatchKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchKit.framework; path = System/Library/Frameworks/WatchKit.framework; sourceTree = SDKROOT; };
 		0C9182C1585161C48872BE9C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		12DC90349DF54A6F1A6B00C5 /* BusWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BusWatch.entitlements; sourceTree = "<group>"; };
@@ -63,6 +66,7 @@
 		CA347DACA1EBECB9EDFF1B9E /* BusWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusWatchApp.swift; sourceTree = "<group>"; };
 		D65B443272C2D040E633AF75 /* JourneyPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JourneyPlanner.swift; sourceTree = "<group>"; };
 		D9119CEEDDA6CF6EEC99A61D /* NearbyResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyResponse.swift; sourceTree = "<group>"; };
+		E0683D0C6D4C6B84471D70B3 /* ScheduleCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleCache.swift; sourceTree = "<group>"; };
 		EB36B0779CD1EA4C52BA132E /* FavoriteStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteStoreTests.swift; sourceTree = "<group>"; };
 		FA23D7007211D6374E78CEBB /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		FC0372CE38EE878F810F9C45 /* DeparturesTowardViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeparturesTowardViewTests.swift; sourceTree = "<group>"; };
@@ -125,6 +129,7 @@
 				D65B443272C2D040E633AF75 /* JourneyPlanner.swift */,
 				FA23D7007211D6374E78CEBB /* LocationManager.swift */,
 				866C2AF86EA5F3614981EDEC /* NotificationService.swift */,
+				E0683D0C6D4C6B84471D70B3 /* ScheduleCache.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -171,6 +176,7 @@
 				FC0372CE38EE878F810F9C45 /* DeparturesTowardViewTests.swift */,
 				EB36B0779CD1EA4C52BA132E /* FavoriteStoreTests.swift */,
 				BE47CA38B378E6489D03A3EF /* NotificationServiceTests.swift */,
+				0201780118097EB4794658BD /* ScheduleCacheTests.swift */,
 			);
 			path = BusWatchTests;
 			sourceTree = "<group>";
@@ -276,6 +282,7 @@
 				4953B94A2AD39E266A5972BE /* NearbyListView.swift in Sources */,
 				0AA434EB051E74BD6DDB0692 /* NearbyResponse.swift in Sources */,
 				2AEA7686A271377F83373CBF /* NotificationService.swift in Sources */,
+				6D08BDBA7108DA727FC6A678 /* ScheduleCache.swift in Sources */,
 				6F4D412C4E1901FDC9E8BD3A /* StationArrivalsView.swift in Sources */,
 				ACEB1F382D22DFB521D8249D /* StationSchedule.swift in Sources */,
 			);
@@ -288,6 +295,7 @@
 				F094818FD43F316C008EA6D8 /* DeparturesTowardViewTests.swift in Sources */,
 				67282E8DD2D0CA451A52963C /* FavoriteStoreTests.swift in Sources */,
 				2692D34E085A4A4C076C363F /* NotificationServiceTests.swift in Sources */,
+				70EC8754E53497421BF64466 /* ScheduleCacheTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
