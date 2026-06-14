@@ -4,6 +4,7 @@ import {
   GtfsStop, GtfsRoute, GtfsTrip, GtfsStopTime, GtfsCalendar,
   Stop, Route, Trip, TripStopEntry, CalendarEntry, AgencyData,
 } from './types';
+import { klDayOfWeek, klDateYyyyMmDd } from './time-kl';
 
 const STATIC_URLS = {
   'rapid-bus-kl': 'https://api.data.gov.my/gtfs-static/prasarana?category=rapid-bus-kl',
@@ -123,8 +124,12 @@ export async function fetchAndParseAgency(agency: string): Promise<AgencyData> {
 }
 
 export function getActiveServiceIds(calendar: CalendarEntry[], date: Date): Set<string> {
-  const dayIndex = date.getDay();
-  const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
+  // GTFS service calendars are authored in KL-local time (UTC+8); Workers run
+  // in UTC. Derive day-of-week and calendar date in KL-local so we don't pick
+  // the wrong service pattern ~8h/day around the UTC midnight boundary.
+  // See issue #127.
+  const dayIndex = klDayOfWeek(date);
+  const dateStr = klDateYyyyMmDd(date);
   const active = new Set<string>();
   for (const entry of calendar) {
     if (dateStr >= entry.startDate && dateStr <= entry.endDate && entry.days[dayIndex]) {
