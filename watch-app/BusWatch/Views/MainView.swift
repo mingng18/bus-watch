@@ -31,6 +31,15 @@ struct MainView: View {
                     Image(systemName: "list.bullet")
                 }
             }
+            // Deep link into Prasarana's Journey Planner so riders can plan a
+            // multi-modal trip (Bus/BRT/LRT/MRT/Monorail) without leaving the
+            // BusWatch launch flow. Opens the universal link in the system browser.
+            ToolbarItem(placement: .bottomBar) {
+                Link(destination: JourneyPlanner.url) {
+                    Label("Plan a trip", systemImage: "arrow.triangle.turn.up.right.diamond")
+                        .labelStyle(.iconOnly)
+                }
+            }
         }
         .sheet(isPresented: $showManual) {
             ManualPickerView(engine: engine, favorites: favorites)
