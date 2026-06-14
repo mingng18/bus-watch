@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Tests import from both src/ and test/, so they don't fit under a single
+    // rootDir of "src". Point rootDir at the package root so type-checking can
+    // span both trees. This config is --noEmit only, so rootDir affects nothing
+    // at runtime — it just lets tsc accept the test/ tree alongside src/.
+    "rootDir": ".",
+    "noEmit": true,
+    // Node + vitest/globals so test files (which use `vi`, `describe`, `it`
+    // and import node things) resolve cleanly.
+    "types": ["@cloudflare/workers-types", "node", "vitest/globals"]
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

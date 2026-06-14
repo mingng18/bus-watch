@@ -1,5 +1,11 @@
 export function parseCsv(text: string): Record<string, string>[] {
-  const trimmed = text.trim();
+  // Normalize line endings: a CRLF (\r\n) or bare CR (\r, legacy Mac) file
+  // split on '\n' alone leaves a trailing '\r' on every row's final field.
+  // That '\r' corrupts the header name (so lookups silently miss) and corrupts
+  // stop/route name values. Normalize to '\n' before splitting.
+  // See issue #132.
+  const normalized = text.replace(/\r\n?/g, '\n');
+  const trimmed = normalized.trim();
   if (!trimmed) return [];
 
   const lines = trimmed.split('\n');

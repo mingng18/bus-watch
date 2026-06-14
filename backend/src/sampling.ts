@@ -12,8 +12,22 @@ export async function sampleBusPositions(env: Env, vehicles: VehiclePosition[], 
   const stmts = [];
   const now = Math.floor(Date.now() / 1000);
 
+  // Deterministic "last position per bus_no". The previous form
+  // `GROUP BY bus_no HAVING timestamp = MAX(timestamp)` is non-standard SQL:
+  // the SELECT lists non-aggregated lat/lon/ts while grouping only by bus_no,
+  // so SQLite returns an indeterminate row from each group. With two sources
+  // (gtfs + prasarana) sharing a bus_no, that nondeterminism could sample a
+  // stale position. Use a window function to deterministically pick the row
+  // with the greatest timestamp per bus_no (ties broken by rowid desc, the
+  // insertion order, so the most recently inserted wins).
+  // See issue #132.
   const { results } = await env.DB.prepare(
-    'SELECT bus_no, lat, lon, timestamp as ts FROM bus_positions WHERE timestamp > (unixepoch() - 600) GROUP BY bus_no HAVING timestamp = MAX(timestamp)'
+    `SELECT bus_no, lat, lon, ts FROM (
+       SELECT bus_no, lat, lon, timestamp as ts, rowid,
+         ROW_NUMBER() OVER (PARTITION BY bus_no ORDER BY timestamp DESC, rowid DESC) AS rn
+       FROM bus_positions
+       WHERE timestamp > (unixepoch() - 600)
+     ) WHERE rn = 1`
   ).all<LastPosition>();
 
   const lastPositions = new Map<string, LastPosition>();

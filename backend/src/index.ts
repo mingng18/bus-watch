@@ -27,7 +27,28 @@ app.use('*', cors({ origin: (origin, c) => c.env.FRONTEND_URL || '*' }));
 
 app.get('/', (c) => c.json({ status: 'ok', service: 'bus-watch' }));
 
-app.get('/refresh', async (c) => {
+/**
+ * Validate a lat/lon pair. `parseFloat('foo')` is NaN and `parseFloat('999')`
+ * is 999; both must be rejected before they reach the spatial queries (NaN
+ * poisons haversine math, out-of-range produces bogus "nearby" results).
+ * Accepts only finite numbers within geographic bounds.
+ * Returns an error message string when invalid, or null when valid.
+ * See issue #131.
+ */
+function validateLatLon(lat: number, lon: number): string | null {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    return 'lat and lon must be finite numbers';
+  }
+  if (lat < -90 || lat > 90) return 'lat must be in [-90, 90]';
+  if (lon < -180 || lon > 180) return 'lon must be in [-180, 180]';
+  return null;
+}
+
+// POST because /refresh mutates state (re-ingests GTFS into KV). GET would be
+// CSRF/prefetch-prone (browsers prefetch links, prefetch robots hit URLs found
+// in HTML, image preloaders have historically fired GETs on linked URLs).
+// See issue #131.
+app.post('/refresh', async (c) => {
   const authHeader = c.req.header('Authorization');
   if (!c.env.ADMIN_TOKEN || !authHeader || !(await timingSafeEqual(authHeader, `Bearer ${c.env.ADMIN_TOKEN}`))) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -37,10 +58,15 @@ app.get('/refresh', async (c) => {
 });
 
 app.get('/nearby', async (c) => {
-  const lat = parseFloat(c.req.query('lat') || '0');
-  const lon = parseFloat(c.req.query('lon') || '0');
+  const lat = parseFloat(c.req.query('lat') || '');
+  const lon = parseFloat(c.req.query('lon') || '');
   const radius = parseInt(c.req.query('radius') || '500');
-  if (!lat || !lon) return c.json({ error: 'lat and lon required' }, 400);
+  // Reject missing/NaN/out-of-range coords before they reach spatial queries.
+  // Note: we cannot use `if (!lat)` here because lat=0 (the equator) is a
+  // legitimate value; we must validate finiteness and range explicitly.
+  // See issue #131.
+  const coordErr = validateLatLon(lat, lon);
+  if (coordErr) return c.json({ error: coordErr }, 400);
 
   const allStops = await getAllStops(c.env.KV);
   const allRoutes = await getAllRoutes(c.env.KV);
@@ -249,10 +275,11 @@ app.post('/rail/ingest', async (c) => {
 });
 
 app.get('/routes', async (c) => {
-  const lat = parseFloat(c.req.query('lat') || '0');
-  const lon = parseFloat(c.req.query('lon') || '0');
+  const lat = parseFloat(c.req.query('lat') || '');
+  const lon = parseFloat(c.req.query('lon') || '');
   const radius = parseInt(c.req.query('radius') || '500');
-  if (!lat || !lon) return c.json({ error: 'lat and lon required' }, 400);
+  const coordErr = validateLatLon(lat, lon);
+  if (coordErr) return c.json({ error: coordErr }, 400);
 
   const allStops = await getAllStops(c.env.KV);
   const allRoutes = await getAllRoutes(c.env.KV);
@@ -263,10 +290,15 @@ app.get('/routes', async (c) => {
 });
 
 app.get('/alerts', async (c) => {
-  const limit = parseInt(c.req.query('limit') || String(DEFAULT_ALERT_LIMIT));
+  // Clamp limit: parseInt('foo') is NaN, parseInt('99999999') is unbounded.
+  // Either could let a caller dump the entire alert list (cheap DoS / large
+  // payload). Coerce to the default on parse failure, then clamp to [1, 100].
+  // See issue #131.
+  const parsed = parseInt(c.req.query('limit') || '', 10);
+  const limit = Math.min(Math.max(Number.isFinite(parsed) ? parsed : DEFAULT_ALERT_LIMIT, 1), 100);
   try {
     const all = await getCachedAlerts(c.env);
-    const alerts = Number.isFinite(limit) && limit > 0 ? all.slice(0, limit) : all;
+    const alerts = all.slice(0, limit);
     return c.json({ alerts });
   } catch (err: any) {
     // Defensive: never 500 on alert failures.
