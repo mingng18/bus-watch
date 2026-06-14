@@ -68,7 +68,7 @@ struct NearbyListView: View {
                 }
 
                 if let first = stop.arrivals.first {
-                    Text("\(first.isRealtime ? "" : "sched ")\(first.line ?? first.route ?? "") → \(first.destination) — \(first.minutes) min")
+                    Text("\(arrivalPrefix(first))\(first.line ?? first.route ?? "") → \(first.destination) — \(arrivalMinutesText(first))")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
@@ -104,17 +104,59 @@ struct NearbyListView: View {
     /// Rider-facing VoiceOver label for a nearby stop row — one element that
     /// reads "Titiwangsa, 120 meters away" plus the next arrival when known,
     /// and home/favorite state so it isn't conveyed by glyph color alone.
+    /// The arrival clause includes the scheduled-vs-live marker and the
+    /// confidence qualifier so VoiceOver riders get the same honesty about
+    /// estimate quality as sighted riders (issue #133, layered on #143).
     private func stopRowLabel(_ stop: NearbyStop) -> String {
         var parts = [stop.name, "\(stop.distanceM) meters away"]
         if let first = stop.arrivals.first {
             let route = first.line ?? first.route ?? ""
-            let source = first.isRealtime ? "" : "scheduled "
-            parts.append("\(source)\(route) to \(first.destination), \(first.minutes) minutes")
+            // VoiceOver reads the full qualifier: "scheduled" / "live", plus
+            // "approximate" + the uncertainty window when confidence is medium
+            // or low, so a rider knows not to trust a weak estimate tightly.
+            let source = arrivalSpokenSource(first)
+            let approx = arrivalSpokenApprox(first)
+            parts.append("\(source)\(route) to \(first.destination), \(approx)\(first.minutes) minutes")
         }
         if let favorites {
             if favorites.isHome(stop.id) { parts.append("home stop") }
             if favorites.contains(stop.id) { parts.append("favorited") }
         }
         return parts.joined(separator: ", ")
+    }
+
+    /// Visible prefix for the arrival line. Live arrivals show nothing; a
+    /// historical/scheduled estimate shows "≈ " when we have an uncertainty
+    /// window, otherwise the legacy "sched " tag.
+    private func arrivalPrefix(_ a: Arrival) -> String {
+        if a.isRealtime { return "" }
+        if a.uncertaintyMinutes != nil { return "≈ " }
+        return "sched "
+    }
+
+    /// Visible minutes text. For a scheduled estimate with an uncertainty
+    /// window, render "5 min (approx)" so the rider sees the qualifier inline.
+    private func arrivalMinutesText(_ a: Arrival) -> String {
+        if !a.isRealtime, a.uncertaintyMinutes != nil {
+            return "\(a.minutes) min (approx)"
+        }
+        return "\(a.minutes) min"
+    }
+
+    /// Spoken source word for VoiceOver: "live " or "scheduled ".
+    private func arrivalSpokenSource(_ a: Arrival) -> String {
+        a.isRealtime ? "live " : "scheduled "
+    }
+
+    /// Spoken approx qualifier for VoiceOver: "approximately " + the window
+    /// when confidence is medium/low; empty for live or high-confidence.
+    private func arrivalSpokenApprox(_ a: Arrival) -> String {
+        if a.isRealtime { return "" }
+        switch a.confidence {
+        case "low", "medium":
+            return "approximately "
+        default:
+            return ""
+        }
     }
 }

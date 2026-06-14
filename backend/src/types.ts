@@ -140,6 +140,23 @@ export interface Arrival {
   minutes: number;
   isRealtime: boolean;
   tripId?: string;
+  /**
+   * Coarse confidence in the `minutes` value ('high'|'medium'|'low'). Only
+   * set when minutes came from the historical-aggregate path; live GTFS
+   * realtime arrivals leave this unset. See issue #133.
+   */
+  confidence?: EtaConfidence;
+  /**
+   * Uncertainty half-window in minutes for a historical estimate, so the
+   * client can render "≈5 min". Omitted for live arrivals.
+   */
+  uncertainty_minutes?: number;
+  /**
+   * "scheduled" = derived from historical aggregates (not live); "live" =
+   * from a GTFS-realtime vehicle position. Omitted = legacy/unknown so older
+   * clients are unaffected. See issue #133.
+   */
+  eta_source?: 'scheduled' | 'live';
 }
 
 export interface BusRouteEntry {
@@ -261,4 +278,30 @@ export interface TravelTime {
   avg_seconds: number;
   sample_count: number;
   updated_at: number;
+  /** JS day index (0=Sun..6=Sat) in KL-local time. See time-kl.ts. */
+  day_of_week: number;
+  /** KL-local hour (0..23) of the from-stop passage. */
+  time_bucket: number;
+  /** Mean absolute deviation of samples, in seconds (robust spread signal). */
+  spread_seconds: number;
+}
+
+/**
+ * Result of a historical-ETA lookup. Carries a confidence signal so callers
+ * can render an honest "approx N min" qualifier instead of a single point
+ * estimate. See issue #133.
+ */
+export type EtaConfidence = 'high' | 'medium' | 'low';
+
+export interface HistoricalEtaResult {
+  /** Point estimate, in minutes (avg_seconds / 60, rounded for display only upstream). */
+  minutes: number;
+  /** Half-width of the uncertainty window, in minutes (from spread_seconds). */
+  uncertaintyMinutes: number;
+  /** Coarse confidence bucket derived from sample_count + spread. */
+  confidence: EtaConfidence;
+  /** Historical aggregates are never live. Lets callers flag scheduled-vs-live. */
+  isLive: false;
+  /** Number of samples backing the estimate (0 when no data was found). */
+  sampleCount: number;
 }

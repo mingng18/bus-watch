@@ -11,9 +11,11 @@ vi.mock('../src/nearby', async (importOriginal) => {
   };
 });
 
-// Mock realtime vehicles properly to bypass its logic, and reach the DB call
+// Mock realtime vehicles properly to bypass its logic, and reach the DB call.
+// Include a position so /bus/eta can resolve a from-stop before the historical
+// lookup (issue #133: the handler now keys the ETA off the bus's nearest stop).
 vi.mock('../src/gtfs-realtime', () => ({
-  fetchVehiclePositions: vi.fn().mockResolvedValue([{ tripId: 't1', routeId: 'r1' }])
+  fetchVehiclePositions: vi.fn().mockResolvedValue([{ tripId: 't1', routeId: 'r1', lat: 3.13, lon: 101.68, currentStopSequence: 1, timestamp: 0, stopId: 's1' }])
 }));
 
 // Avoid real network calls to the MyRapid sitemap from getCachedAlerts. The
@@ -35,14 +37,31 @@ describe('GET /bus/eta', () => {
     // simulates a database failure or other unexpected error during ETA calculation
     vi.mocked(nearby.getHistoricalETA).mockRejectedValue(new Error('DB Error'));
 
+    // /bus/eta (issue #133) resolves a from-stop from the bus's current
+    // position + the route's stop sequence, so KV must return minimal
+    // trips/tripStops/routes for that lookup to reach getHistoricalETA.
+    // Note: the mock returns already-parsed values (the real KV `get(k,'json')`
+    // parses; this mock bypasses that, so hand back objects, not strings).
+    const kv = {
+      get: vi.fn((key: string) => {
+        if (key.startsWith('trips:')) {
+          return Promise.resolve([{ id: 't1', routeId: 'r1', serviceId: 's', headsign: 'h', directionId: 0, shapeId: '' }]);
+        }
+        if (key.startsWith('tripStops:')) {
+          return Promise.resolve({
+            t1: [{ stopId: 's0', stopName: 's0', lat: 3.13, lon: 101.68, arrivalTime: '', departureTime: '', sequence: 1 }],
+          });
+        }
+        if (key.startsWith('routes:')) {
+          return Promise.resolve([{ id: 'r1', shortName: 'r1', longName: 'r1', type: 3 }]);
+        }
+        return Promise.resolve(null);
+      }),
+      put: vi.fn().mockResolvedValue(undefined),
+    } as any;
+
     const req = new Request('http://localhost/bus/eta?tripId=t1&stopId=s1');
-    const res = await worker.fetch(req, {
-      KV: {
-        get: vi.fn().mockResolvedValue(null),
-        put: vi.fn().mockResolvedValue(undefined),
-      },
-      DB: {},
-    } as any, {} as any);
+    const res = await worker.fetch(req, { KV: kv, DB: {} } as any, {} as any);
 
     // Verify that the error is caught and a 500 response is returned
     expect(res.status).toBe(500);
