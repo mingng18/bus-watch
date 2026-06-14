@@ -42,6 +42,43 @@ targets:
         NSLocationWhenInUseUsageDescription: "BusWatch needs your location to find nearby bus stops and train stations."
     dependencies:
       - sdk: WatchKit.framework
+      - target: BusWatchComplications
+        embed: true
+
+  BusWatchComplications:
+    type: app-extension
+    platform: watchOS
+    sources:
+      - BusWatchComplications
+      # Shared code compiled into both the app and this extension so the
+      # widget can read the home stop + cached schedule and resolve the
+      # countdown without depending on the full app target.
+      - path: BusWatch/Services/SharedDefaults.swift
+      - path: BusWatch/Services/ScheduleCache.swift
+      - path: BusWatch/Services/CountdownTimeline.swift
+      - path: BusWatch/Models/StationSchedule.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.buswatch.watchapp.widget
+        INFOPLIST_KEY_CFBundleDisplayName: BusWatch Complications
+        SKIP_INSTALL: YES
+        CODE_SIGNING_ALLOWED: NO
+    entitlements:
+      path: BusWatchComplications/BusWatchComplications.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.buswatch.watchapp
+    info:
+      path: BusWatchComplications/Info.plist
+      properties:
+        CFBundleDisplayName: BusWatch Complications
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    dependencies:
+      - sdk: WidgetKit.framework
+      - sdk: SwiftUI.framework
 
   BusWatchTests:
     type: bundle.unit-test
@@ -53,3 +90,9 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.buswatch.watchapp.tests
+
+schemes:
+  BusWatchComplications:
+    build:
+      targets:
+        BusWatchComplications: all
