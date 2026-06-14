@@ -47,6 +47,12 @@ struct StationArrivalsView: View {
                             .bold()
                             .foregroundStyle(dep.minutesUntil <= 3 ? Color.green : .white)
                     }
+                    // Combine the row into one VoiceOver element so the rider
+                    // hears "U82 to Sentul, 5 minutes, arriving soon" rather
+                    // than four disconnected fragments. The "arriving soon"
+                    // tail pairs the green color cue with text (WCAG 1.4.1).
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(departureLabel(dep))
                 }
 
                 if !stop.arrivals.contains(where: { $0.isRealtime }) {
@@ -90,6 +96,9 @@ struct StationArrivalsView: View {
                         }
                     }
                     .labelsHidden()
+                    .accessibilityLabel("Reminder lead time")
+                    .accessibilityValue("\(reminderMinutes) minutes before")
+                    .accessibilityHint("How many minutes before arrival to notify you.")
                 }
                 Button {
                     Task { await scheduleReminder(for: next) }
@@ -99,6 +108,9 @@ struct StationArrivalsView: View {
                         .font(.caption)
                 }
                 .buttonStyle(.bordered)
+                .accessibilityLabel(scheduledReminderId == nil ? "Set alert" : "Alert set")
+                .accessibilityValue(scheduledReminderId == nil ? "Off" : "On")
+                .accessibilityHint("Schedules a notification \(reminderMinutes) minutes before arrival.")
             }
         }
     }
@@ -135,6 +147,14 @@ struct StationArrivalsView: View {
         .accessibilityLabel("Offline. Showing cached scheduled times.")
     }
 
+    /// Rider-facing VoiceOver label for a departure row. Surfaces urgency in
+    /// words ("arriving soon") so it isn't conveyed by color alone (WCAG
+    /// 1.4.1), and reads as one phrase: "U82 to Sentul, 5 minutes".
+    private func departureLabel(_ dep: Departure) -> String {
+        let urgency = dep.minutesUntil <= 3 ? ", arriving soon" : ""
+        return "\(dep.line) to \(dep.destination), \(dep.minutesUntil) minutes\(urgency)"
+    }
+
     @ViewBuilder
     private var favoriteControls: some View {
         if let favorites {
@@ -148,6 +168,9 @@ struct StationArrivalsView: View {
                         .foregroundStyle(favorites.contains(stop.id) ? .yellow : .secondary)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Favorite")
+                .accessibilityValue(favorites.contains(stop.id) ? "On" : "Off")
+                .accessibilityHint("Saves this stop to your favorites.")
 
                 Button {
                     favorites.toggleHome(stop.id)
@@ -159,6 +182,9 @@ struct StationArrivalsView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(!favorites.contains(stop.id))
+                .accessibilityLabel(favorites.isHome(stop.id) ? "Home" : "Set Home")
+                .accessibilityValue(favorites.isHome(stop.id) ? "On" : "Off")
+                .accessibilityHint("Marks this stop as your home for quick access.")
             }
         }
     }

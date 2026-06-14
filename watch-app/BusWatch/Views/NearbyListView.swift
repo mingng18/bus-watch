@@ -74,6 +74,9 @@ struct NearbyListView: View {
                 }
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(stopRowLabel(stop))
+        .accessibilityHint("Shows arrivals for this stop.")
         .swipeActions(edge: .leading, allowsFullSwipe: true) {
             if let favorites {
                 Button {
@@ -96,5 +99,22 @@ struct NearbyListView: View {
                 .tint(.yellow)
             }
         }
+    }
+
+    /// Rider-facing VoiceOver label for a nearby stop row — one element that
+    /// reads "Titiwangsa, 120 meters away" plus the next arrival when known,
+    /// and home/favorite state so it isn't conveyed by glyph color alone.
+    private func stopRowLabel(_ stop: NearbyStop) -> String {
+        var parts = [stop.name, "\(stop.distanceM) meters away"]
+        if let first = stop.arrivals.first {
+            let route = first.line ?? first.route ?? ""
+            let source = first.isRealtime ? "" : "scheduled "
+            parts.append("\(source)\(route) to \(first.destination), \(first.minutes) minutes")
+        }
+        if let favorites {
+            if favorites.isHome(stop.id) { parts.append("home stop") }
+            if favorites.contains(stop.id) { parts.append("favorited") }
+        }
+        return parts.joined(separator: ", ")
     }
 }

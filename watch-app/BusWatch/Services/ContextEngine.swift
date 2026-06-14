@@ -98,7 +98,7 @@ class ContextEngine: ObservableObject {
                 if let cached = scheduleCache.schedule(for: stop.id) {
                     await MainActor.run { self.setState(.station(stop, cached, isOffline: true)) }
                 } else {
-                    await MainActor.run { self.setState(.error(error.localizedDescription)) }
+                    await MainActor.run { self.setState(.error(friendlyMessage(for: error))) }
                 }
             }
         }
@@ -111,7 +111,7 @@ class ContextEngine: ObservableObject {
                 await MainActor.run { self.setState(.onBus(progress)) }
                 startAutoRefresh(tripId: tripId)
             } catch {
-                await MainActor.run { self.setState(.error(error.localizedDescription)) }
+                await MainActor.run { self.setState(.error(friendlyMessage(for: error))) }
             }
         }
     }
@@ -148,7 +148,7 @@ class ContextEngine: ObservableObject {
 
             await MainActor.run { self.setState(.nearby(nearby)) }
         } catch {
-            await MainActor.run { self.setState(.error(error.localizedDescription)) }
+            await MainActor.run { self.setState(.error(friendlyMessage(for: error))) }
         }
     }
 
@@ -170,7 +170,7 @@ class ContextEngine: ObservableObject {
                     // surface an error so they're not staring at stale data.
                     self.consecutiveRefreshFailures += 1
                     if self.consecutiveRefreshFailures >= Self.maxRefreshFailures {
-                        await MainActor.run { self.setState(.error(error.localizedDescription)) }
+                        await MainActor.run { self.setState(.error(friendlyMessage(for: error))) }
                     }
                 }
             }

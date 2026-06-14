@@ -66,6 +66,30 @@ class APIClient {
 enum APIError: Error {
     case invalidURL
     case badResponse
+
+    /// Rider-facing description shown in `MainView`'s error state. Avoids
+    /// surfacing `localizedDescription` ("the operation couldn't be
+    /// completed") which tells a rider nothing actionable. Fallback for
+    /// non-`APIError` networking failures lives in `friendlyMessage(for:)`.
+    var friendlyMessage: String {
+        switch self {
+        case .invalidURL:
+            return "Couldn't load this stop. Try another."
+        case .badResponse:
+            return "Couldn't reach BusWatch. Check your connection."
+        }
+    }
+}
+
+/// Maps any thrown error to a rider-facing string at the display boundary.
+/// `APIError` cases get a specific message; everything else (typically
+/// `URLError` timeouts / lost-connection) collapses to a generic "couldn't
+/// reach" message so the rider isn't shown raw framework text.
+func friendlyMessage(for error: Error) -> String {
+    if let api = error as? APIError {
+        return api.friendlyMessage
+    }
+    return APIError.badResponse.friendlyMessage
 }
 
 struct RoutesResponse: Codable {

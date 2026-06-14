@@ -44,10 +44,20 @@ struct DeparturesTowardView: View {
                                 .bold()
                                 .foregroundStyle(dep.minutesUntil <= 3 ? Color.green : .white)
                         }
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(departureLabel(dep))
                     }
                 }
             }
             .padding()
         }
+    }
+
+    /// Rider-facing VoiceOver label for a departure row. Mirrors
+    /// `StationArrivalsView.departureLabel` — one phrase that surfaces
+    /// urgency in words rather than color alone (WCAG 1.4.1).
+    private func departureLabel(_ dep: Departure) -> String {
+        let urgency = dep.minutesUntil <= 3 ? ", arriving soon" : ""
+        return "\(dep.line) to \(dep.destination), \(dep.minutesUntil) minutes\(urgency)"
     }
 }
