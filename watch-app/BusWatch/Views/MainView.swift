@@ -36,6 +36,7 @@ struct MainView: View {
             ToolbarItem(placement: .cancellationAction) {
                 Button(action: { showManual = true }) {
                     Image(systemName: "list.bullet")
+                        .accessibilityLabel("Manual Selection")
                 }
             }
             // Deep link into Prasarana's Journey Planner so riders can plan a
