@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { getDeparturesTowardDestination } from '../src/departures-toward';
 import { Stop, Route, Trip, TripStopEntry, CalendarEntry } from '../src/types';
 
@@ -84,5 +84,29 @@ describe('getDeparturesTowardDestination', () => {
 
   it('throws for unknown stop', () => {
     expect(() => getDeparturesTowardDestination('unknown', 'dest', stops, routes, trips, tripStops, calendar)).toThrow();
+  });
+
+  describe('KL timezone (issue #127)', () => {
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it('computes minutesUntil in KL-local (UTC+8), not UTC', () => {
+      // 2026-06-14T00:30:00Z = 08:30 KL-local. Trip departs current at 08:35 KL.
+      vi.setSystemTime(new Date('2026-06-14T00:30:00Z'));
+
+      const tzTrips: Trip[] = [
+        { id: 'kt1', routeId: 'r1', serviceId: 'wk', headsign: 'Toward Dest', directionId: 0 },
+      ];
+      const tzTripStops: Record<string, TripStopEntry[]> = {
+        kt1: [
+          { stopId: 'current', stopName: 'Current Stop', lat: 3.0, lon: 101.0, arrivalTime: '08:35:00', departureTime: '08:35:00', sequence: 1 },
+          { stopId: 'dest', stopName: 'Destination Stop', lat: 3.1, lon: 101.1, arrivalTime: '08:45:00', departureTime: '08:45:00', sequence: 2 },
+        ],
+      };
+
+      const result = getDeparturesTowardDestination('current', 'dest', stops, routes, tzTrips, tzTripStops, calendar);
+      expect(result.departures.length).toBe(1);
+      expect(result.departures[0].minutesUntil).toBe(5);
+    });
   });
 });

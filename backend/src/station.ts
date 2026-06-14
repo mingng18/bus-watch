@@ -1,5 +1,6 @@
 import { Stop, Route, Trip, TripStopEntry, CalendarEntry, StationScheduleResponse, Departure } from './types';
 import { getActiveServiceIds } from './gtfs-static';
+import { klSecondsSinceMidnight } from './time-kl';
 
 export function getStationSchedule(
   stopId: string,
@@ -17,9 +18,10 @@ export function getStationSchedule(
 
   const departures: Departure[] = [];
 
-  // Performance optimization: Hoist current time calculation outside of loop
-  const now = new Date();
-  const nowSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+  // Performance optimization: Hoist current time calculation outside of loop.
+  // GTFS departure_time is KL-local (UTC+8); Workers run in UTC, so shift
+  // before deriving seconds-of-day. See issue #127.
+  const nowSeconds = klSecondsSinceMidnight(new Date());
 
   for (const trip of trips) {
     if (!activeServiceIds.has(trip.serviceId)) continue;

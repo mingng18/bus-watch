@@ -1,4 +1,5 @@
 import { Env } from './types';
+import { toKlLocal } from './time-kl';
 
 export interface RailArrival {
   trip_id: string;
@@ -56,8 +57,7 @@ export async function getRailSchedule(
 
   // 2. Current time as minutes-since-midnight (server time is UTC; KL is UTC+8)
   const now = new Date();
-  const klOffsetMs = 8 * 60 * 60 * 1000;
-  const klNow = new Date(now.getTime() + klOffsetMs);
+  const klNow = toKlLocal(now);
   const currentMinutes = klNow.getUTCHours() * 60 + klNow.getUTCMinutes();
 
   // 3. Query upcoming arrivals within the window

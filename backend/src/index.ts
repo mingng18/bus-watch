@@ -98,14 +98,22 @@ app.get('/nearby', async (c) => {
 
 app.get('/bus/trip/:tripId/progress', async (c) => {
   const tripId = c.req.param('tripId');
-  const allRoutes = await getAllRoutes(c.env.KV);
-  const vehicles = await getRealtimeVehicles(c.env.KV);
-  const vehicle = vehicles.find(v => v.tripId === tripId) || null;
-  const allTripStops = await getAllTripStops(c.env.KV);
-  const routeMap = new Map<string, Route>();
-  for (const r of allRoutes) routeMap.set(r.id, r);
-  const result = getBusTripProgress(tripId, routeMap, allTripStops, vehicle);
-  return c.json(result);
+  try {
+    const allRoutes = await getAllRoutes(c.env.KV);
+    const vehicles = await getRealtimeVehicles(c.env.KV);
+    const vehicle = vehicles.find(v => v.tripId === tripId) || null;
+    const allTripStops = await getAllTripStops(c.env.KV);
+    const routeMap = new Map<string, Route>();
+    for (const r of allRoutes) routeMap.set(r.id, r);
+    const result = getBusTripProgress(tripId, routeMap, allTripStops, vehicle);
+    return c.json(result);
+  } catch (err) {
+    // getBusTripProgress throws on unknown tripId (e.g. a stale saved
+    // favorite referencing a trip removed from GTFS). Return a clean 404
+    // instead of letting Hono turn the unhandled rejection into a 500.
+    // See issue #128.
+    return c.json({ error: 'Trip not found' }, 404);
+  }
 });
 
 app.get('/bus/eta', async (c) => {
@@ -160,15 +168,23 @@ app.get('/bus/position/:busId', async (c) => {
 
 app.get('/station/:stopId/schedule', async (c) => {
   const stopId = c.req.param('stopId');
-  const allStops = await getAllStops(c.env.KV);
-  const allRoutes = await getAllRoutes(c.env.KV);
-  const allTrips = await getAllTrips(c.env.KV);
-  const allTripStops = await getAllTripStops(c.env.KV);
-  const allCalendar = await getAllCalendar(c.env.KV);
-  const allFrequencies = await getAllFrequencies(c.env.KV);
+  try {
+    const allStops = await getAllStops(c.env.KV);
+    const allRoutes = await getAllRoutes(c.env.KV);
+    const allTrips = await getAllTrips(c.env.KV);
+    const allTripStops = await getAllTripStops(c.env.KV);
+    const allCalendar = await getAllCalendar(c.env.KV);
+    const allFrequencies = await getAllFrequencies(c.env.KV);
 
-  const result = getStationSchedule(stopId, allStops, allRoutes, allTrips, allTripStops, allCalendar);
-  return c.json(result);
+    const result = getStationSchedule(stopId, allStops, allRoutes, allTrips, allTripStops, allCalendar);
+    return c.json(result);
+  } catch (err) {
+    // getStationSchedule throws on unknown stopId (e.g. a stale saved
+    // favorite referencing a stop removed from GTFS). Return a clean 404
+    // instead of letting Hono turn the unhandled rejection into a 500.
+    // See issue #128.
+    return c.json({ error: 'Station not found' }, 404);
+  }
 });
 
 app.get('/station/:stopId/schedule/toward', async (c) => {
@@ -178,16 +194,24 @@ app.get('/station/:stopId/schedule/toward', async (c) => {
 
   const limit = parseInt(c.req.query('limit') || '5');
 
-  const allStops = await getAllStops(c.env.KV);
-  const allRoutes = await getAllRoutes(c.env.KV);
-  const allTrips = await getAllTrips(c.env.KV);
-  const allTripStops = await getAllTripStops(c.env.KV);
-  const allCalendar = await getAllCalendar(c.env.KV);
+  try {
+    const allStops = await getAllStops(c.env.KV);
+    const allRoutes = await getAllRoutes(c.env.KV);
+    const allTrips = await getAllTrips(c.env.KV);
+    const allTripStops = await getAllTripStops(c.env.KV);
+    const allCalendar = await getAllCalendar(c.env.KV);
 
-  const result = getDeparturesTowardDestination(
-    stopId, destinationStopId, allStops, allRoutes, allTrips, allTripStops, allCalendar, limit,
-  );
-  return c.json(result);
+    const result = getDeparturesTowardDestination(
+      stopId, destinationStopId, allStops, allRoutes, allTrips, allTripStops, allCalendar, limit,
+    );
+    return c.json(result);
+  } catch (err) {
+    // getDeparturesTowardDestination throws on unknown stopId (e.g. a stale
+    // saved favorite referencing a stop removed from GTFS). Return a clean
+    // 404 instead of letting Hono turn the unhandled rejection into a 500.
+    // See issue #128.
+    return c.json({ error: 'Station not found' }, 404);
+  }
 });
 
 app.get('/rail/stops', async (c) => {
