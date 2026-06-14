@@ -18,7 +18,7 @@ final class ScheduleCache {
     private let defaults: UserDefaults
     private let key: String
 
-    init(defaults: UserDefaults = .standard, key: String = "buswatch.scheduleCache") {
+    init(defaults: UserDefaults = .standard, key: String = SharedDefaults.scheduleCacheKey) {
         self.defaults = defaults
         self.key = key
     }
