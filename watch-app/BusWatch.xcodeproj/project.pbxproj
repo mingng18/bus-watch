@@ -10,6 +10,7 @@
 		008048A267FC22116C9D1BB9 /* FavoriteStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D1724C45852F288A8E5D67B /* FavoriteStore.swift */; };
 		04B1911148FE652AB32F0FD7 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA23D7007211D6374E78CEBB /* LocationManager.swift */; };
 		0AA434EB051E74BD6DDB0692 /* NearbyResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9119CEEDDA6CF6EEC99A61D /* NearbyResponse.swift */; };
+		0FFEB2057F81421C78BEF5CE /* Alert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1169157644BA148145F5B77A /* Alert.swift */; };
 		2692D34E085A4A4C076C363F /* NotificationServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE47CA38B378E6489D03A3EF /* NotificationServiceTests.swift */; };
 		2828DFB33F6CC9C2946AA616 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0C9182C1585161C48872BE9C /* Assets.xcassets */; };
 		2AEA7686A271377F83373CBF /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866C2AF86EA5F3614981EDEC /* NotificationService.swift */; };
@@ -21,10 +22,12 @@
 		7260C15D4B96B71E84A75149 /* DeparturesTowardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD3BBC712474F9E78DC7656 /* DeparturesTowardView.swift */; };
 		77390DCF44FDFA9001C57624 /* BusWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA347DACA1EBECB9EDFF1B9E /* BusWatchApp.swift */; };
 		78CCFA0C37CC94900C96E2ED /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0A9870EB9E5F712DC55BCA /* APIClient.swift */; };
+		8716E5F77E1B073993C15FD5 /* AlertTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 334E0D65B5CD21F0D1DA369F /* AlertTests.swift */; };
 		8B7F8F25766982E5F2920A20 /* BusProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 896F8B54C63F85B2691064DC /* BusProgressView.swift */; };
 		8F84E44B697A29FBF4B55D07 /* ManualPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE38A0AB7618D4AAC05DB505 /* ManualPickerView.swift */; };
 		AAA323BB1666E3037B51BDF3 /* BusTripProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A40775DF6CF3FA724842FE0 /* BusTripProgress.swift */; };
 		ACEB1F382D22DFB521D8249D /* StationSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21E0063F5A9B12B461E2C33 /* StationSchedule.swift */; };
+		AE222E59629D49941A8F220F /* AlertsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65EBD009FF20DCCED6D0DC9A /* AlertsView.swift */; };
 		BA585B9B333A860100FE75F8 /* ContextEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C91CB86181B93248A4FCDAF3 /* ContextEngine.swift */; };
 		D4EA1EDA2E7B4C7255C7A20A /* JourneyPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = D65B443272C2D040E633AF75 /* JourneyPlanner.swift */; };
 		E0A2F83D9902D5F505984073 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7AC90DFF25D5C183D480F61 /* MainView.swift */; };
@@ -46,11 +49,14 @@
 		0201780118097EB4794658BD /* ScheduleCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleCacheTests.swift; sourceTree = "<group>"; };
 		06C7A620AA96C75AF147E067 /* WatchKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchKit.framework; path = System/Library/Frameworks/WatchKit.framework; sourceTree = SDKROOT; };
 		0C9182C1585161C48872BE9C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		1169157644BA148145F5B77A /* Alert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Alert.swift; sourceTree = "<group>"; };
 		12DC90349DF54A6F1A6B00C5 /* BusWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BusWatch.entitlements; sourceTree = "<group>"; };
 		17E3AE33D4989CFFF80C7E61 /* BusWatchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BusWatchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		334E0D65B5CD21F0D1DA369F /* AlertTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertTests.swift; sourceTree = "<group>"; };
 		3A40775DF6CF3FA724842FE0 /* BusTripProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusTripProgress.swift; sourceTree = "<group>"; };
 		3D1724C45852F288A8E5D67B /* FavoriteStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteStore.swift; sourceTree = "<group>"; };
 		4F0A9870EB9E5F712DC55BCA /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		65EBD009FF20DCCED6D0DC9A /* AlertsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertsView.swift; sourceTree = "<group>"; };
 		660B1B1D915AC221A4B4B533 /* StationArrivalsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationArrivalsView.swift; sourceTree = "<group>"; };
 		794ADE0310958EC741BDE78F /* NearbyListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyListView.swift; sourceTree = "<group>"; };
 		866C2AF86EA5F3614981EDEC /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
@@ -103,6 +109,7 @@
 		4B318D31B48EF008EB5AAD42 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				1169157644BA148145F5B77A /* Alert.swift */,
 				3A40775DF6CF3FA724842FE0 /* BusTripProgress.swift */,
 				D9119CEEDDA6CF6EEC99A61D /* NearbyResponse.swift */,
 				C21E0063F5A9B12B461E2C33 /* StationSchedule.swift */,
@@ -137,6 +144,7 @@
 		A4D92BC5E23747AA061C8FCF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				65EBD009FF20DCCED6D0DC9A /* AlertsView.swift */,
 				896F8B54C63F85B2691064DC /* BusProgressView.swift */,
 				9FD3BBC712474F9E78DC7656 /* DeparturesTowardView.swift */,
 				A7AC90DFF25D5C183D480F61 /* MainView.swift */,
@@ -173,6 +181,7 @@
 		B7EBE68AFE1317D0AE0B1D8B /* BusWatchTests */ = {
 			isa = PBXGroup;
 			children = (
+				334E0D65B5CD21F0D1DA369F /* AlertTests.swift */,
 				FC0372CE38EE878F810F9C45 /* DeparturesTowardViewTests.swift */,
 				EB36B0779CD1EA4C52BA132E /* FavoriteStoreTests.swift */,
 				BE47CA38B378E6489D03A3EF /* NotificationServiceTests.swift */,
@@ -269,6 +278,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				78CCFA0C37CC94900C96E2ED /* APIClient.swift in Sources */,
+				0FFEB2057F81421C78BEF5CE /* Alert.swift in Sources */,
+				AE222E59629D49941A8F220F /* AlertsView.swift in Sources */,
 				8B7F8F25766982E5F2920A20 /* BusProgressView.swift in Sources */,
 				AAA323BB1666E3037B51BDF3 /* BusTripProgress.swift in Sources */,
 				77390DCF44FDFA9001C57624 /* BusWatchApp.swift in Sources */,
@@ -292,6 +303,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8716E5F77E1B073993C15FD5 /* AlertTests.swift in Sources */,
 				F094818FD43F316C008EA6D8 /* DeparturesTowardViewTests.swift in Sources */,
 				67282E8DD2D0CA451A52963C /* FavoriteStoreTests.swift in Sources */,
 				2692D34E085A4A4C076C363F /* NotificationServiceTests.swift in Sources */,
