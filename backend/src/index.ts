@@ -22,7 +22,7 @@ const REALTIME_AGENCIES = ['rapid-bus-kl', 'rapid-bus-mrtfeeder'];
 const AGENCIES = [...REALTIME_AGENCIES, ...SELANGOR_AGENCIES];
 
 const app = new Hono<{ Bindings: Env }>();
-app.use('*', cors());
+app.use('*', cors({ origin: (origin, c) => c.env.FRONTEND_URL || '*' }));
 
 app.get('/', (c) => c.json({ status: 'ok', service: 'bus-watch' }));
 
