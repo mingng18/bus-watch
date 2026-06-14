@@ -21,7 +21,7 @@ describe('sampling logic', () => {
   });
 
   it('aggregateTravelTimes should execute without error', async () => {
-    await expect(aggregateTravelTimes(mockEnv)).resolves.not.toThrow();
+    await expect(aggregateTravelTimes(mockEnv, new Map())).resolves.not.toThrow();
   });
 
   it('cleanupOldPositions should call DB prepare', async () => {

@@ -10,8 +10,11 @@ import {
   Arrival,
   BusRouteEntry,
   PrasaranaBus,
+  HistoricalEtaResult,
+  EtaConfidence,
 } from "./types";
 import { haversineDistance } from "./haversine";
+import { klDayOfWeek, toKlLocal } from "./time-kl";
 // @ts-ignore
 import { expandTripsForStop } from "./frequency";
 
@@ -61,6 +64,9 @@ export function findNearbyStops(
           minutes: Math.max(1, Math.round(d / 300)),
           isRealtime: true,
           tripId: v.tripId,
+          // Mark as a live GTFS-realtime position so the client can show the
+          // scheduled-vs-live qualifier (issue #133).
+          eta_source: "live",
         });
       }
     } else {
@@ -209,46 +215,154 @@ function normalizeRouteCode(code: string): string {
   return code;
 }
 
-// @ts-ignore
+/**
+ * Coarse confidence bucket from sample size + spread. Used by both ETA paths
+ * so the rider sees an honest "approx N min ±M" instead of a single false-
+ * precision point estimate. Thresholds are deliberately conservative:
+ *   - high:   ≥8 samples AND spread ≤ 25% of the mean (consistent leg)
+ *   - medium: ≥3 samples (enough to trust a rough number)
+ *   - low:    anything else (one-off; show but flag as uncertain)
+ */
+export function confidenceFromSamples(
+  sampleCount: number,
+  spreadSeconds: number,
+  avgSeconds: number,
+): EtaConfidence {
+  if (sampleCount >= 8 && (avgSeconds === 0 || spreadSeconds / avgSeconds <= 0.25)) return 'high';
+  if (sampleCount >= 3) return 'medium';
+  return 'low';
+}
+
+/**
+ * Build a HistoricalEtaResult from a travel_times row.
+ */
+function resultFromRow(row: {
+  avg_seconds: number;
+  sample_count: number;
+  spread_seconds: number;
+}): HistoricalEtaResult {
+  const minutes = row.avg_seconds / 60;
+  const uncertaintyMinutes = row.spread_seconds / 60;
+  return {
+    minutes,
+    uncertaintyMinutes,
+    confidence: confidenceFromSamples(row.sample_count, row.spread_seconds, row.avg_seconds),
+    isLive: false,
+    sampleCount: row.sample_count,
+  };
+}
+
+/**
+ * KL-local hour (0..23) for "now". Mirrors the bucketing key written by
+ * aggregateTravelTimes so a lookup at 09:30 MYT hits the 09 bucket.
+ */
+function klHour(date: Date): number {
+  return toKlLocal(date).getUTCHours();
+}
+
+/**
+ * Historical ETA for a single (route, from_stop → to_stop) leg at the current
+ * KL day + hour. Returns null when there's no data at all.
+ *
+ * The previous signature took (fromLat, fromLon) and ignored them (audit,
+ * issue #133); the caller now resolves the from-stop id from the bus's
+ * position via nearestFromStopOnRoute, which is the actual key travel_times
+ * is stored under.
+ */
 export async function getHistoricalETA(
   db: import('@cloudflare/workers-types').D1Database,
   route: string,
-  fromLat: number,
-  fromLon: number,
+  fromStopId: string,
   toStopId: string,
-): Promise<number | null> {
+  now: Date = new Date(),
+): Promise<HistoricalEtaResult | null> {
+  const dow = klDayOfWeek(now);
+  const hour = klHour(now);
+  // Prefer an exact (day, hour) bucket; fall back to same-day any-hour, then
+  // any bucket for this leg. ORDER BY sample_count desc picks the most
+  // representative row when several hours match the fallback.
   const { results } = await db
     .prepare(
-      `SELECT * FROM travel_times WHERE route = ? AND to_stop_id = ? LIMIT 1`,
+      `SELECT avg_seconds, sample_count, spread_seconds FROM travel_times
+       WHERE route = ? AND from_stop_id = ? AND to_stop_id = ?
+       ORDER BY
+         CASE WHEN day_of_week = ? AND time_bucket = ? THEN 0
+              WHEN day_of_week = ? THEN 1
+              ELSE 2 END,
+         sample_count DESC
+       LIMIT 1`,
     )
-    .bind(route, toStopId)
-    .all();
+    .bind(route, fromStopId, toStopId, dow, hour, dow)
+    .all<{ avg_seconds: number; sample_count: number; spread_seconds: number }>();
   if (!results || results.length === 0) return null;
-  // Simplistic sum approach, can be refined based on closest from_lat/from_lon
-  return (results[0].avg_seconds as number) / 60;
+  return resultFromRow(results[0]);
 }
 
+/**
+ * Batched historical ETA for the /nearby enrichment path. For each query the
+ * rider is AT `stopId` (the to_stop); we don't know the bus's exact from-stop
+ * here, so pick the travel_times row for (route, to_stop=stopId) with the
+ * highest sample_count at the current KL day/hour — the most representative
+ * upstream leg. Returns confidence + isLive alongside the minutes.
+ */
 export async function getBatchedHistoricalETAs(
   db: import('@cloudflare/workers-types').D1Database,
-  queries: {route: string, stopId: string}[],
-): Promise<Map<string, number>> {
-  const map = new Map<string, number>();
+  queries: { route: string; stopId: string }[],
+  now: Date = new Date(),
+): Promise<Map<string, HistoricalEtaResult>> {
+  const map = new Map<string, HistoricalEtaResult>();
   if (queries.length === 0) return map;
 
+  const dow = klDayOfWeek(now);
+  const hour = klHour(now);
   const stmt = db.prepare(
-    `SELECT * FROM travel_times WHERE route = ? AND to_stop_id = ? LIMIT 1`,
+    `SELECT avg_seconds, sample_count, spread_seconds FROM travel_times
+     WHERE route = ? AND to_stop_id = ?
+     ORDER BY
+       CASE WHEN day_of_week = ? AND time_bucket = ? THEN 0
+            WHEN day_of_week = ? THEN 1
+            ELSE 2 END,
+       sample_count DESC
+     LIMIT 1`,
   );
 
-  const dbQueries = queries.map((q) => stmt.bind(q.route, q.stopId));
-  const results = await db.batch<{avg_seconds: number, route: string, to_stop_id: string}>(dbQueries);
+  const dbQueries = queries.map((q) => stmt.bind(q.route, q.stopId, dow, hour, dow));
+  const results = await db.batch<{
+    avg_seconds: number;
+    sample_count: number;
+    spread_seconds: number;
+  }>(dbQueries);
 
   for (let i = 0; i < results.length; i++) {
     const res = results[i].results;
     if (res && res.length > 0) {
       const q = queries[i];
-      map.set(`${q.route}-${q.stopId}`, (res[0].avg_seconds as number) / 60);
+      map.set(`${q.route}-${q.stopId}`, resultFromRow(res[0]));
     }
   }
 
   return map;
+}
+
+/**
+ * Given a bus position and a route's ordered stop list, return the stop the
+ * bus most recently passed (the from-stop for an ETA to a downstream stop).
+ * Used by /bus/eta to resolve the from-stop key the audit flagged as missing.
+ */
+export function nearestFromStopOnRoute(
+  busLat: number,
+  busLon: number,
+  stops: TripStopEntry[],
+): TripStopEntry | null {
+  if (stops.length === 0) return null;
+  let best = stops[0];
+  let bestD = haversineDistance(busLat, busLon, best.lat, best.lon);
+  for (let i = 1; i < stops.length; i++) {
+    const d = haversineDistance(busLat, busLon, stops[i].lat, stops[i].lon);
+    if (d < bestD) {
+      bestD = d;
+      best = stops[i];
+    }
+  }
+  return best;
 }

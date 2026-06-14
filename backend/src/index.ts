@@ -5,14 +5,13 @@ import { fetchAndParseAgency } from './gtfs-static';
 import { fetchVehiclePositions } from './gtfs-realtime';
 // @ts-ignore
 import { fetchPrasaranaBuses } from './prasarana-socketio';
-import { findNearbyStops, findNearbyBusRoutes, findNearbyPrasaranaBuses } from './nearby';
+import { findNearbyStops, findNearbyBusRoutes, findNearbyPrasaranaBuses, getHistoricalETA, getBatchedHistoricalETAs, nearestFromStopOnRoute } from './nearby';
 import { getBusTripProgress } from './bus-tracker';
 import { getStationSchedule } from './station';
 import { findNearbyRoutes } from './routes';
 import { VehiclePosition, PrasaranaBus, BusRouteEntry, Env, Route } from './types';
 import { haversineDistance } from './haversine';
-import { sampleBusPositions, aggregateTravelTimes, cleanupOldPositions } from './sampling';
-import { getHistoricalETA, getBatchedHistoricalETAs } from './nearby';
+import { sampleBusPositions, aggregateTravelTimes, cleanupOldPositions, canonicalStopSequencesByRoute } from './sampling';
 import { ingestRailTimetables } from './rail-ingest';
 import { getRailSchedule, searchRailStops } from './rail-schedule';
 import { getDeparturesTowardDestination } from './departures-toward';
@@ -110,8 +109,21 @@ app.get('/nearby', async (c) => {
         for (const arrival of stop.arrivals) {
           if (arrival.route) {
             const key = `${arrival.route}-${stop.id}`;
-            if (etas.has(key)) {
-              arrival.minutes = Math.round(etas.get(key)!);
+            const eta = etas.get(key);
+            if (eta) {
+              // Only let the historical estimate override the live distance-
+              // based minutes when it has at least medium confidence — a
+              // single low-sample historical point shouldn't displace a live
+              // position. Either way we surface the confidence + uncertainty
+              // so the client can render the qualifier (issue #133).
+              if (eta.confidence !== 'low') {
+                arrival.minutes = Math.round(eta.minutes);
+              }
+              arrival.confidence = eta.confidence;
+              arrival.uncertainty_minutes = Math.round(eta.uncertaintyMinutes);
+              // The historical estimate is not a live position; flag it as
+              // scheduled so the client can distinguish the two.
+              arrival.eta_source = 'scheduled';
             }
           }
         }
@@ -149,28 +161,76 @@ app.get('/bus/eta', async (c) => {
   if (!stopId || (!tripId && !busNo)) return c.json({ error: 'Missing params' }, 400);
 
   try {
-    // Determine route identifier
+    // Resolve route + current bus position. The from-stop for the historical
+    // lookup is whichever stop on the route the bus is currently nearest
+    // (issue #133: the old code passed literal 0,0 and ignored fromLat/fromLon).
     let route: string | null = null;
+    let busLat: number | null = null;
+    let busLon: number | null = null;
+    let routeIdForSeq: string | null = null; // GTFS route_id for stop-sequence lookup
     if (busNo) {
       const { buses } = await getPrasaranaBuses(c.env.KV);
       const bus = buses.find(b => b.bus_no === busNo);
-      if (bus) route = bus.route;
+      if (bus) {
+        route = bus.route;
+        busLat = bus.latitude;
+        busLon = bus.longitude;
+      }
     } else if (tripId) {
       const vehicles = await getRealtimeVehicles(c.env.KV);
       const vehicle = vehicles.find(v => v.tripId === tripId);
-      if (vehicle) route = vehicle.routeId;
+      if (vehicle) {
+        route = vehicle.routeId;
+        routeIdForSeq = vehicle.routeId;
+        busLat = vehicle.lat;
+        busLon = vehicle.lon;
+      }
     }
     if (!route) {
       // Could not resolve route, fall back to heuristic
-      return c.json({ eta_minutes: 5, source: 'heuristic' });
+      return c.json({ eta_minutes: 5, source: 'heuristic', is_live: false });
     }
-    // Historical ETA (from, to coordinates not available here, pass 0 placeholders)
-    const eta = await getHistoricalETA(c.env.DB, route, 0, 0, stopId);
-    if (eta !== null) {
-      return c.json({ eta_minutes: Math.round(eta), source: 'historical' });
+
+    // Resolve the from-stop from the bus's current position + the route's
+    // stop sequence. Prasarana route codes (e.g. "T816") may not match a GTFS
+    // route_id, so match by shortName as a fallback.
+    let fromStopId: string | null = null;
+    if (busLat !== null && busLon !== null) {
+      const [allTrips, allTripStops, allRoutes] = await Promise.all([
+        getAllTrips(c.env.KV),
+        getAllTripStops(c.env.KV),
+        getAllRoutes(c.env.KV),
+      ]);
+      const seqs = canonicalStopSequencesByRoute(allTrips, allTripStops);
+      let stops = routeIdForSeq ? seqs.get(routeIdForSeq) : undefined;
+      if (!stops) {
+        // Fallback: match by route short name (prasarana codes).
+        const r = allRoutes.find(x => x.shortName === route);
+        if (r) stops = seqs.get(r.id);
+      }
+      if (stops) {
+        const fromStop = nearestFromStopOnRoute(busLat, busLon, stops);
+        if (fromStop) fromStopId = fromStop.stopId;
+      }
+    }
+
+    if (fromStopId) {
+      const eta = await getHistoricalETA(c.env.DB, route, fromStopId, stopId);
+      if (eta) {
+        return c.json({
+          eta_minutes: Math.round(eta.minutes),
+          // Uncertainty window + confidence so the client can render an honest
+          // "≈5 min" qualifier (issue #133).
+          uncertainty_minutes: Math.round(eta.uncertaintyMinutes),
+          confidence: eta.confidence,
+          is_live: eta.isLive,
+          sample_count: eta.sampleCount,
+          source: 'historical',
+        });
+      }
     }
     // No historical data, fallback
-    return c.json({ eta_minutes: 5, source: 'heuristic' });
+    return c.json({ eta_minutes: 5, source: 'heuristic', is_live: false });
   } catch (err) {
     console.error('Error fetching ETA:', err);
     return c.json({ error: 'Internal server error' }, 500);
@@ -541,7 +601,21 @@ export default {
 
       try {
         await sampleBusPositions(env, vehicles, buses);
-        await aggregateTravelTimes(env);
+        // Build canonical stop sequences per route from KV trip_stops so
+        // aggregateTravelTimes can key passages to inter-stop legs. Loading
+        // once per cron run (5 min) is cheap relative to the GTFS fetches
+        // already happening here.
+        let stopSeqs = new Map();
+        try {
+          const [allTrips, allTripStops] = await Promise.all([
+            getAllTrips(env.KV),
+            getAllTripStops(env.KV),
+          ]);
+          stopSeqs = canonicalStopSequencesByRoute(allTrips, allTripStops);
+        } catch (err) {
+          console.error('Failed to load stop sequences for aggregation:', err);
+        }
+        await aggregateTravelTimes(env, stopSeqs);
         await cleanupOldPositions(env);
       } catch (err) {
         console.error('Failed to run sampling and aggregation tasks:', err);
