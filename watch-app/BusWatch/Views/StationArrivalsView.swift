@@ -4,6 +4,12 @@ struct StationArrivalsView: View {
     let stop: NearbyStop
     let schedule: StationScheduleResponse
     var favorites: FavoriteStore? = nil
+    @EnvironmentObject private var notifications: NotificationService
+
+    @State private var reminderMinutes: Int = 5
+    @State private var scheduledReminderId: String?
+
+    private let leadOptions = [1, 3, 5, 10]
 
     var body: some View {
         ScrollView {
@@ -42,6 +48,9 @@ struct StationArrivalsView: View {
                         .foregroundStyle(.secondary)
                 }
 
+                Divider()
+                arrivalReminderControls
+
                 HStack {
                     Spacer()
                     Text("Auto-detected")
@@ -50,6 +59,55 @@ struct StationArrivalsView: View {
                 }
             }
             .padding()
+        }
+    }
+
+    /// "Alert me N minutes before the next arrival" control. Schedules a local
+    /// notification `reminderMinutes` ahead of the soonest departure, or fires
+    /// immediately if that lead time has already elapsed.
+    @ViewBuilder
+    private var arrivalReminderControls: some View {
+        if let next = schedule.departures.first {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Image(systemName: "bell.badge")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                        .accessibilityHidden(true)
+                    Text("Remind me")
+                        .font(.caption)
+                    Spacer()
+                    Picker("", selection: $reminderMinutes) {
+                        ForEach(leadOptions, id: \.self) { mins in
+                            Text("\(mins) min before").tag(mins)
+                        }
+                    }
+                    .labelsHidden()
+                }
+                Button {
+                    Task { await scheduleReminder(for: next) }
+                } label: {
+                    Label(scheduledReminderId == nil ? "Set alert" : "Alert set",
+                          systemImage: scheduledReminderId == nil ? "bell" : "bell.badge.fill")
+                        .font(.caption)
+                }
+                .buttonStyle(.bordered)
+            }
+        }
+    }
+
+    private func scheduleReminder(for departure: Departure) async {
+        await notifications.requestAuthorization()
+        if let id = await notifications.scheduleArrivalAlert(
+            for: departure,
+            leadMinutes: reminderMinutes,
+            stopName: stop.name
+        ) {
+            scheduledReminderId = id
+        } else {
+            // Lead time already elapsed — buzz now.
+            await notifications.fireImmediateArrivalAlert(for: departure, stopName: stop.name)
+            scheduledReminderId = "immediate-\(departure.id)"
         }
     }
 
