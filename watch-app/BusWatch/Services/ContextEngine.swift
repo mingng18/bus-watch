@@ -30,6 +30,11 @@ class ContextEngine: ObservableObject {
     /// Tolerated consecutive bus-progress refresh failures before erroring.
     private static let maxRefreshFailures = 3
 
+    /// Whether the 30s bus-trip auto-refresh timer is currently armed.
+    /// True only while the user is viewing a live trip (`.onBus`); any
+    /// other state stops the timer.
+    var isAutoRefreshing: Bool { refreshTimer != nil }
+
     init() {
         locationManager.$location
             .compactMap { $0 }
@@ -44,10 +49,35 @@ class ContextEngine: ObservableObject {
                 if status == .notDetermined {
                     self?.locationManager.requestPermission()
                 } else if status == .denied {
-                    self?.state = .noLocation
+                    self?.setState(.noLocation)
                 }
             }
             .store(in: &cancellables)
+    }
+
+    deinit {
+        // The timer captures self weakly, but leaving it scheduled after the
+        // engine is gone still drains battery until the run loop drops it.
+        refreshTimer?.invalidate()
+    }
+
+    /// Centralized state transition: stops the bus-trip refresh timer
+    /// whenever we leave the `.onBus` view, so it isn't polling a trip
+    /// nobody is looking at. Setting `.onBus` keeps the timer running
+    /// (the timer's own refresh callback routes through here too).
+    ///
+    /// Internal (not private) so tests can assert the timer-invalidation
+    /// invariant directly for every `AppState` case without standing up a
+    /// live network round-trip.
+    func setState(_ newState: AppState) {
+        state = newState
+        if case .onBus = newState {
+            // Staying on the bus — the refresh timer stays armed.
+        } else {
+            refreshTimer?.invalidate()
+            refreshTimer = nil
+            consecutiveRefreshFailures = 0
+        }
     }
 
     func start() {
@@ -61,14 +91,14 @@ class ContextEngine: ObservableObject {
                 // Network succeeded — refresh the on-device cache for offline
                 // fallback next time.
                 scheduleCache.store(schedule, for: stop.id)
-                await MainActor.run { self.state = .station(stop, schedule, isOffline: false) }
+                await MainActor.run { self.setState(.station(stop, schedule, isOffline: false)) }
             } catch {
                 // Network failed — fall back to the last cached timetable so
                 // the rider still sees scheduled times, flagged as offline.
                 if let cached = scheduleCache.schedule(for: stop.id) {
-                    await MainActor.run { self.state = .station(stop, cached, isOffline: true) }
+                    await MainActor.run { self.setState(.station(stop, cached, isOffline: true)) }
                 } else {
-                    await MainActor.run { self.state = .error(error.localizedDescription) }
+                    await MainActor.run { self.setState(.error(error.localizedDescription)) }
                 }
             }
         }
@@ -78,17 +108,17 @@ class ContextEngine: ObservableObject {
         Task {
             do {
                 let progress = try await api.fetchBusProgress(tripId: tripId)
-                await MainActor.run { self.state = .onBus(progress) }
+                await MainActor.run { self.setState(.onBus(progress)) }
                 startAutoRefresh(tripId: tripId)
             } catch {
-                await MainActor.run { self.state = .error(error.localizedDescription) }
+                await MainActor.run { self.setState(.error(error.localizedDescription)) }
             }
         }
     }
 
     func showNearby() {
         if let nearby = nearbyStops {
-            state = .nearby(nearby)
+            setState(.nearby(nearby))
         }
     }
 
@@ -103,7 +133,7 @@ class ContextEngine: ObservableObject {
             if isMoving, let firstStop = nearby.stops.first, firstStop.type == "bus" {
                 let busArrivals = firstStop.arrivals.filter { $0.isRealtime }
                 if !busArrivals.isEmpty {
-                    await MainActor.run { self.state = .nearby(nearby) }
+                    await MainActor.run { self.setState(.nearby(nearby)) }
                     return
                 }
             }
@@ -112,17 +142,19 @@ class ContextEngine: ObservableObject {
                nearestStation.distanceM < 200 {
                 let schedule = try await api.fetchStationSchedule(stopId: nearestStation.id)
                 scheduleCache.store(schedule, for: nearestStation.id)
-                await MainActor.run { self.state = .station(nearestStation, schedule, isOffline: false) }
+                await MainActor.run { self.setState(.station(nearestStation, schedule, isOffline: false)) }
                 return
             }
 
-            await MainActor.run { self.state = .nearby(nearby) }
+            await MainActor.run { self.setState(.nearby(nearby)) }
         } catch {
-            await MainActor.run { self.state = .error(error.localizedDescription) }
+            await MainActor.run { self.setState(.error(error.localizedDescription)) }
         }
     }
 
-    private func startAutoRefresh(tripId: String) {
+    /// Internal so tests can arm the timer (the precondition for asserting
+    /// it gets torn down on state change) without a live bus-progress fetch.
+    func startAutoRefresh(tripId: String) {
         refreshTimer?.invalidate()
         consecutiveRefreshFailures = 0
         refreshTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
@@ -131,14 +163,14 @@ class ContextEngine: ObservableObject {
                 do {
                     let progress = try await self.api.fetchBusProgress(tripId: tripId)
                     self.consecutiveRefreshFailures = 0
-                    await MainActor.run { self.state = .onBus(progress) }
+                    await MainActor.run { self.setState(.onBus(progress)) }
                 } catch {
                     // Transient blips are tolerated (the rider keeps the last
                     // known progress), but after several consecutive failures
                     // surface an error so they're not staring at stale data.
                     self.consecutiveRefreshFailures += 1
                     if self.consecutiveRefreshFailures >= Self.maxRefreshFailures {
-                        await MainActor.run { self.state = .error(error.localizedDescription) }
+                        await MainActor.run { self.setState(.error(error.localizedDescription)) }
                     }
                 }
             }
