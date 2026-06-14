@@ -12,8 +12,8 @@ struct MainView: View {
                 ProgressView("Locating...")
             case .noLocation:
                 noLocationView
-            case .station(let stop, let schedule):
-                StationArrivalsView(stop: stop, schedule: schedule, favorites: favorites)
+            case .station(let stop, let schedule, let isOffline):
+                StationArrivalsView(stop: stop, schedule: schedule, favorites: favorites, isOffline: isOffline)
             case .onBus(let progress):
                 BusProgressView(progress: progress)
             case .nearby(let response):
@@ -29,6 +29,15 @@ struct MainView: View {
             ToolbarItem(placement: .cancellationAction) {
                 Button(action: { showManual = true }) {
                     Image(systemName: "list.bullet")
+                }
+            }
+            // Deep link into Prasarana's Journey Planner so riders can plan a
+            // multi-modal trip (Bus/BRT/LRT/MRT/Monorail) without leaving the
+            // BusWatch launch flow. Opens the universal link in the system browser.
+            ToolbarItem(placement: .bottomBar) {
+                Link(destination: JourneyPlanner.url) {
+                    Label("Plan a trip", systemImage: "arrow.triangle.turn.up.right.diamond")
+                        .labelStyle(.iconOnly)
                 }
             }
         }

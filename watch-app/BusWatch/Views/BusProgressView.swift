@@ -2,6 +2,15 @@ import SwiftUI
 
 struct BusProgressView: View {
     let progress: BusProgressResponse
+    /// The rider's saved destination stop id, if any. When the bus approaches
+    /// this stop we fire a "get ready" notification. When nil, we fall back to
+    /// alerting on the next unpassed stop so the rider always gets a buzz.
+    var destinationStopId: String? = nil
+    /// How many stops ahead to trigger the approaching-stop buzz.
+    var approachingThreshold: Int = 1
+
+    @EnvironmentObject private var notifications: NotificationService
+    @State private var lastAlertedStopId: String?
 
     var body: some View {
         ScrollView {
@@ -33,6 +42,41 @@ struct BusProgressView: View {
             }
             .padding()
         }
+        .task(id: progress.tripId) {
+            await maybeFireApproachingAlert()
+        }
+        // Re-evaluate whenever the stop list changes (e.g. auto-refresh).
+        .onChange(of: progress.stops.map(\.id)) { _ in
+            Task { await maybeFireApproachingAlert() }
+        }
+    }
+
+    /// Fires the approaching-stop notification exactly once per destination
+    /// when the bus is within `approachingThreshold` stops of it. Idempotent:
+    /// the NotificationService de-duplicates by trip+stop identifier.
+    private func maybeFireApproachingAlert() async {
+        guard let target = upcomingTargetStop() else { return }
+        guard target.id != lastAlertedStopId else { return }
+        lastAlertedStopId = target.id
+        await notifications.requestAuthorization()
+        await notifications.notifyApproachingStop(
+            tripId: progress.tripId,
+            stopId: target.id,
+            stopName: target.name
+        )
+    }
+
+    /// Returns the stop the rider is approaching, or nil if we've passed it.
+    /// Prefers the saved destination; otherwise falls back to the next stop.
+    private func upcomingTargetStop() -> TripStopStatus? {
+        let upcoming = progress.stops.filter { !$0.passed }
+        guard !upcoming.isEmpty else { return nil }
+        if let destinationStopId,
+           let match = upcoming.first(where: { $0.id == destinationStopId }) {
+            let position = upcoming.firstIndex(where: { $0.id == destinationStopId }) ?? 0
+            return position < approachingThreshold ? match : nil
+        }
+        return upcoming.first
     }
 }
 

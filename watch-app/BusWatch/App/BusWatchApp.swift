@@ -4,12 +4,14 @@ import SwiftUI
 struct BusWatchApp: App {
     @StateObject private var contextEngine = ContextEngine()
     @StateObject private var favorites = FavoriteStore()
+    @StateObject private var notifications = NotificationService()
 
     var body: some Scene {
         WindowGroup {
             MainView()
                 .environmentObject(contextEngine)
                 .environmentObject(favorites)
+                .environmentObject(notifications)
         }
     }
 }

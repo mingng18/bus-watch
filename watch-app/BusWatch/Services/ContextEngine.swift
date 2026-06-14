@@ -4,7 +4,7 @@ import Combine
 
 enum AppState {
     case loading
-    case station(NearbyStop, StationScheduleResponse)
+    case station(NearbyStop, StationScheduleResponse, isOffline: Bool)
     case onBus(BusProgressResponse)
     case nearby(NearbyResponse)
     case error(String)
@@ -17,6 +17,9 @@ class ContextEngine: ObservableObject {
 
     private let api = APIClient.shared
     private let locationManager = LocationManager()
+    /// On-device timetable cache so favorite stops still show scheduled times
+    /// when the network is unavailable or a fetch is stale.
+    private let scheduleCache = ScheduleCache()
     private var cancellables = Set<AnyCancellable>()
     private var refreshTimer: Timer?
 
@@ -48,9 +51,18 @@ class ContextEngine: ObservableObject {
         Task {
             do {
                 let schedule = try await api.fetchStationSchedule(stopId: stop.id)
-                await MainActor.run { self.state = .station(stop, schedule) }
+                // Network succeeded — refresh the on-device cache for offline
+                // fallback next time.
+                scheduleCache.store(schedule, for: stop.id)
+                await MainActor.run { self.state = .station(stop, schedule, isOffline: false) }
             } catch {
-                await MainActor.run { self.state = .error(error.localizedDescription) }
+                // Network failed — fall back to the last cached timetable so
+                // the rider still sees scheduled times, flagged as offline.
+                if let cached = scheduleCache.schedule(for: stop.id) {
+                    await MainActor.run { self.state = .station(stop, cached, isOffline: true) }
+                } else {
+                    await MainActor.run { self.state = .error(error.localizedDescription) }
+                }
             }
         }
     }
@@ -92,7 +104,8 @@ class ContextEngine: ObservableObject {
             if let nearestStation = nearby.stops.first(where: { $0.type == "rail" }),
                nearestStation.distanceM < 200 {
                 let schedule = try await api.fetchStationSchedule(stopId: nearestStation.id)
-                await MainActor.run { self.state = .station(nearestStation, schedule) }
+                scheduleCache.store(schedule, for: nearestStation.id)
+                await MainActor.run { self.state = .station(nearestStation, schedule, isOffline: false) }
                 return
             }
 
