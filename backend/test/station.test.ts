@@ -11,8 +11,8 @@ const routes: Route[] = [
 ];
 
 const trips: Trip[] = [
-  { id: 't1', routeId: 'r1', serviceId: 'wk', headsign: 'Gombak', directionId: 0 },
-  { id: 't2', routeId: 'r1', serviceId: 'wk', headsign: 'Putra Heights', directionId: 1 },
+  { id: 't1', routeId: 'r1', serviceId: 'wk', headsign: 'Gombak', directionId: 0, shapeId: '' },
+  { id: 't2', routeId: 'r1', serviceId: 'wk', headsign: 'Putra Heights', directionId: 1, shapeId: '' },
 ];
 
 const tripStops: Record<string, TripStopEntry[]> = {
@@ -60,7 +60,7 @@ describe('getStationSchedule', () => {
 
       // Service calendar valid for this date; single trip departing 08:35:00 KL.
       const klTrips: Trip[] = [
-        { id: 'kl1', routeId: 'r1', serviceId: 'wk', headsign: 'Gombak', directionId: 0 },
+        { id: 'kl1', routeId: 'r1', serviceId: 'wk', headsign: 'Gombak', directionId: 0, shapeId: '' },
       ];
       const klTripStops: Record<string, TripStopEntry[]> = {
         kl1: [
@@ -80,7 +80,7 @@ describe('getStationSchedule', () => {
       vi.setSystemTime(new Date('2026-06-14T16:30:00Z'));
 
       const klTrips: Trip[] = [
-        { id: 'kl2', routeId: 'r1', serviceId: 'wk', headsign: 'Late', directionId: 0 },
+        { id: 'kl2', routeId: 'r1', serviceId: 'wk', headsign: 'Late', directionId: 0, shapeId: '' },
       ];
       const klTripStops: Record<string, TripStopEntry[]> = {
         kl2: [

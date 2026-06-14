@@ -23,8 +23,8 @@ const routes: Route[] = [
 ];
 
 const trips: Trip[] = [
-  { id: 't1', routeId: 'r1', serviceId: 'weekday', headsign: 'Gombak', directionId: 0 },
-  { id: 't2', routeId: 'r2', serviceId: 'weekday', headsign: 'KL Sentral', directionId: 0 },
+  { id: 't1', routeId: 'r1', serviceId: 'weekday', headsign: 'Gombak', directionId: 0, shapeId: '' },
+  { id: 't2', routeId: 'r2', serviceId: 'weekday', headsign: 'KL Sentral', directionId: 0, shapeId: '' },
 ];
 
 const vehicles: VehiclePosition[] = [

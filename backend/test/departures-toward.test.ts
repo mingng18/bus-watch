@@ -15,9 +15,9 @@ const routes: Route[] = [
 // t2: dest -> current (goes away from destination)
 // t3: current only, never reaches dest
 const trips: Trip[] = [
-  { id: 't1', routeId: 'r1', serviceId: 'wk', headsign: 'Toward Dest', directionId: 0 },
-  { id: 't2', routeId: 'r1', serviceId: 'wk', headsign: 'Away From Dest', directionId: 1 },
-  { id: 't3', routeId: 'r1', serviceId: 'wk', headsign: 'Short Trip', directionId: 0 },
+  { id: 't1', routeId: 'r1', serviceId: 'wk', headsign: 'Toward Dest', directionId: 0, shapeId: '' },
+  { id: 't2', routeId: 'r1', serviceId: 'wk', headsign: 'Away From Dest', directionId: 1, shapeId: '' },
+  { id: 't3', routeId: 'r1', serviceId: 'wk', headsign: 'Short Trip', directionId: 0, shapeId: '' },
 ];
 
 const tripStops: Record<string, TripStopEntry[]> = {
@@ -62,7 +62,7 @@ describe('getDeparturesTowardDestination', () => {
     // Add a second toward-destination trip to exercise the limit.
     const extraTrips: Trip[] = [
       ...trips,
-      { id: 't4', routeId: 'r1', serviceId: 'wk', headsign: 'Also Toward', directionId: 0 },
+      { id: 't4', routeId: 'r1', serviceId: 'wk', headsign: 'Also Toward', directionId: 0, shapeId: '' },
     ];
     const extraTripStops = {
       ...tripStops,
@@ -95,7 +95,7 @@ describe('getDeparturesTowardDestination', () => {
       vi.setSystemTime(new Date('2026-06-14T00:30:00Z'));
 
       const tzTrips: Trip[] = [
-        { id: 'kt1', routeId: 'r1', serviceId: 'wk', headsign: 'Toward Dest', directionId: 0 },
+        { id: 'kt1', routeId: 'r1', serviceId: 'wk', headsign: 'Toward Dest', directionId: 0, shapeId: '' },
       ];
       const tzTripStops: Record<string, TripStopEntry[]> = {
         kt1: [
