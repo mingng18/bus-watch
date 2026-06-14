@@ -4,6 +4,7 @@ struct MainView: View {
     @EnvironmentObject var engine: ContextEngine
     @EnvironmentObject var favorites: FavoriteStore
     @State private var showManual = false
+    @State private var showAlerts = false
 
     var body: some View {
         Group {
@@ -26,6 +27,12 @@ struct MainView: View {
         }
         .navigationTitle("BusWatch")
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button(action: { showAlerts = true }) {
+                    Image(systemName: "exclamationmark.bubble")
+                }
+                .accessibilityLabel("Service alerts")
+            }
             ToolbarItem(placement: .cancellationAction) {
                 Button(action: { showManual = true }) {
                     Image(systemName: "list.bullet")
@@ -43,6 +50,11 @@ struct MainView: View {
         }
         .sheet(isPresented: $showManual) {
             ManualPickerView(engine: engine, favorites: favorites)
+        }
+        .sheet(isPresented: $showAlerts) {
+            NavigationStack {
+                AlertsView()
+            }
         }
         .onAppear {
             engine.start()

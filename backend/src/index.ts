@@ -16,6 +16,7 @@ import { getHistoricalETA, getBatchedHistoricalETAs } from './nearby';
 import { ingestRailTimetables } from './rail-ingest';
 import { getRailSchedule, searchRailStops } from './rail-schedule';
 import { getDeparturesTowardDestination } from './departures-toward';
+import { getCachedAlerts, DEFAULT_ALERT_LIMIT } from './alerts';
 
 const SELANGOR_AGENCIES = ['selangor-mobility']; // optional, may be unavailable
 const REALTIME_AGENCIES = ['rapid-bus-kl', 'rapid-bus-mrtfeeder'];
@@ -235,6 +236,19 @@ app.get('/routes', async (c) => {
   const allTripStops = await getAllTripStops(c.env.KV);
   const result = findNearbyRoutes(allStops, allRoutes, allTrips, allTripStops, lat, lon, radius);
   return c.json({ routes: result });
+});
+
+app.get('/alerts', async (c) => {
+  const limit = parseInt(c.req.query('limit') || String(DEFAULT_ALERT_LIMIT));
+  try {
+    const all = await getCachedAlerts(c.env);
+    const alerts = Number.isFinite(limit) && limit > 0 ? all.slice(0, limit) : all;
+    return c.json({ alerts });
+  } catch (err: any) {
+    // Defensive: never 500 on alert failures.
+    console.error('Error fetching alerts:', err?.message || err);
+    return c.json({ alerts: [] });
+  }
 });
 
 app.get('/route/:routeId', async (c) => {

@@ -38,6 +38,11 @@ class APIClient {
         return try await fetch(url)
     }
 
+    func fetchAlerts(limit: Int = 20) async throws -> AlertsResponse {
+        let url = URL(string: "\(baseURL)/alerts?limit=\(limit)")!
+        return try await fetch(url)
+    }
+
     private func fetch<T: Decodable>(_ url: URL) async throws -> T {
         let (data, response) = try await URLSession.shared.data(from: url)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
