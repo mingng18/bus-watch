@@ -18,8 +18,9 @@ class ContextEngine: ObservableObject {
     private let api = APIClient.shared
     private let locationManager = LocationManager()
     /// On-device timetable cache so favorite stops still show scheduled times
-    /// when the network is unavailable or a fetch is stale.
-    private let scheduleCache = ScheduleCache()
+    /// when the network is unavailable or a fetch is stale. Backed by the
+    /// shared App Group defaults so the complication extension can read it.
+    private let scheduleCache = ScheduleCache(defaults: SharedDefaults.suite)
     private var cancellables = Set<AnyCancellable>()
     private var refreshTimer: Timer?
 

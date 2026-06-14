@@ -28,6 +28,13 @@ struct Alert: Identifiable, Codable {
         formatter.formatOptions = [.withInternetDateTime]
         return formatter.date(from: date) ?? .distantPast
     }
+
+    /// Reusable formatter configured to accept optional fractional seconds.
+    private static let dateFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
 }
 
 extension Alert {

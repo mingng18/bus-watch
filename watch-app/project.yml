@@ -25,6 +25,12 @@ targets:
       path: BusWatch/BusWatch.entitlements
       properties:
         com.apple.developer.carekit: NO
+        # App Group for sharing the home stop + cached schedule with the
+        # WidgetKit complication extension. Re-enable once the extension
+        # target lands and a provisioned group is configured (it currently
+        # breaks watchOS Simulator install under CODE_SIGNING_ALLOWED=NO).
+        # com.apple.security.application-groups:
+        #   - group.com.buswatch.watchapp
     info:
       path: BusWatch/Info.plist
       properties:
