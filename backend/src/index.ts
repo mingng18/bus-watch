@@ -348,17 +348,19 @@ async function getKvJson<T>(kv: KVNamespace, key: string): Promise<T> {
 
 async function getAllStops(kv: KVNamespace) {
   const results = await Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `stops:${a}`).catch(() => [])));
-  return results.flat().filter(Boolean);
+  // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
+  return results.flatMap(r => r || []);
 }
 
 async function getAllRoutes(kv: KVNamespace) {
-  const allRoutes = await Promise.all([...AGENCIES, ...SELANGOR_AGENCIES].map(a => getKvJson<Route[]>(kv, `routes:${a}`).catch(() => []))).then(res => res.flat().filter(Boolean));
+  const allRoutes = await Promise.all([...AGENCIES, ...SELANGOR_AGENCIES].map(a => getKvJson<Route[]>(kv, `routes:${a}`).catch(() => []))).then(res => res.flatMap(r => r || []));
   return allRoutes;
 }
 
 async function getAllTrips(kv: KVNamespace) {
   const results = await Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `trips:${a}`).catch(() => [])));
-  return results.flat().filter(Boolean);
+  // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
+  return results.flatMap(r => r || []);
 }
 
 async function getAllTripStops(kv: KVNamespace) {
@@ -368,12 +370,14 @@ async function getAllTripStops(kv: KVNamespace) {
 
 async function getAllCalendar(kv: KVNamespace) {
   const results = await Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `calendar:${a}`).catch(() => [])));
-  return results.flat().filter(Boolean);
+  // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
+  return results.flatMap(r => r || []);
 }
 
 async function getAllFrequencies(kv: KVNamespace) {
   const results = await Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `frequencies:${a}`).catch(() => [])));
-  return results.flat().filter(Boolean);
+  // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
+  return results.flatMap(r => r || []);
 }
 
 async function getAllShapes(kv: KVNamespace) {
