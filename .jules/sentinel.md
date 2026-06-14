@@ -1,8 +1,4 @@
-## 2024-06-07 - Secure Administrative Endpoints
-**Vulnerability:** Missing authentication on administrative endpoints (`/refresh`, `/rail/ingest`), relying on "security by obscurity" for MVP. Additionally, `/rail/ingest` leaked internal error details in its catch block.
-**Learning:** Even for MVPs, operational and administrative endpoints that trigger data ingestion or heavy background tasks must not rely on "security by obscurity." These endpoints can be discovered and abused to cause Denial of Service (DoS) or trigger unwanted state changes. Furthermore, returning raw error messages to the client exposes system internals.
-**Prevention:** Always implement authentication (e.g., a Bearer token check via `ADMIN_TOKEN` environment variable) for operational endpoints. Employ a "fail closed" approach: if the auth configuration is missing or validation fails, deny access (401 Unauthorized). Sanitize error responses to avoid leaking internal stack traces or database errors.
-## 2024-05-24 - Timing Attack in Authentication
-**Vulnerability:** String comparison operator (`!==`) was used to check authentication tokens (`authHeader !== \`Bearer ${c.env.ADMIN_TOKEN}\``). This makes it possible for an attacker to determine the correct token via a timing attack since the comparison exits early on the first mismatched character.
-**Learning:** Standard string equality checks are unsafe for secrets (passwords, tokens, API keys).
-**Prevention:** Always use constant-time comparison functions for comparing sensitive strings. In Hono/Cloudflare Workers, use `await timingSafeEqual(a, b)` from `hono/utils/buffer`.
+## 2024-06-14 - Hono Dynamic CORS Origin Configuration
+**Vulnerability:** Overly permissive wildcard CORS configuration (`app.use('*', cors())`).
+**Learning:** In Hono backend setups, standard CORS middleware invocation configures a static wildcard origin. When dynamic origin checking (e.g., matching against a configured `FRONTEND_URL` environment variable) is required, the `cors` middleware must be configured using its origin callback `cors({ origin: (origin, c) => c.env.FRONTEND_URL || '*' })` rather than wrapping the `cors` initialization within a custom middleware handler (`app.use('*', (c, next) => cors(...)(c, next))`), which performs poorly.
+**Prevention:** When configuring CORS with variable parameters dependent on the request context `c`, exclusively use the dynamic callback syntax built into Hono's `cors` plugin.
