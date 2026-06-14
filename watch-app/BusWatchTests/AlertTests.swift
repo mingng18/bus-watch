@@ -70,8 +70,10 @@ final class AlertTests: XCTestCase {
 
     func testParsedDateDecodesISO8601() {
         let alert = makeAlert(severity: "info")
-        // 2026-06-14T04:00:00.000Z
-        let expected = ISO8601DateFormatter().date(from: "2026-06-14T04:00:00.000Z")
+        // 2026-06-14T04:00:00.000Z (fractional seconds — model tolerates them)
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let expected = formatter.date(from: "2026-06-14T04:00:00.000Z")
         XCTAssertEqual(alert.parsedDate, expected)
     }
 

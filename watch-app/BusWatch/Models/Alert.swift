@@ -18,8 +18,15 @@ struct Alert: Identifiable, Codable {
     let url: String
 
     /// Parsed date for display; falls back to .distantPast if unparseable.
+    /// Sitemap `lastmod` values use an offset timezone without fractional
+    /// seconds (e.g. "2026-06-14T07:14:23+08:00"); tolerate fractional
+    /// seconds too in case a value carries them.
     var parsedDate: Date {
-        ISO8601DateFormatter().date(from: date) ?? .distantPast
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let parsed = formatter.date(from: date) { return parsed }
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter.date(from: date) ?? .distantPast
     }
 }
 
