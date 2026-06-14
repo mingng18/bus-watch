@@ -23,6 +23,12 @@ class ContextEngine: ObservableObject {
     private let scheduleCache = ScheduleCache(defaults: SharedDefaults.suite)
     private var cancellables = Set<AnyCancellable>()
     private var refreshTimer: Timer?
+    /// Consecutive auto-refresh failures for the active trip; after
+    /// `maxRefreshFailures` we surface an error instead of showing stale data.
+    private var consecutiveRefreshFailures = 0
+
+    /// Tolerated consecutive bus-progress refresh failures before erroring.
+    private static let maxRefreshFailures = 3
 
     init() {
         locationManager.$location
@@ -118,13 +124,23 @@ class ContextEngine: ObservableObject {
 
     private func startAutoRefresh(tripId: String) {
         refreshTimer?.invalidate()
+        consecutiveRefreshFailures = 0
         refreshTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
             Task { [weak self] in
                 guard let self else { return }
                 do {
                     let progress = try await self.api.fetchBusProgress(tripId: tripId)
+                    self.consecutiveRefreshFailures = 0
                     await MainActor.run { self.state = .onBus(progress) }
-                } catch { }
+                } catch {
+                    // Transient blips are tolerated (the rider keeps the last
+                    // known progress), but after several consecutive failures
+                    // surface an error so they're not staring at stale data.
+                    self.consecutiveRefreshFailures += 1
+                    if self.consecutiveRefreshFailures >= Self.maxRefreshFailures {
+                        await MainActor.run { self.state = .error(error.localizedDescription) }
+                    }
+                }
             }
         }
     }

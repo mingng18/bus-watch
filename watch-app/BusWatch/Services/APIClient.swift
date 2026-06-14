@@ -10,37 +10,47 @@ class APIClient {
     }
 
     func fetchNearby(lat: Double, lon: Double, radius: Int = 500) async throws -> NearbyResponse {
-        let url = URL(string: "\(baseURL)/nearby?lat=\(lat)&lon=\(lon)&radius=\(radius)")!
+        let url = try makeURL("/nearby?lat=\(lat)&lon=\(lon)&radius=\(radius)")
         return try await fetch(url)
     }
 
     func fetchStationSchedule(stopId: String) async throws -> StationScheduleResponse {
         let encoded = stopId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? stopId
-        let url = URL(string: "\(baseURL)/station/\(encoded)/schedule")!
+        let url = try makeURL("/station/\(encoded)/schedule")
         return try await fetch(url)
     }
 
     func fetchDeparturesToward(stopId: String, destinationStopId: String, limit: Int = 5) async throws -> StationScheduleResponse {
         let encodedStop = stopId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? stopId
         let encodedDest = destinationStopId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? destinationStopId
-        let url = URL(string: "\(baseURL)/station/\(encodedStop)/schedule/toward?destinationStopId=\(encodedDest)&limit=\(limit)")!
+        let url = try makeURL("/station/\(encodedStop)/schedule/toward?destinationStopId=\(encodedDest)&limit=\(limit)")
         return try await fetch(url)
     }
 
     func fetchBusProgress(tripId: String) async throws -> BusProgressResponse {
         let encoded = tripId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? tripId
-        let url = URL(string: "\(baseURL)/bus/trip/\(encoded)/progress")!
+        let url = try makeURL("/bus/trip/\(encoded)/progress")
         return try await fetch(url)
     }
 
     func fetchRoutes(lat: Double, lon: Double, radius: Int = 500) async throws -> RoutesResponse {
-        let url = URL(string: "\(baseURL)/routes?lat=\(lat)&lon=\(lon)&radius=\(radius)")!
+        let url = try makeURL("/routes?lat=\(lat)&lon=\(lon)&radius=\(radius)")
         return try await fetch(url)
     }
 
     func fetchAlerts(limit: Int = 20) async throws -> AlertsResponse {
-        let url = URL(string: "\(baseURL)/alerts?limit=\(limit)")!
+        let url = try makeURL("/alerts?limit=\(limit)")
         return try await fetch(url)
+    }
+
+    /// Builds a URL from the base + path/query, throwing `.invalidURL` if the
+    /// result can't be parsed. Replaces the prior force-unwraps that would
+    /// crash on a malformed (e.g. user/backend-influenced) stopId or tripId.
+    private func makeURL(_ pathAndQuery: String) throws -> URL {
+        guard let url = URL(string: "\(baseURL)\(pathAndQuery)") else {
+            throw APIError.invalidURL
+        }
+        return url
     }
 
     private func fetch<T: Decodable>(_ url: URL) async throws -> T {
@@ -54,6 +64,7 @@ class APIClient {
 }
 
 enum APIError: Error {
+    case invalidURL
     case badResponse
 }
 
