@@ -41,6 +41,7 @@ export function findNearbyStops(
 
   // Performance optimization: Precompute map to avoid O(N^2) lookups in loop
   const tripMap = new Map(trips.map((t) => [t.id, t]));
+  const routeMap = new Map(routes.map((r) => [r.id, r]));
 
   return nearby.map(({ stop, distance }) => {
     const arrivals: Arrival[] = [];
@@ -49,7 +50,6 @@ export function findNearbyStops(
       const nearbyVehicles = vehicles.filter(
         (v) => haversineDistance(stop.lat, stop.lon, v.lat, v.lon) <= 500,
       );
-      const routeMap = new Map(routes.map((r) => [r.id, r]));
       const seen = new Set<string>();
       for (const v of nearbyVehicles) {
         const trip = tripMap.get(v.tripId);
