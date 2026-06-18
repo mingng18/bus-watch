@@ -116,5 +116,17 @@ private struct TripStopRow: View {
                     .foregroundStyle(.secondary)
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(stopRowLabel)
+    }
+
+    private var stopRowLabel: String {
+        if stop.isCurrent {
+            return "\(stop.name), current stop"
+        } else if stop.passed {
+            return "\(stop.name), passed"
+        } else {
+            return "\(stop.name), arriving at \(stop.arrivalTime)"
+        }
     }
 }
