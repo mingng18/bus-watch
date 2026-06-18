@@ -1,4 +1,8 @@
-## 2024-06-14 - Hono Dynamic CORS Origin Configuration
-**Vulnerability:** Overly permissive wildcard CORS configuration (`app.use('*', cors())`).
-**Learning:** In Hono backend setups, standard CORS middleware invocation configures a static wildcard origin. When dynamic origin checking (e.g., matching against a configured `FRONTEND_URL` environment variable) is required, the `cors` middleware must be configured using its origin callback `cors({ origin: (origin, c) => c.env.FRONTEND_URL || '*' })` rather than wrapping the `cors` initialization within a custom middleware handler (`app.use('*', (c, next) => cors(...)(c, next))`), which performs poorly.
-**Prevention:** When configuring CORS with variable parameters dependent on the request context `c`, exclusively use the dynamic callback syntax built into Hono's `cors` plugin.
+## 2024-06-18 - First Sentinel Entry
+**Vulnerability:** Just setting up.
+**Learning:** Initializing journal.
+**Prevention:** N/A
+## 2024-06-18 - Added secureHeaders middleware
+**Vulnerability:** Missing security headers
+**Learning:** The application was vulnerable to basic web attacks like clickjacking and MIME-sniffing.
+**Prevention:** Always use secure headers globally using the Hono `secureHeaders` middleware to protect the application.
