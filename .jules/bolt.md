@@ -1,3 +1,6 @@
 ## 2024-06-25 - Avoid intermediate allocations with flat().filter(Boolean)
 **Learning:** In V8/Node.js, chaining `.flat().filter(Boolean)` creates costly intermediate array allocations and causes the data to be traversed twice. A benchmark using 66 million items showed `.flat().filter(Boolean)` took ~7100ms, while `.flatMap(r => r || [])` took only ~3100ms.
 **Action:** When flattening an array of arrays and stripping out null/undefined/falsy values, use `.flatMap(r => r || [])` to perform both operations in a single pass without allocating a massive intermediate flattened array.
+## $(date +%Y-%m-%d) - In-Memory Caching for KV Fetches in Cloudflare Workers
+**Learning:** Cloudflare Workers can persist global variables across multiple request invocations. Fetching data from KV namespaces on every request is an expensive I/O operation. Furthermore, dynamically generating cache keys or fetching promises on every request allocates unnecessary memory.
+**Action:** Implemented a global `Map` to cache the static data KV fetches across the worker lifecycle using a TTL. Stored the `Promise` of the fetch instead of the resolved data to prevent cache stampedes (thundering herd problem) from concurrent requests. Pre-computed the key arrays (e.g., `STOPS_KEYS`) outside the hot request path to avoid redundant allocations on every call.

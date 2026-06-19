@@ -476,43 +476,63 @@ async function getKvJson<T>(kv: KVNamespace, key: string): Promise<T> {
   return val as T;
 }
 
+const MEMORY_CACHE_TTL_MS = 60_000;
+const staticCache = new Map<string, { ts: number; dataPromise: Promise<any> }>();
+
+// Generate keys once instead of mapping on every call to avoid memory allocation in hot path
+const STOPS_KEYS = AGENCIES.map(a => `stops:${a}`);
+const ROUTES_KEYS = [...AGENCIES, ...SELANGOR_AGENCIES].map(a => `routes:${a}`);
+const TRIPS_KEYS = AGENCIES.map(a => `trips:${a}`);
+const TRIP_STOPS_KEYS = AGENCIES.map(a => `tripStops:${a}`);
+const CALENDAR_KEYS = AGENCIES.map(a => `calendar:${a}`);
+const FREQUENCIES_KEYS = AGENCIES.map(a => `frequencies:${a}`);
+const SHAPES_KEYS = AGENCIES.map(a => `shapes:${a}`);
+
+async function getCachedStaticData<T>(kv: KVNamespace, cacheKey: string, keys: string[], isArray = true): Promise<T> {
+  const now = Date.now();
+
+  const entry = staticCache.get(cacheKey);
+  if (entry && now - entry.ts < MEMORY_CACHE_TTL_MS) {
+    return entry.dataPromise;
+  }
+
+  const dataPromise = Promise.all(
+    keys.map(key => getKvJson<any>(kv, key).catch(() => (isArray ? [] : {})))
+  ).then(results => {
+    return (isArray ? results.flatMap(r => r || []) : Object.assign({}, ...results)) as T;
+  });
+
+  staticCache.set(cacheKey, { ts: now, dataPromise });
+  return dataPromise;
+}
+
+// Optimization: In-memory KV caching and key generation hoisting avoids duplicate network requests and allocations
 async function getAllStops(kv: KVNamespace) {
-  const results = await Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `stops:${a}`).catch(() => [])));
-  // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
-  return results.flatMap(r => r || []);
+  return getCachedStaticData<any[]>(kv, 'stops', STOPS_KEYS, true);
 }
 
 async function getAllRoutes(kv: KVNamespace) {
-  const allRoutes = await Promise.all([...AGENCIES, ...SELANGOR_AGENCIES].map(a => getKvJson<Route[]>(kv, `routes:${a}`).catch(() => []))).then(res => res.flatMap(r => r || []));
-  return allRoutes;
+  return getCachedStaticData<Route[]>(kv, 'routes', ROUTES_KEYS, true);
 }
 
 async function getAllTrips(kv: KVNamespace) {
-  const results = await Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `trips:${a}`).catch(() => [])));
-  // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
-  return results.flatMap(r => r || []);
+  return getCachedStaticData<any[]>(kv, 'trips', TRIPS_KEYS, true);
 }
 
 async function getAllTripStops(kv: KVNamespace) {
-  const results = await Promise.all(AGENCIES.map(a => getKvJson<Record<string, any[]>>(kv, `tripStops:${a}`).catch(() => ({}))));
-  return Object.assign({}, ...results);
+  return getCachedStaticData<Record<string, any[]>>(kv, 'tripStops', TRIP_STOPS_KEYS, false);
 }
 
 async function getAllCalendar(kv: KVNamespace) {
-  const results = await Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `calendar:${a}`).catch(() => [])));
-  // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
-  return results.flatMap(r => r || []);
+  return getCachedStaticData<any[]>(kv, 'calendar', CALENDAR_KEYS, true);
 }
 
 async function getAllFrequencies(kv: KVNamespace) {
-  const results = await Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `frequencies:${a}`).catch(() => [])));
-  // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
-  return results.flatMap(r => r || []);
+  return getCachedStaticData<any[]>(kv, 'frequencies', FREQUENCIES_KEYS, true);
 }
 
 async function getAllShapes(kv: KVNamespace) {
-  const results = await Promise.all(AGENCIES.map(a => getKvJson<Record<string, [number, number][]>>(kv, `shapes:${a}`).catch(() => ({}))));
-  return Object.assign({}, ...results);
+  return getCachedStaticData<Record<string, [number, number][]>>(kv, 'shapes', SHAPES_KEYS, false);
 }
 
 async function getRealtimeVehicles(kv: KVNamespace): Promise<VehiclePosition[]> {
