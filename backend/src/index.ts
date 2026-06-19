@@ -49,7 +49,15 @@ function validateLatLon(lat: number, lon: number): string | null {
 // See issue #131.
 app.post('/refresh', async (c) => {
   const authHeader = c.req.header('Authorization');
-  if (!c.env.ADMIN_TOKEN || !authHeader || !(await timingSafeEqual(authHeader, `Bearer ${c.env.ADMIN_TOKEN}`))) {
+  const expectedToken = `Bearer ${c.env.ADMIN_TOKEN}`;
+  if (!c.env.ADMIN_TOKEN || !authHeader) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+  const isLengthEqual = authHeader.length === expectedToken.length;
+  const compareStr = isLengthEqual ? authHeader : expectedToken;
+  const isMatch = await timingSafeEqual(compareStr, expectedToken);
+
+  if (!isLengthEqual || !isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
   await refreshStaticData(c.env.KV);
@@ -323,7 +331,15 @@ app.get('/rail/schedule', async (c) => {
 
 app.post('/rail/ingest', async (c) => {
   const authHeader = c.req.header('Authorization');
-  if (!c.env.ADMIN_TOKEN || !authHeader || !(await timingSafeEqual(authHeader, `Bearer ${c.env.ADMIN_TOKEN}`))) {
+  const expectedToken = `Bearer ${c.env.ADMIN_TOKEN}`;
+  if (!c.env.ADMIN_TOKEN || !authHeader) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+  const isLengthEqual = authHeader.length === expectedToken.length;
+  const compareStr = isLengthEqual ? authHeader : expectedToken;
+  const isMatch = await timingSafeEqual(compareStr, expectedToken);
+
+  if (!isLengthEqual || !isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
   try {
