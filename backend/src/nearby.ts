@@ -14,7 +14,7 @@ import {
   EtaConfidence,
 } from "./types";
 import { haversineDistance } from "./haversine";
-import { klDayOfWeek, toKlLocal } from "./time-kl";
+import { toKlLocal } from "./time-kl";
 // @ts-ignore
 import { expandTripsForStop } from "./frequency";
 
@@ -253,14 +253,6 @@ function resultFromRow(row: {
 }
 
 /**
- * KL-local hour (0..23) for "now". Mirrors the bucketing key written by
- * aggregateTravelTimes so a lookup at 09:30 MYT hits the 09 bucket.
- */
-function klHour(date: Date): number {
-  return toKlLocal(date).getUTCHours();
-}
-
-/**
  * Historical ETA for a single (route, from_stop → to_stop) leg at the current
  * KL day + hour. Returns null when there's no data at all.
  *
@@ -276,8 +268,9 @@ export async function getHistoricalETA(
   toStopId: string,
   now: Date = new Date(),
 ): Promise<HistoricalEtaResult | null> {
-  const dow = klDayOfWeek(now);
-  const hour = klHour(now);
+  const klNow = toKlLocal(now);
+  const dow = klNow.getUTCDay();
+  const hour = klNow.getUTCHours();
   // Prefer an exact (day, hour) bucket; fall back to same-day any-hour, then
   // any bucket for this leg. ORDER BY sample_count desc picks the most
   // representative row when several hours match the fallback.
@@ -313,8 +306,9 @@ export async function getBatchedHistoricalETAs(
   const map = new Map<string, HistoricalEtaResult>();
   if (queries.length === 0) return map;
 
-  const dow = klDayOfWeek(now);
-  const hour = klHour(now);
+  const klNow = toKlLocal(now);
+  const dow = klNow.getUTCDay();
+  const hour = klNow.getUTCHours();
   const stmt = db.prepare(
     `SELECT avg_seconds, sample_count, spread_seconds FROM travel_times
      WHERE route = ? AND to_stop_id = ?
