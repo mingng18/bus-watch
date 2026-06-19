@@ -1,32 +1,50 @@
-import { Hono } from 'hono';
-import { cors } from 'hono/cors';
-import { secureHeaders } from 'hono/secure-headers';
-import { timingSafeEqual } from 'hono/utils/buffer';
-import { fetchAndParseAgency } from './gtfs-static';
-import { fetchVehiclePositions } from './gtfs-realtime';
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import { secureHeaders } from "hono/secure-headers";
+import { timingSafeEqual } from "hono/utils/buffer";
+import { fetchAndParseAgency } from "./gtfs-static";
+import { fetchVehiclePositions } from "./gtfs-realtime";
 // @ts-ignore
-import { fetchPrasaranaBuses } from './prasarana-socketio';
-import { findNearbyStops, findNearbyBusRoutes, findNearbyPrasaranaBuses, getHistoricalETA, getBatchedHistoricalETAs, nearestFromStopOnRoute } from './nearby';
-import { getBusTripProgress } from './bus-tracker';
-import { getStationSchedule } from './station';
-import { findNearbyRoutes } from './routes';
-import { VehiclePosition, PrasaranaBus, BusRouteEntry, Env, Route } from './types';
-import { haversineDistance } from './haversine';
-import { sampleBusPositions, aggregateTravelTimes, cleanupOldPositions, canonicalStopSequencesByRoute } from './sampling';
-import { ingestRailTimetables } from './rail-ingest';
-import { getRailSchedule, searchRailStops } from './rail-schedule';
-import { getDeparturesTowardDestination } from './departures-toward';
-import { getCachedAlerts, DEFAULT_ALERT_LIMIT } from './alerts';
+import { fetchPrasaranaBuses } from "./prasarana-socketio";
+import {
+  findNearbyStops,
+  findNearbyBusRoutes,
+  findNearbyPrasaranaBuses,
+  getHistoricalETA,
+  getBatchedHistoricalETAs,
+  nearestFromStopOnRoute,
+} from "./nearby";
+import { getBusTripProgress } from "./bus-tracker";
+import { getStationSchedule } from "./station";
+import { findNearbyRoutes } from "./routes";
+import {
+  VehiclePosition,
+  PrasaranaBus,
+  BusRouteEntry,
+  Env,
+  Route,
+} from "./types";
+import { haversineDistance } from "./haversine";
+import {
+  sampleBusPositions,
+  aggregateTravelTimes,
+  cleanupOldPositions,
+  canonicalStopSequencesByRoute,
+} from "./sampling";
+import { ingestRailTimetables } from "./rail-ingest";
+import { getRailSchedule, searchRailStops } from "./rail-schedule";
+import { getDeparturesTowardDestination } from "./departures-toward";
+import { getCachedAlerts, DEFAULT_ALERT_LIMIT } from "./alerts";
 
-const SELANGOR_AGENCIES = ['selangor-mobility']; // optional, may be unavailable
-const REALTIME_AGENCIES = ['rapid-bus-kl', 'rapid-bus-mrtfeeder'];
+const SELANGOR_AGENCIES = ["selangor-mobility"]; // optional, may be unavailable
+const REALTIME_AGENCIES = ["rapid-bus-kl", "rapid-bus-mrtfeeder"];
 const AGENCIES = [...REALTIME_AGENCIES, ...SELANGOR_AGENCIES];
 
 const app = new Hono<{ Bindings: Env }>();
-app.use('*', secureHeaders());
-app.use('*', cors({ origin: (origin, c) => c.env.FRONTEND_URL || '*' }));
+app.use("*", secureHeaders());
+app.use("*", cors({ origin: (origin, c) => c.env.FRONTEND_URL || "*" }));
 
-app.get('/', (c) => c.json({ status: 'ok', service: 'bus-watch' }));
+app.get("/", (c) => c.json({ status: "ok", service: "bus-watch" }));
 
 /**
  * Validate a lat/lon pair. `parseFloat('foo')` is NaN and `parseFloat('999')`
@@ -38,10 +56,10 @@ app.get('/', (c) => c.json({ status: 'ok', service: 'bus-watch' }));
  */
 function validateLatLon(lat: number, lon: number): string | null {
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    return 'lat and lon must be finite numbers';
+    return "lat and lon must be finite numbers";
   }
-  if (lat < -90 || lat > 90) return 'lat must be in [-90, 90]';
-  if (lon < -180 || lon > 180) return 'lon must be in [-180, 180]';
+  if (lat < -90 || lat > 90) return "lat must be in [-90, 90]";
+  if (lon < -180 || lon > 180) return "lon must be in [-180, 180]";
   return null;
 }
 
@@ -49,19 +67,23 @@ function validateLatLon(lat: number, lon: number): string | null {
 // CSRF/prefetch-prone (browsers prefetch links, prefetch robots hit URLs found
 // in HTML, image preloaders have historically fired GETs on linked URLs).
 // See issue #131.
-app.post('/refresh', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  if (!c.env.ADMIN_TOKEN || !authHeader || !(await timingSafeEqual(authHeader, `Bearer ${c.env.ADMIN_TOKEN}`))) {
-    return c.json({ error: 'Unauthorized' }, 401);
+app.post("/refresh", async (c) => {
+  const authHeader = c.req.header("Authorization");
+  if (
+    !c.env.ADMIN_TOKEN ||
+    !authHeader ||
+    !(await timingSafeEqual(authHeader, `Bearer ${c.env.ADMIN_TOKEN}`))
+  ) {
+    return c.json({ error: "Unauthorized" }, 401);
   }
   await refreshStaticData(c.env.KV);
-  return c.json({ status: 'refreshed' });
+  return c.json({ status: "refreshed" });
 });
 
-app.get('/nearby', async (c) => {
-  const lat = parseFloat(c.req.query('lat') || '');
-  const lon = parseFloat(c.req.query('lon') || '');
-  const radius = parseInt(c.req.query('radius') || '500');
+app.get("/nearby", async (c) => {
+  const lat = parseFloat(c.req.query("lat") || "");
+  const lon = parseFloat(c.req.query("lon") || "");
+  const radius = parseInt(c.req.query("radius") || "500");
   // Reject missing/NaN/out-of-range coords before they reach spatial queries.
   // Note: we cannot use `if (!lat)` here because lat=0 (the equator) is a
   // legitimate value; we must validate finiteness and range explicitly.
@@ -77,12 +99,37 @@ app.get('/nearby', async (c) => {
   const allFrequencies = await getAllFrequencies(c.env.KV);
   const vehicles = await getRealtimeVehicles(c.env.KV);
 
-  const result = findNearbyStops(allStops, allRoutes, allTrips, allTripStops, allCalendar, allFrequencies, vehicles, lat, lon, radius);
-  const busRoutes = findNearbyBusRoutes(allRoutes, allTrips, vehicles, lat, lon, 1000);
+  const result = findNearbyStops(
+    allStops,
+    allRoutes,
+    allTrips,
+    allTripStops,
+    allCalendar,
+    allFrequencies,
+    vehicles,
+    lat,
+    lon,
+    radius,
+  );
+  const busRoutes = findNearbyBusRoutes(
+    allRoutes,
+    allTrips,
+    vehicles,
+    lat,
+    lon,
+    1000,
+  );
 
   // Merge Prasarana Socket.IO bus data (covers routes not in GTFS like T816)
   const { buses: prasaranaBuses } = await getPrasaranaBuses(c.env.KV);
-  const prasaranaNearby = findNearbyPrasaranaBuses(prasaranaBuses, allRoutes, allTrips, lat, lon, Math.max(radius, 1000));
+  const prasaranaNearby = findNearbyPrasaranaBuses(
+    prasaranaBuses,
+    allRoutes,
+    allTrips,
+    lat,
+    lon,
+    Math.max(radius, 1000),
+  );
   const mergedBusRoutes = mergeBusRoutes(busRoutes, prasaranaNearby);
 
   // Enrich bus arrivals with historical ETA when available
@@ -90,7 +137,7 @@ app.get('/nearby', async (c) => {
   const queries: { route: string; stopId: string }[] = [];
   const seenQueries = new Set<string>();
   for (const stop of result) {
-    if (stop.type === 'bus') {
+    if (stop.type === "bus") {
       for (const arrival of stop.arrivals) {
         if (arrival.route) {
           const key = `${arrival.route}-${stop.id}`;
@@ -107,7 +154,7 @@ app.get('/nearby', async (c) => {
   if (queries.length > 0) {
     const etas = await getBatchedHistoricalETAs(c.env.DB, queries);
     for (const stop of result) {
-      if (stop.type === 'bus') {
+      if (stop.type === "bus") {
         for (const arrival of stop.arrivals) {
           if (arrival.route) {
             const key = `${arrival.route}-${stop.id}`;
@@ -118,14 +165,14 @@ app.get('/nearby', async (c) => {
               // single low-sample historical point shouldn't displace a live
               // position. Either way we surface the confidence + uncertainty
               // so the client can render the qualifier (issue #133).
-              if (eta.confidence !== 'low') {
+              if (eta.confidence !== "low") {
                 arrival.minutes = Math.round(eta.minutes);
               }
               arrival.confidence = eta.confidence;
               arrival.uncertainty_minutes = Math.round(eta.uncertaintyMinutes);
               // The historical estimate is not a live position; flag it as
               // scheduled so the client can distinguish the two.
-              arrival.eta_source = 'scheduled';
+              arrival.eta_source = "scheduled";
             }
           }
         }
@@ -136,12 +183,12 @@ app.get('/nearby', async (c) => {
   return c.json({ stops: result, busRoutes: mergedBusRoutes });
 });
 
-app.get('/bus/trip/:tripId/progress', async (c) => {
-  const tripId = c.req.param('tripId');
+app.get("/bus/trip/:tripId/progress", async (c) => {
+  const tripId = c.req.param("tripId");
   try {
     const allRoutes = await getAllRoutes(c.env.KV);
     const vehicles = await getRealtimeVehicles(c.env.KV);
-    const vehicle = vehicles.find(v => v.tripId === tripId) || null;
+    const vehicle = vehicles.find((v) => v.tripId === tripId) || null;
     const allTripStops = await getAllTripStops(c.env.KV);
     const routeMap = new Map<string, Route>();
     for (const r of allRoutes) routeMap.set(r.id, r);
@@ -152,15 +199,16 @@ app.get('/bus/trip/:tripId/progress', async (c) => {
     // favorite referencing a trip removed from GTFS). Return a clean 404
     // instead of letting Hono turn the unhandled rejection into a 500.
     // See issue #128.
-    return c.json({ error: 'Trip not found' }, 404);
+    return c.json({ error: "Trip not found" }, 404);
   }
 });
 
-app.get('/bus/eta', async (c) => {
-  const tripId = c.req.query('tripId');
-  const busNo = c.req.query('bus_no');
-  const stopId = c.req.query('stopId');
-  if (!stopId || (!tripId && !busNo)) return c.json({ error: 'Missing params' }, 400);
+app.get("/bus/eta", async (c) => {
+  const tripId = c.req.query("tripId");
+  const busNo = c.req.query("bus_no");
+  const stopId = c.req.query("stopId");
+  if (!stopId || (!tripId && !busNo))
+    return c.json({ error: "Missing params" }, 400);
 
   try {
     // Resolve route + current bus position. The from-stop for the historical
@@ -172,7 +220,7 @@ app.get('/bus/eta', async (c) => {
     let routeIdForSeq: string | null = null; // GTFS route_id for stop-sequence lookup
     if (busNo) {
       const { buses } = await getPrasaranaBuses(c.env.KV);
-      const bus = buses.find(b => b.bus_no === busNo);
+      const bus = buses.find((b) => b.bus_no === busNo);
       if (bus) {
         route = bus.route;
         busLat = bus.latitude;
@@ -180,7 +228,7 @@ app.get('/bus/eta', async (c) => {
       }
     } else if (tripId) {
       const vehicles = await getRealtimeVehicles(c.env.KV);
-      const vehicle = vehicles.find(v => v.tripId === tripId);
+      const vehicle = vehicles.find((v) => v.tripId === tripId);
       if (vehicle) {
         route = vehicle.routeId;
         routeIdForSeq = vehicle.routeId;
@@ -190,7 +238,7 @@ app.get('/bus/eta', async (c) => {
     }
     if (!route) {
       // Could not resolve route, fall back to heuristic
-      return c.json({ eta_minutes: 5, source: 'heuristic', is_live: false });
+      return c.json({ eta_minutes: 5, source: "heuristic", is_live: false });
     }
 
     // Resolve the from-stop from the bus's current position + the route's
@@ -207,7 +255,7 @@ app.get('/bus/eta', async (c) => {
       let stops = routeIdForSeq ? seqs.get(routeIdForSeq) : undefined;
       if (!stops) {
         // Fallback: match by route short name (prasarana codes).
-        const r = allRoutes.find(x => x.shortName === route);
+        const r = allRoutes.find((x) => x.shortName === route);
         if (r) stops = seqs.get(r.id);
       }
       if (stops) {
@@ -227,26 +275,26 @@ app.get('/bus/eta', async (c) => {
           confidence: eta.confidence,
           is_live: eta.isLive,
           sample_count: eta.sampleCount,
-          source: 'historical',
+          source: "historical",
         });
       }
     }
     // No historical data, fallback
-    return c.json({ eta_minutes: 5, source: 'heuristic', is_live: false });
+    return c.json({ eta_minutes: 5, source: "heuristic", is_live: false });
   } catch (err) {
-    console.error('Error fetching ETA:', err);
-    return c.json({ error: 'Internal server error' }, 500);
+    console.error("Error fetching ETA:", err);
+    return c.json({ error: "Internal server error" }, 500);
   }
 });
 
-app.get('/bus/position/:busId', async (c) => {
-  const busId = c.req.param('busId');
+app.get("/bus/position/:busId", async (c) => {
+  const busId = c.req.param("busId");
   const { buses } = await getPrasaranaBuses(c.env.KV);
-  const bus = buses.find(b => b.bus_no === busId);
-  if (!bus) return c.json({ error: 'Bus not found' }, 404);
+  const bus = buses.find((b) => b.bus_no === busId);
+  if (!bus) return c.json({ error: "Bus not found" }, 404);
   return c.json({
     bus_no: bus.bus_no,
-    route: bus.route.endsWith('0') ? bus.route.slice(0, -1) : bus.route,
+    route: bus.route.endsWith("0") ? bus.route.slice(0, -1) : bus.route,
     latitude: bus.latitude,
     longitude: bus.longitude,
     speed: bus.speed,
@@ -254,8 +302,8 @@ app.get('/bus/position/:busId', async (c) => {
   });
 });
 
-app.get('/station/:stopId/schedule', async (c) => {
-  const stopId = c.req.param('stopId');
+app.get("/station/:stopId/schedule", async (c) => {
+  const stopId = c.req.param("stopId");
   try {
     const allStops = await getAllStops(c.env.KV);
     const allRoutes = await getAllRoutes(c.env.KV);
@@ -264,23 +312,31 @@ app.get('/station/:stopId/schedule', async (c) => {
     const allCalendar = await getAllCalendar(c.env.KV);
     const allFrequencies = await getAllFrequencies(c.env.KV);
 
-    const result = getStationSchedule(stopId, allStops, allRoutes, allTrips, allTripStops, allCalendar);
+    const result = getStationSchedule(
+      stopId,
+      allStops,
+      allRoutes,
+      allTrips,
+      allTripStops,
+      allCalendar,
+    );
     return c.json(result);
   } catch (err) {
     // getStationSchedule throws on unknown stopId (e.g. a stale saved
     // favorite referencing a stop removed from GTFS). Return a clean 404
     // instead of letting Hono turn the unhandled rejection into a 500.
     // See issue #128.
-    return c.json({ error: 'Station not found' }, 404);
+    return c.json({ error: "Station not found" }, 404);
   }
 });
 
-app.get('/station/:stopId/schedule/toward', async (c) => {
-  const stopId = c.req.param('stopId');
-  const destinationStopId = c.req.query('destinationStopId');
-  if (!destinationStopId) return c.json({ error: 'destinationStopId is required' }, 400);
+app.get("/station/:stopId/schedule/toward", async (c) => {
+  const stopId = c.req.param("stopId");
+  const destinationStopId = c.req.query("destinationStopId");
+  if (!destinationStopId)
+    return c.json({ error: "destinationStopId is required" }, 400);
 
-  const limit = parseInt(c.req.query('limit') || '5');
+  const limit = parseInt(c.req.query("limit") || "5");
 
   try {
     const allStops = await getAllStops(c.env.KV);
@@ -290,7 +346,14 @@ app.get('/station/:stopId/schedule/toward', async (c) => {
     const allCalendar = await getAllCalendar(c.env.KV);
 
     const result = getDeparturesTowardDestination(
-      stopId, destinationStopId, allStops, allRoutes, allTrips, allTripStops, allCalendar, limit,
+      stopId,
+      destinationStopId,
+      allStops,
+      allRoutes,
+      allTrips,
+      allTripStops,
+      allCalendar,
+      limit,
     );
     return c.json(result);
   } catch (err) {
@@ -298,48 +361,52 @@ app.get('/station/:stopId/schedule/toward', async (c) => {
     // saved favorite referencing a stop removed from GTFS). Return a clean
     // 404 instead of letting Hono turn the unhandled rejection into a 500.
     // See issue #128.
-    return c.json({ error: 'Station not found' }, 404);
+    return c.json({ error: "Station not found" }, 404);
   }
 });
 
-app.get('/rail/stops', async (c) => {
-  const q = c.req.query('q');
+app.get("/rail/stops", async (c) => {
+  const q = c.req.query("q");
   if (!q || q.trim().length < 2) {
-    return c.json({ error: 'q must be at least 2 characters' }, 400);
+    return c.json({ error: "q must be at least 2 characters" }, 400);
   }
   const stops = await searchRailStops(c.env, q.trim());
   return c.json({ stops });
 });
 
-app.get('/rail/schedule', async (c) => {
-  const stationId = c.req.query('station_id');
-  if (!stationId) return c.json({ error: 'station_id is required' }, 400);
+app.get("/rail/schedule", async (c) => {
+  const stationId = c.req.query("station_id");
+  if (!stationId) return c.json({ error: "station_id is required" }, 400);
 
-  const window = parseInt(c.req.query('window') || '120');
+  const window = parseInt(c.req.query("window") || "120");
   const result = await getRailSchedule(c.env, stationId, window);
 
-  if (!result) return c.json({ error: 'Station not found' }, 404);
+  if (!result) return c.json({ error: "Station not found" }, 404);
 
   return c.json(result);
 });
 
-app.post('/rail/ingest', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  if (!c.env.ADMIN_TOKEN || !authHeader || !(await timingSafeEqual(authHeader, `Bearer ${c.env.ADMIN_TOKEN}`))) {
-    return c.json({ error: 'Unauthorized' }, 401);
+app.post("/rail/ingest", async (c) => {
+  const authHeader = c.req.header("Authorization");
+  if (
+    !c.env.ADMIN_TOKEN ||
+    !authHeader ||
+    !(await timingSafeEqual(authHeader, `Bearer ${c.env.ADMIN_TOKEN}`))
+  ) {
+    return c.json({ error: "Unauthorized" }, 401);
   }
   try {
     const result = await ingestRailTimetables(c.env);
-    return c.json({ status: 'ok', inserted: result.inserted });
+    return c.json({ status: "ok", inserted: result.inserted });
   } catch (err: any) {
-    return c.json({ status: 'error', message: 'Internal Server Error' }, 500); // Do not leak error details
+    return c.json({ status: "error", message: "Internal Server Error" }, 500); // Do not leak error details
   }
 });
 
-app.get('/routes', async (c) => {
-  const lat = parseFloat(c.req.query('lat') || '');
-  const lon = parseFloat(c.req.query('lon') || '');
-  const radius = parseInt(c.req.query('radius') || '500');
+app.get("/routes", async (c) => {
+  const lat = parseFloat(c.req.query("lat") || "");
+  const lon = parseFloat(c.req.query("lon") || "");
+  const radius = parseInt(c.req.query("radius") || "500");
   const coordErr = validateLatLon(lat, lon);
   if (coordErr) return c.json({ error: coordErr }, 400);
 
@@ -347,46 +414,69 @@ app.get('/routes', async (c) => {
   const allRoutes = await getAllRoutes(c.env.KV);
   const allTrips = await getAllTrips(c.env.KV);
   const allTripStops = await getAllTripStops(c.env.KV);
-  const result = findNearbyRoutes(allStops, allRoutes, allTrips, allTripStops, lat, lon, radius);
+  const result = findNearbyRoutes(
+    allStops,
+    allRoutes,
+    allTrips,
+    allTripStops,
+    lat,
+    lon,
+    radius,
+  );
   return c.json({ routes: result });
 });
 
-app.get('/alerts', async (c) => {
+app.get("/alerts", async (c) => {
   // Clamp limit: parseInt('foo') is NaN, parseInt('99999999') is unbounded.
   // Either could let a caller dump the entire alert list (cheap DoS / large
   // payload). Coerce to the default on parse failure, then clamp to [1, 100].
   // See issue #131.
-  const parsed = parseInt(c.req.query('limit') || '', 10);
-  const limit = Math.min(Math.max(Number.isFinite(parsed) ? parsed : DEFAULT_ALERT_LIMIT, 1), 100);
+  const parsed = parseInt(c.req.query("limit") || "", 10);
+  const limit = Math.min(
+    Math.max(Number.isFinite(parsed) ? parsed : DEFAULT_ALERT_LIMIT, 1),
+    100,
+  );
   try {
     const all = await getCachedAlerts(c.env);
     const alerts = all.slice(0, limit);
     return c.json({ alerts });
   } catch (err: any) {
     // Defensive: never 500 on alert failures.
-    console.error('Error fetching alerts:', err?.message || err);
+    console.error("Error fetching alerts:", err?.message || err);
     return c.json({ alerts: [] });
   }
 });
 
-app.get('/route/:routeId', async (c) => {
-  const routeId = c.req.param('routeId');
+app.get("/route/:routeId", async (c) => {
+  const routeId = c.req.param("routeId");
   const allRoutes = await getAllRoutes(c.env.KV);
-  let route = allRoutes.find(r => r.id === routeId || r.shortName === routeId);
+  let route = allRoutes.find(
+    (r) => r.id === routeId || r.shortName === routeId,
+  );
 
   const { buses: prasaranaBuses } = await getPrasaranaBuses(c.env.KV);
 
   if (!route) {
-    const hasPrasarana = prasaranaBuses.some(b => b.route === routeId || b.route === routeId + '0');
-    if (!hasPrasarana) return c.json({ error: 'Route not found' }, 404);
-    route = { id: routeId, shortName: routeId, longName: '', type: 3 } as any;
+    const hasPrasarana = prasaranaBuses.some(
+      (b) => b.route === routeId || b.route === routeId + "0",
+    );
+    if (!hasPrasarana) return c.json({ error: "Route not found" }, 404);
+    route = { id: routeId, shortName: routeId, longName: "", type: 3 } as any;
   }
 
   // Get active buses
   const vehicles = await getRealtimeVehicles(c.env.KV);
 
-  const gtfsBuses: Array<{ routeId: string; routeShortName: string; destination: string; minutes: number; tripId: string; lat: number; lon: number; }> = [];
-  const routeShortName = route!.shortName || route!.longName || '';
+  const gtfsBuses: Array<{
+    routeId: string;
+    routeShortName: string;
+    destination: string;
+    minutes: number;
+    tripId: string;
+    lat: number;
+    lon: number;
+  }> = [];
+  const routeShortName = route!.shortName || route!.longName || "";
   const tgtRouteId = route!.id;
   for (let i = 0, len = vehicles.length; i < len; i++) {
     const v = vehicles[i];
@@ -394,7 +484,7 @@ app.get('/route/:routeId', async (c) => {
       gtfsBuses.push({
         routeId: tgtRouteId,
         routeShortName,
-        destination: '',
+        destination: "",
         minutes: 0,
         tripId: v.tripId,
         lat: v.lat,
@@ -403,21 +493,30 @@ app.get('/route/:routeId', async (c) => {
     }
   }
 
-  const pBuses: Array<{ routeId: string; routeShortName: string; destination: string; minutes: number; tripId: string; lat: number; lon: number; busNo: string; }> = [];
+  const pBuses: Array<{
+    routeId: string;
+    routeShortName: string;
+    destination: string;
+    minutes: number;
+    tripId: string;
+    lat: number;
+    lon: number;
+    busNo: string;
+  }> = [];
   const pTargetRoute1 = route!.shortName;
-  const pTargetRoute2 = route!.shortName + '0';
+  const pTargetRoute2 = route!.shortName + "0";
   for (let i = 0, len = prasaranaBuses.length; i < len; i++) {
     const b = prasaranaBuses[i];
     if (b.route === pTargetRoute1 || b.route === pTargetRoute2) {
       pBuses.push({
         routeId: tgtRouteId,
         routeShortName,
-        destination: '',
+        destination: "",
         minutes: 0,
         tripId: b.bus_no,
         lat: b.latitude,
         lon: b.longitude,
-        busNo: b.bus_no
+        busNo: b.bus_no,
       });
     }
   }
@@ -425,26 +524,32 @@ app.get('/route/:routeId', async (c) => {
   const mergedBuses = mergeBusRoutes(gtfsBuses, pBuses);
 
   const allTrips = await getAllTrips(c.env.KV);
-  const routeTrips = allTrips.filter(t => t.routeId === route!.id && t.shapeId);
+  const routeTrips = allTrips.filter(
+    (t) => t.routeId === route!.id && t.shapeId,
+  );
 
   const allShapes = await getAllShapes(c.env.KV);
-  const shapeIds = Array.from(new Set(routeTrips.map(t => t.shapeId)));
-  let shapes = shapeIds.filter(id => allShapes[id]).map(id => ({
-    id,
-    points: allShapes[id]
-  }));
+  const shapeIds = Array.from(new Set(routeTrips.map((t) => t.shapeId)));
+  let shapes = shapeIds
+    .filter((id) => allShapes[id])
+    .map((id) => ({
+      id,
+      points: allShapes[id],
+    }));
 
   // Fallback: reconstruct route shape from D1 historical bus positions
   let isReconstructed = false;
   if (shapes.length === 0) {
     try {
       const routeNormal = route!.shortName;
-      const routeSuffixed = route!.shortName + '0';
+      const routeSuffixed = route!.shortName + "0";
       const { results: posRows } = await c.env.DB.prepare(
         `SELECT bus_no, lat, lon, timestamp FROM bus_positions
          WHERE route = ? OR route = ?
-         ORDER BY bus_no, timestamp`
-      ).bind(routeNormal, routeSuffixed).all<{ bus_no: string; lat: number; lon: number; timestamp: number }>();
+         ORDER BY bus_no, timestamp`,
+      )
+        .bind(routeNormal, routeSuffixed)
+        .all<{ bus_no: string; lat: number; lon: number; timestamp: number }>();
 
       if (posRows && posRows.length > 0) {
         // Group by bus_no to get per-bus traces
@@ -454,7 +559,10 @@ app.get('/route/:routeId', async (c) => {
           const pts = groups.get(row.bus_no)!;
           // Deduplicate: only add if >50m from last point
           const last = pts[pts.length - 1];
-          if (!last || haversineDistance(last[0], last[1], row.lat, row.lon) > 50) {
+          if (
+            !last ||
+            haversineDistance(last[0], last[1], row.lat, row.lon) > 50
+          ) {
             pts.push([row.lat, row.lon]);
           }
         }
@@ -464,86 +572,136 @@ app.get('/route/:routeId', async (c) => {
         if (shapes.length > 0) isReconstructed = true;
       }
     } catch (err) {
-      console.error('Failed to reconstruct route shape from D1:', err);
+      console.error("Failed to reconstruct route shape from D1:", err);
     }
   }
 
-  return c.json({ routeId: route!.id, buses: mergedBuses, shapes, isReconstructed });
+  return c.json({
+    routeId: route!.id,
+    buses: mergedBuses,
+    shapes,
+    isReconstructed,
+  });
 });
 
 // --- Data helpers ---
 
 async function getKvJson<T>(kv: KVNamespace, key: string): Promise<T> {
-  const val = await kv.get(key, 'json');
+  const val = await kv.get(key, "json");
   return val as T;
 }
 
 async function getAllStops(kv: KVNamespace) {
-  const results = await Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `stops:${a}`).catch(() => [])));
+  const results = await Promise.all(
+    AGENCIES.map((a) => getKvJson<any[]>(kv, `stops:${a}`).catch(() => [])),
+  );
   // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
-  return results.flatMap(r => r || []);
+  return results.flatMap((r) => r || []);
 }
 
 async function getAllRoutes(kv: KVNamespace) {
-  const allRoutes = await Promise.all([...AGENCIES, ...SELANGOR_AGENCIES].map(a => getKvJson<Route[]>(kv, `routes:${a}`).catch(() => []))).then(res => res.flatMap(r => r || []));
+  const allRoutes = await Promise.all(
+    [...AGENCIES, ...SELANGOR_AGENCIES].map((a) =>
+      getKvJson<Route[]>(kv, `routes:${a}`).catch(() => []),
+    ),
+  ).then((res) => res.flatMap((r) => r || []));
   return allRoutes;
 }
 
 async function getAllTrips(kv: KVNamespace) {
-  const results = await Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `trips:${a}`).catch(() => [])));
+  const results = await Promise.all(
+    AGENCIES.map((a) => getKvJson<any[]>(kv, `trips:${a}`).catch(() => [])),
+  );
   // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
-  return results.flatMap(r => r || []);
+  return results.flatMap((r) => r || []);
 }
 
 async function getAllTripStops(kv: KVNamespace) {
-  const results = await Promise.all(AGENCIES.map(a => getKvJson<Record<string, any[]>>(kv, `tripStops:${a}`).catch(() => ({}))));
+  const results = await Promise.all(
+    AGENCIES.map((a) =>
+      getKvJson<Record<string, any[]>>(kv, `tripStops:${a}`).catch(() => ({})),
+    ),
+  );
   return Object.assign({}, ...results);
 }
 
 async function getAllCalendar(kv: KVNamespace) {
-  const results = await Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `calendar:${a}`).catch(() => [])));
+  const results = await Promise.all(
+    AGENCIES.map((a) => getKvJson<any[]>(kv, `calendar:${a}`).catch(() => [])),
+  );
   // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
-  return results.flatMap(r => r || []);
+  return results.flatMap((r) => r || []);
 }
 
 async function getAllFrequencies(kv: KVNamespace) {
-  const results = await Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `frequencies:${a}`).catch(() => [])));
+  const results = await Promise.all(
+    AGENCIES.map((a) =>
+      getKvJson<any[]>(kv, `frequencies:${a}`).catch(() => []),
+    ),
+  );
   // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
-  return results.flatMap(r => r || []);
+  return results.flatMap((r) => r || []);
 }
 
 async function getAllShapes(kv: KVNamespace) {
-  const results = await Promise.all(AGENCIES.map(a => getKvJson<Record<string, [number, number][]>>(kv, `shapes:${a}`).catch(() => ({}))));
+  const results = await Promise.all(
+    AGENCIES.map((a) =>
+      getKvJson<Record<string, [number, number][]>>(kv, `shapes:${a}`).catch(
+        () => ({}),
+      ),
+    ),
+  );
   return Object.assign({}, ...results);
 }
 
-async function getRealtimeVehicles(kv: KVNamespace): Promise<VehiclePosition[]> {
-  const cached = await getKvJson<{ ts: number; vehicles: VehiclePosition[] } | null>(kv, 'realtime:vehicles');
+async function getRealtimeVehicles(
+  kv: KVNamespace,
+): Promise<VehiclePosition[]> {
+  const cached = await getKvJson<{
+    ts: number;
+    vehicles: VehiclePosition[];
+  } | null>(kv, "realtime:vehicles");
   if (cached && Date.now() - cached.ts < 25000) return cached.vehicles;
 
-  const allVehicles = await Promise.all(REALTIME_AGENCIES.map(a => fetchVehiclePositions(a)));
+  const allVehicles = await Promise.all(
+    REALTIME_AGENCIES.map((a) => fetchVehiclePositions(a)),
+  );
   const vehicles = allVehicles.flat();
-  await kv.put('realtime:vehicles', JSON.stringify({ ts: Date.now(), vehicles }));
+  await kv.put(
+    "realtime:vehicles",
+    JSON.stringify({ ts: Date.now(), vehicles }),
+  );
   return vehicles;
 }
 
-async function getPrasaranaBuses(kv: KVNamespace): Promise<{ buses: PrasaranaBus[]; error?: string }> {
-  const cached = await getKvJson<{ ts: number; buses: PrasaranaBus[] } | null>(kv, 'prasarana:buses');
+async function getPrasaranaBuses(
+  kv: KVNamespace,
+): Promise<{ buses: PrasaranaBus[]; error?: string }> {
+  const cached = await getKvJson<{ ts: number; buses: PrasaranaBus[] } | null>(
+    kv,
+    "prasarana:buses",
+  );
   if (cached && Date.now() - cached.ts < 60000) return { buses: cached.buses };
 
   try {
-    const buses = await fetchPrasaranaBuses('RKL');
+    const buses = await fetchPrasaranaBuses("RKL");
     if (buses.length > 0) {
-      await kv.put('prasarana:buses', JSON.stringify({ ts: Date.now(), buses }));
+      await kv.put(
+        "prasarana:buses",
+        JSON.stringify({ ts: Date.now(), buses }),
+      );
     }
     return { buses };
   } catch (err: any) {
-    console.error('Failed to fetch Prasarana buses:', err?.message || err);
+    console.error("Failed to fetch Prasarana buses:", err?.message || err);
     return { buses: cached?.buses || [], error: err?.message };
   }
 }
 
-function mergeBusRoutes(gtfsRoutes: BusRouteEntry[], prasaranaRoutes: BusRouteEntry[]): BusRouteEntry[] {
+function mergeBusRoutes(
+  gtfsRoutes: BusRouteEntry[],
+  prasaranaRoutes: BusRouteEntry[],
+): BusRouteEntry[] {
   const seen = new Set<string>();
   const merged: BusRouteEntry[] = [];
 
@@ -580,25 +738,27 @@ async function refreshStaticData(kv: KVNamespace) {
       } catch (err) {
         console.error(`Failed to refresh ${agency}:`, err);
       }
-    })
+    }),
   );
 }
 
 export default {
   fetch: app.fetch,
   scheduled: async (event: ScheduledEvent, env: Env, ctx: ExecutionContext) => {
-    if (event.cron === '*/5 * * * *') {
+    if (event.cron === "*/5 * * * *") {
       let vehicles: VehiclePosition[] = [];
       let buses: PrasaranaBus[] = [];
       try {
         const [vehiclesResult, prasaranaResult] = await Promise.allSettled([
           getRealtimeVehicles(env.KV),
-          getPrasaranaBuses(env.KV)
+          getPrasaranaBuses(env.KV),
         ]);
-        if (vehiclesResult.status === 'fulfilled') vehicles = vehiclesResult.value;
-        if (prasaranaResult.status === 'fulfilled') buses = prasaranaResult.value.buses;
+        if (vehiclesResult.status === "fulfilled")
+          vehicles = vehiclesResult.value;
+        if (prasaranaResult.status === "fulfilled")
+          buses = prasaranaResult.value.buses;
       } catch (err) {
-        console.error('Failed to fetch realtime data for sampling:', err);
+        console.error("Failed to fetch realtime data for sampling:", err);
       }
 
       try {
@@ -615,28 +775,31 @@ export default {
           ]);
           stopSeqs = canonicalStopSequencesByRoute(allTrips, allTripStops);
         } catch (err) {
-          console.error('Failed to load stop sequences for aggregation:', err);
+          console.error("Failed to load stop sequences for aggregation:", err);
         }
         await aggregateTravelTimes(env, stopSeqs);
         await cleanupOldPositions(env);
       } catch (err) {
-        console.error('Failed to run sampling and aggregation tasks:', err);
+        console.error("Failed to run sampling and aggregation tasks:", err);
       }
-    } else if (event.cron === '0 2 * * 1') {
+    } else if (event.cron === "0 2 * * 1") {
       // Weekly: refresh rail timetables from GTFS static
       try {
         const result = await ingestRailTimetables(env);
         console.log(`Rail timetable ingest complete: ${result.inserted} rows`);
       } catch (err) {
-        console.error('Failed to ingest rail timetables:', err);
+        console.error("Failed to ingest rail timetables:", err);
       }
     } else {
       await refreshStaticData(env.KV);
       try {
-        const buses = await fetchPrasaranaBuses('RKL');
-        await env.KV.put('prasarana:buses', JSON.stringify({ ts: Date.now(), buses }));
+        const buses = await fetchPrasaranaBuses("RKL");
+        await env.KV.put(
+          "prasarana:buses",
+          JSON.stringify({ ts: Date.now(), buses }),
+        );
       } catch (err) {
-        console.error('Failed to refresh Prasarana buses:', err);
+        console.error("Failed to refresh Prasarana buses:", err);
       }
     }
   },
