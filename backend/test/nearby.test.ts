@@ -8,7 +8,7 @@ vi.mock('../src/frequency', () => ({
   }]
 }));
 import { describe, it, expect } from 'vitest';
-import { findNearbyStops } from '../src/nearby';
+import { findNearbyStops, confidenceFromSamples } from '../src/nearby';
 import { Stop, Route, Trip, VehiclePosition, ScheduleEntry } from '../src/types';
 
 const stops: Stop[] = [
@@ -65,5 +65,33 @@ describe('findNearbyStops', () => {
     expect(railStop).toBeDefined();
     expect(railStop!.arrivals.length).toBeGreaterThan(0);
     expect(railStop!.arrivals[0].isRealtime).toBe(false);
+  });
+});
+describe('confidenceFromSamples', () => {
+  it('returns high confidence for 8+ samples with 0 average', () => {
+    expect(confidenceFromSamples(8, 5, 0)).toBe('high');
+    expect(confidenceFromSamples(10, 10, 0)).toBe('high');
+  });
+
+  it('returns high confidence for 8+ samples with spread <= 25% of average', () => {
+    expect(confidenceFromSamples(8, 20, 100)).toBe('high'); // 20%
+    expect(confidenceFromSamples(10, 25, 100)).toBe('high'); // 25%
+  });
+
+  it('returns medium confidence for 8+ samples with spread > 25% of average', () => {
+    expect(confidenceFromSamples(8, 26, 100)).toBe('medium'); // 26%
+    expect(confidenceFromSamples(10, 50, 100)).toBe('medium'); // 50%
+  });
+
+  it('returns medium confidence for 3-7 samples regardless of spread', () => {
+    expect(confidenceFromSamples(3, 0, 100)).toBe('medium');
+    expect(confidenceFromSamples(5, 50, 100)).toBe('medium');
+    expect(confidenceFromSamples(7, 100, 100)).toBe('medium');
+  });
+
+  it('returns low confidence for <3 samples', () => {
+    expect(confidenceFromSamples(0, 0, 0)).toBe('low');
+    expect(confidenceFromSamples(1, 10, 100)).toBe('low');
+    expect(confidenceFromSamples(2, 50, 100)).toBe('low');
   });
 });
