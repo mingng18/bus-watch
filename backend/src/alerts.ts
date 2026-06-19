@@ -1,4 +1,4 @@
-import { Env } from './types';
+import type { Env } from "./types";
 
 // --- Source note ---------------------------------------------------------
 // MyRapid's media-releases page (www.myrapid.com.my/media-releases/) and the
@@ -15,10 +15,10 @@ import { Env } from './types';
 // -------------------------------------------------------------------------
 
 /** Where alerts are read from. Sitemap is the only unchallenged, structured source. */
-export const ALERTS_SITEMAP_URL = 'https://myrapid.com.my/post-sitemap1.xml';
+export const ALERTS_SITEMAP_URL = "https://myrapid.com.my/post-sitemap1.xml";
 
 /** KV key for the cached parsed alert list. */
-export const ALERTS_KV_KEY = 'alerts:recent';
+export const ALERTS_KV_KEY = "alerts:recent";
 
 /** How long a parsed alert list is served from cache before re-fetching. */
 export const ALERTS_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -26,7 +26,7 @@ export const ALERTS_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 /** Default number of alerts returned when no limit is requested. */
 export const DEFAULT_ALERT_LIMIT = 20;
 
-export type AlertSeverity = 'info' | 'warning' | 'severe';
+export type AlertSeverity = "info" | "warning" | "severe";
 
 export interface Alert {
   /** Stable id derived from the post URL slug. */
@@ -51,11 +51,13 @@ export interface Alert {
  * gracefully. Pure parsing of a raw sitemap string is in {@link parseAlerts};
  * this wrapper only does the network fetch.
  */
-export async function fetchAlerts(env: Env): Promise<Alert[]> {
-  let xml = '';
+export async function fetchAlerts(): Promise<Alert[]> {
+  let xml = "";
   try {
     const res = await fetch(ALERTS_SITEMAP_URL, {
-      headers: { 'User-Agent': 'bus-watch/1.0 (+https://github.com/mingng18/bus-watch)' },
+      headers: {
+        "User-Agent": "bus-watch/1.0 (+https://github.com/mingng18/bus-watch)",
+      },
       cf: { cacheTtl: 60 } as any,
     });
     if (!res.ok) {
@@ -64,7 +66,7 @@ export async function fetchAlerts(env: Env): Promise<Alert[]> {
     }
     xml = await res.text();
   } catch (err: any) {
-    console.error('alerts: sitemap fetch threw:', err?.message || err);
+    console.error("alerts: sitemap fetch threw:", err?.message || err);
     return [];
   }
   return parseAlerts(xml);
@@ -75,19 +77,25 @@ export async function fetchAlerts(env: Env): Promise<Alert[]> {
  * cached list (if any) so a transient source outage never blanks the UI.
  */
 export async function getCachedAlerts(env: Env): Promise<Alert[]> {
-  const cached = await env.KV.get(ALERTS_KV_KEY, 'json') as { ts: number; alerts: Alert[] } | null;
+  const cached = (await env.KV.get(ALERTS_KV_KEY, "json")) as {
+    ts: number;
+    alerts: Alert[];
+  } | null;
   if (cached && Date.now() - cached.ts < ALERTS_CACHE_TTL_MS) {
     return cached.alerts;
   }
 
-  const alerts = await fetchAlerts(env);
+  const alerts = await fetchAlerts();
   // Only cache non-empty results — but keep the previous cache around for
   // fallback even when the fresh fetch comes back empty.
   if (alerts.length > 0) {
     try {
-      await env.KV.put(ALERTS_KV_KEY, JSON.stringify({ ts: Date.now(), alerts }));
+      await env.KV.put(
+        ALERTS_KV_KEY,
+        JSON.stringify({ ts: Date.now(), alerts }),
+      );
     } catch (err: any) {
-      console.error('alerts: KV put failed:', err?.message || err);
+      console.error("alerts: KV put failed:", err?.message || err);
     }
     return alerts;
   }
@@ -133,7 +141,8 @@ function extractUrlEntries(xml: string): SitemapEntry[] {
     const block = m[1];
     const loc = block.match(/<loc>\s*([^<]*?)\s*<\/loc>/i)?.[1]?.trim();
     if (!loc) continue;
-    const lastmod = block.match(/<lastmod>\s*([^<]*?)\s*<\/lastmod>/i)?.[1]?.trim() ?? null;
+    const lastmod =
+      block.match(/<lastmod>\s*([^<]*?)\s*<\/lastmod>/i)?.[1]?.trim() ?? null;
     entries.push({ loc, lastmod });
   }
   return entries;
@@ -141,8 +150,8 @@ function extractUrlEntries(xml: string): SitemapEntry[] {
 
 /** Slugs that do NOT represent service disruptions and must be excluded. */
 const NON_DISRUPTION_SLUGS = [
-  'malaysian-philharmonic',
-  'mrt-', // promotional MRT texts, not disruption notices
+  "malaysian-philharmonic",
+  "mrt-", // promotional MRT texts, not disruption notices
 ];
 
 /**
@@ -159,11 +168,12 @@ const NON_DISRUPTION_SLUGS = [
 function classifyEntry(entry: SitemapEntry): Alert | null {
   const loc = entry.loc;
   // Strip trailing slash, take the final path segment as the slug.
-  const slug = loc.replace(/\/+$/, '').split('/').pop() ?? '';
+  const slug = loc.replace(/\/+$/, "").split("/").pop() ?? "";
   if (!slug) return null;
 
   // Skip the homepage and known non-disruption posts.
-  if (loc === 'https://myrapid.com.my/' || loc === 'https://myrapid.com.my') return null;
+  if (loc === "https://myrapid.com.my/" || loc === "https://myrapid.com.my")
+    return null;
   for (const skip of NON_DISRUPTION_SLUGS) {
     if (slug.startsWith(skip)) return null;
   }
@@ -198,50 +208,79 @@ interface ParsedSlug {
 function parseSlug(slug: string): ParsedSlug | null {
   // Drop the trailing numeric post-id token (e.g. "-55", "-175") used by WP
   // for disambiguation; it is not meaningful to riders.
-  const base = slug.replace(/-\d+$/, '');
-  const tokens = base.split('-');
+  const base = slug.replace(/-\d+$/, "");
+  const tokens = base.split("-");
 
   // Bus road closure: info-penutupan-jalan-laluan-<routes...>
-  if (base.startsWith('info-penutupan-jalan-laluan-')) {
+  if (base.startsWith("info-penutupan-jalan-laluan-")) {
     const routes = extractRoutes(tokens);
-    const title = routes.length ? `Road closure — routes ${routes.join(', ')}` : 'Road closure';
-    return { title, summary: title, affectedLines: routes, severity: 'severe' };
+    const title = routes.length
+      ? `Road closure — routes ${routes.join(", ")}`
+      : "Road closure";
+    return { title, summary: title, affectedLines: routes, severity: "severe" };
   }
   // Traffic disruption: info-gangguan-trafik-laluan-<routes...>
-  if (base.startsWith('info-gangguan-trafik-laluan-')) {
+  if (base.startsWith("info-gangguan-trafik-laluan-")) {
     const routes = extractRoutes(tokens);
-    const title = routes.length ? `Traffic disruption — routes ${routes.join(', ')}` : 'Traffic disruption';
-    return { title, summary: title, affectedLines: routes, severity: 'warning' };
+    const title = routes.length
+      ? `Traffic disruption — routes ${routes.join(", ")}`
+      : "Traffic disruption";
+    return {
+      title,
+      summary: title,
+      affectedLines: routes,
+      severity: "warning",
+    };
   }
   // Bus delay: kelewatan-bas-<n>-laluan-terjejas
   if (/^kelewatan-bas-\d+-laluan-terjejas$/.test(base)) {
-    const n = tokens[tokens.indexOf('bas') + 1];
+    const n = tokens[tokens.indexOf("bas") + 1];
     const title = `Bus delay — ${n} route(s) affected`;
-    return { title, summary: title, affectedLines: [], severity: 'warning' };
+    return { title, summary: title, affectedLines: [], severity: "warning" };
   }
   // Train delay: kelewatan-tren-laluan-<line>
-  if (base.startsWith('kelewatan-tren-laluan-')) {
-    const line = lineName(tokens.slice(tokens.indexOf('laluan') + 1).join(' '));
-    const title = line ? `Train delay — ${line} line` : 'Train delay';
-    return { title, summary: title, affectedLines: line ? [line] : [], severity: 'warning' };
+  if (base.startsWith("kelewatan-tren-laluan-")) {
+    const line = lineName(tokens.slice(tokens.indexOf("laluan") + 1).join(" "));
+    const title = line ? `Train delay — ${line} line` : "Train delay";
+    return {
+      title,
+      summary: title,
+      affectedLines: line ? [line] : [],
+      severity: "warning",
+    };
   }
   // Service restored: perkhidmatan-pulih-laluan-<line>
-  if (base.startsWith('perkhidmatan-pulih-laluan-')) {
-    const line = lineName(tokens.slice(tokens.indexOf('laluan') + 1).join(' '));
-    const title = line ? `Service restored — ${line} line` : 'Service restored';
-    return { title, summary: title, affectedLines: line ? [line] : [], severity: 'info' };
+  if (base.startsWith("perkhidmatan-pulih-laluan-")) {
+    const line = lineName(tokens.slice(tokens.indexOf("laluan") + 1).join(" "));
+    const title = line ? `Service restored — ${line} line` : "Service restored";
+    return {
+      title,
+      summary: title,
+      affectedLines: line ? [line] : [],
+      severity: "info",
+    };
   }
   // Frequency update: kemas-kini-kekerapan-laluan-<line>
-  if (base.startsWith('kemas-kini-kekerapan-laluan-')) {
-    const line = lineName(tokens.slice(tokens.indexOf('laluan') + 1).join(' '));
-    const title = line ? `Frequency update — ${line} line` : 'Frequency update';
-    return { title, summary: title, affectedLines: line ? [line] : [], severity: 'info' };
+  if (base.startsWith("kemas-kini-kekerapan-laluan-")) {
+    const line = lineName(tokens.slice(tokens.indexOf("laluan") + 1).join(" "));
+    const title = line ? `Frequency update — ${line} line` : "Frequency update";
+    return {
+      title,
+      summary: title,
+      affectedLines: line ? [line] : [],
+      severity: "info",
+    };
   }
   // Line update: kemas-kini-laluan-<line>
-  if (base.startsWith('kemas-kini-laluan-')) {
-    const line = lineName(tokens.slice(tokens.indexOf('laluan') + 1).join(' '));
-    const title = line ? `Line update — ${line} line` : 'Line update';
-    return { title, summary: title, affectedLines: line ? [line] : [], severity: 'info' };
+  if (base.startsWith("kemas-kini-laluan-")) {
+    const line = lineName(tokens.slice(tokens.indexOf("laluan") + 1).join(" "));
+    const title = line ? `Line update — ${line} line` : "Line update";
+    return {
+      title,
+      summary: title,
+      affectedLines: line ? [line] : [],
+      severity: "info",
+    };
   }
 
   return null;
@@ -249,7 +288,7 @@ function parseSlug(slug: string): ParsedSlug | null {
 
 /** Extract trailing route numbers following the `laluan` token. */
 function extractRoutes(tokens: string[]): string[] {
-  const idx = tokens.indexOf('laluan');
+  const idx = tokens.indexOf("laluan");
   if (idx === -1) return [];
   return tokens.slice(idx + 1).filter(Boolean);
 }
@@ -261,7 +300,7 @@ function lineName(raw: string): string | null {
     .split(/\s+/)
     .filter(Boolean)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(' ');
+    .join(" ");
 }
 
 /** Normalize a lastmod value to a UTC ISO string; null if unparseable. */
