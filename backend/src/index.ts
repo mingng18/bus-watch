@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { secureHeaders } from 'hono/secure-headers';
 import { timingSafeEqual } from 'hono/utils/buffer';
 import { fetchAndParseAgency } from './gtfs-static';
 import { fetchVehiclePositions } from './gtfs-realtime';
@@ -22,6 +23,7 @@ const REALTIME_AGENCIES = ['rapid-bus-kl', 'rapid-bus-mrtfeeder'];
 const AGENCIES = [...REALTIME_AGENCIES, ...SELANGOR_AGENCIES];
 
 const app = new Hono<{ Bindings: Env }>();
+app.use('*', secureHeaders());
 app.use('*', cors({ origin: (origin, c) => c.env.FRONTEND_URL || '*' }));
 
 app.get('/', (c) => c.json({ status: 'ok', service: 'bus-watch' }));
@@ -49,7 +51,15 @@ function validateLatLon(lat: number, lon: number): string | null {
 // See issue #131.
 app.post('/refresh', async (c) => {
   const authHeader = c.req.header('Authorization');
-  if (!c.env.ADMIN_TOKEN || !authHeader || !(await timingSafeEqual(authHeader, `Bearer ${c.env.ADMIN_TOKEN}`))) {
+  const expectedToken = `Bearer ${c.env.ADMIN_TOKEN}`;
+  if (!c.env.ADMIN_TOKEN || !authHeader) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+  const isLengthEqual = authHeader.length === expectedToken.length;
+  const compareStr = isLengthEqual ? authHeader : expectedToken;
+  const isMatch = await timingSafeEqual(compareStr, expectedToken);
+
+  if (!isLengthEqual || !isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
   await refreshStaticData(c.env.KV);
@@ -325,7 +335,15 @@ app.get('/rail/schedule', async (c) => {
 
 app.post('/rail/ingest', async (c) => {
   const authHeader = c.req.header('Authorization');
-  if (!c.env.ADMIN_TOKEN || !authHeader || !(await timingSafeEqual(authHeader, `Bearer ${c.env.ADMIN_TOKEN}`))) {
+  const expectedToken = `Bearer ${c.env.ADMIN_TOKEN}`;
+  if (!c.env.ADMIN_TOKEN || !authHeader) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+  const isLengthEqual = authHeader.length === expectedToken.length;
+  const compareStr = isLengthEqual ? authHeader : expectedToken;
+  const isMatch = await timingSafeEqual(compareStr, expectedToken);
+
+  if (!isLengthEqual || !isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
   try {
