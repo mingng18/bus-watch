@@ -88,4 +88,29 @@ describe('sampling logic', () => {
     const insertCalls = sqls.filter(s => /INSERT INTO bus_positions/.test(s));
     expect(insertCalls.length).toBe(0);
   });
+
+  it('aggregateTravelTimes returns early and logs error if DB fetch fails', async () => {
+    const errorMsg = 'DB fetch error';
+    const mockDbEnv: Env = {
+      KV: {} as any,
+      DB: {
+        prepare: vi.fn().mockReturnValue({
+          bind: vi.fn().mockReturnThis(),
+          all: vi.fn().mockRejectedValue(new Error(errorMsg))
+        })
+      } as any
+    };
+
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(aggregateTravelTimes(mockDbEnv, new Map())).resolves.toBeUndefined();
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'aggregateTravelTimes: failed to read bus_positions:',
+      expect.any(Error)
+    );
+    expect(consoleSpy.mock.calls[0][1].message).toBe(errorMsg);
+
+    consoleSpy.mockRestore();
+  });
 });
