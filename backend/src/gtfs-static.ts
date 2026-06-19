@@ -20,27 +20,12 @@ const ROUTE_TYPE_MAP: Record<string, 'bus' | 'rail'> = {
   '4': 'bus',
 };
 
-export async function fetchAndParseAgency(agency: string): Promise<AgencyData> {
-  const url = STATIC_URLS[agency as keyof typeof STATIC_URLS];
-  if (!url) throw new Error(`Unknown agency: ${agency}`);
-
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Failed to fetch ${agency}: ${response.status}`);
-
-  const zipBuffer = await response.arrayBuffer();
-  const files = unzipSync(new Uint8Array(zipBuffer));
-
-  const getFile = (name: string): string => {
-    const key = Object.keys(files).find(k => k.endsWith(name));
-    return key ? new TextDecoder().decode(files[key]) : '';
-  };
-
-  const rawStops = parseCsv(getFile('stops.txt')) as unknown as GtfsStop[];
-  const rawRoutes = parseCsv(getFile('routes.txt')) as unknown as GtfsRoute[];
-  const rawTrips = parseCsv(getFile('trips.txt')) as unknown as GtfsTrip[];
-  const rawStopTimes = parseCsv(getFile('stop_times.txt')) as unknown as GtfsStopTime[];
-  const rawCalendar = parseCsv(getFile('calendar.txt')) as unknown as GtfsCalendar[];
-
+function parseStops(
+  rawStops: GtfsStop[],
+  rawRoutes: GtfsRoute[],
+  rawTrips: GtfsTrip[],
+  rawStopTimes: GtfsStopTime[]
+): { stops: Stop[]; stopMap: Map<string, Stop> } {
   const stopMap = new Map<string, Stop>();
 
   // Build route type lookup
@@ -78,14 +63,20 @@ export async function fetchAndParseAgency(agency: string): Promise<AgencyData> {
     }
   }
 
-  const routes: Route[] = rawRoutes.map(r => ({
+  return { stops, stopMap };
+}
+
+function parseRoutes(rawRoutes: GtfsRoute[]): Route[] {
+  return rawRoutes.map(r => ({
     id: r.route_id,
     shortName: r.route_short_name,
     longName: r.route_long_name,
     type: parseInt(r.route_type),
   }));
+}
 
-  const trips: Trip[] = rawTrips.map(t => ({
+function parseTrips(rawTrips: GtfsTrip[]): Trip[] {
+  return rawTrips.map(t => ({
     id: t.trip_id,
     routeId: t.route_id,
     serviceId: t.service_id,
@@ -93,7 +84,9 @@ export async function fetchAndParseAgency(agency: string): Promise<AgencyData> {
     directionId: parseInt(t.direction_id) || 0,
     shapeId: '',
   }));
+}
 
+function parseTripStops(rawStopTimes: GtfsStopTime[], stopMap: Map<string, Stop>): Record<string, TripStopEntry[]> {
   const tripStops: Record<string, TripStopEntry[]> = {};
   for (const st of rawStopTimes) {
     if (!tripStops[st.trip_id]) tripStops[st.trip_id] = [];
@@ -111,6 +104,34 @@ export async function fetchAndParseAgency(agency: string): Promise<AgencyData> {
   for (const tid of Object.keys(tripStops)) {
     tripStops[tid].sort((a, b) => a.sequence - b.sequence);
   }
+  return tripStops;
+}
+
+export async function fetchAndParseAgency(agency: string): Promise<AgencyData> {
+  const url = STATIC_URLS[agency as keyof typeof STATIC_URLS];
+  if (!url) throw new Error(`Unknown agency: ${agency}`);
+
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Failed to fetch ${agency}: ${response.status}`);
+
+  const zipBuffer = await response.arrayBuffer();
+  const files = unzipSync(new Uint8Array(zipBuffer));
+
+  const getFile = (name: string): string => {
+    const key = Object.keys(files).find(k => k.endsWith(name));
+    return key ? new TextDecoder().decode(files[key]) : '';
+  };
+
+  const rawStops = parseCsv(getFile('stops.txt')) as unknown as GtfsStop[];
+  const rawRoutes = parseCsv(getFile('routes.txt')) as unknown as GtfsRoute[];
+  const rawTrips = parseCsv(getFile('trips.txt')) as unknown as GtfsTrip[];
+  const rawStopTimes = parseCsv(getFile('stop_times.txt')) as unknown as GtfsStopTime[];
+  const rawCalendar = parseCsv(getFile('calendar.txt')) as unknown as GtfsCalendar[];
+
+  const { stops, stopMap } = parseStops(rawStops, rawRoutes, rawTrips, rawStopTimes);
+  const routes = parseRoutes(rawRoutes);
+  const trips = parseTrips(rawTrips);
+  const tripStops = parseTripStops(rawStopTimes, stopMap);
 
   const calendar: CalendarEntry[] = rawCalendar.map(c => ({
     serviceId: c.service_id,
