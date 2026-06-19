@@ -95,20 +95,34 @@ export async function fetchAndParseAgency(agency: string): Promise<AgencyData> {
   }));
 
   const tripStops: Record<string, TripStopEntry[]> = {};
+  // ⚡ Bolt: Track trips that need sorting instead of sorting all by default
+  const unsortedTrips = new Set<string>();
+
   for (const st of rawStopTimes) {
-    if (!tripStops[st.trip_id]) tripStops[st.trip_id] = [];
+    const tid = st.trip_id;
+    let stops = tripStops[tid];
+    const seq = parseInt(st.stop_sequence);
+
+    if (!stops) {
+      stops = [];
+      tripStops[tid] = stops;
+    } else if (seq < stops[stops.length - 1].sequence) {
+      unsortedTrips.add(tid);
+    }
+
     const stop = stopMap.get(st.stop_id);
-    tripStops[st.trip_id].push({
+    stops.push({
       stopId: st.stop_id,
       stopName: stop?.name || st.stop_id,
       lat: stop?.lat || 0,
       lon: stop?.lon || 0,
       arrivalTime: st.arrival_time,
       departureTime: st.departure_time,
-      sequence: parseInt(st.stop_sequence),
+      sequence: seq,
     });
   }
-  for (const tid of Object.keys(tripStops)) {
+
+  for (const tid of unsortedTrips) {
     tripStops[tid].sort((a, b) => a.sequence - b.sequence);
   }
 
