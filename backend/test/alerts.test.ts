@@ -293,4 +293,27 @@ describe("getCachedAlerts", () => {
     const env = makeEnv(makeKV()); // empty KV
     expect(await getCachedAlerts(env)).toEqual([]);
   });
+
+  it('returns fetched alerts even if KV.put throws an error', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(FIXTURE, { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const kv = makeKV();
+    // Simulate KV.put failure
+    kv.put = vi.fn().mockRejectedValue(new Error('KV write timeout'));
+
+    const env = makeEnv(kv);
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const result = await getCachedAlerts(env);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(result.length).toBe(7); // Should still return fetched alerts
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'alerts: KV put failed:',
+      'KV write timeout'
+    );
+
+    consoleErrorSpy.mockRestore();
+  });
 });
