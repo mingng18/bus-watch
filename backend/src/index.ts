@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { secureHeaders } from 'hono/secure-headers';
 import { timingSafeEqual } from 'hono/utils/buffer';
 import { fetchAndParseAgency } from './gtfs-static';
 import { fetchVehiclePositions } from './gtfs-realtime';
@@ -22,6 +23,7 @@ const REALTIME_AGENCIES = ['rapid-bus-kl', 'rapid-bus-mrtfeeder'];
 const AGENCIES = [...REALTIME_AGENCIES, ...SELANGOR_AGENCIES];
 
 const app = new Hono<{ Bindings: Env }>();
+app.use('*', secureHeaders());
 app.use('*', cors({ origin: (origin, c) => c.env.FRONTEND_URL || '*' }));
 
 app.get('/', (c) => c.json({ status: 'ok', service: 'bus-watch' }));
