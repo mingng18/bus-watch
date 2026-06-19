@@ -215,7 +215,9 @@ app.get('/bus/eta', async (c) => {
       let stops = routeIdForSeq ? seqs.get(routeIdForSeq) : undefined;
       if (!stops) {
         // Fallback: match by route short name (prasarana codes).
-        const r = allRoutes.find(x => x.shortName === route);
+        // Optimization: Turn O(N) linear search into O(1) Map lookup
+        const { shortNameMap } = await getRoutesMaps(c.env.KV);
+        const r = shortNameMap.get(route);
         if (r) stops = seqs.get(r.id);
       }
       if (stops) {
@@ -388,7 +390,9 @@ app.get('/alerts', async (c) => {
 app.get('/route/:routeId', async (c) => {
   const routeId = c.req.param('routeId');
   const allRoutes = await getAllRoutes(c.env.KV);
-  let route = allRoutes.find(r => r.id === routeId || r.shortName === routeId);
+  // Optimization: Turn O(N) linear search into O(1) Map lookup
+  const { map, shortNameMap } = await getRoutesMaps(c.env.KV);
+  let route = map.get(routeId) || shortNameMap.get(routeId);
 
   const { buses: prasaranaBuses } = await getPrasaranaBuses(c.env.KV);
 
@@ -500,9 +504,31 @@ async function getAllStops(kv: KVNamespace) {
   return results.flatMap(r => r || []);
 }
 
+let cachedRoutesMap: { map: Map<string, Route>, shortNameMap: Map<string, Route>, expires: number } | null = null;
+let cachedRoutes: { routes: Route[], expires: number } | null = null;
+const CACHE_TTL_MS = 60000; // 1 minute TTL
+
 async function getAllRoutes(kv: KVNamespace) {
+  const now = Date.now();
+  if (cachedRoutes && cachedRoutes.expires > now) return cachedRoutes.routes;
   const allRoutes = await Promise.all([...AGENCIES, ...SELANGOR_AGENCIES].map(a => getKvJson<Route[]>(kv, `routes:${a}`).catch(() => []))).then(res => res.flatMap(r => r || []));
+  cachedRoutes = { routes: allRoutes, expires: now + CACHE_TTL_MS };
   return allRoutes;
+}
+
+async function getRoutesMaps(kv: KVNamespace): Promise<{ map: Map<string, Route>, shortNameMap: Map<string, Route> }> {
+  const now = Date.now();
+  if (cachedRoutesMap && cachedRoutesMap.expires > now) return cachedRoutesMap;
+  const allRoutes = await getAllRoutes(kv);
+  const map = new Map<string, Route>();
+  const shortNameMap = new Map<string, Route>();
+  for (let i = 0; i < allRoutes.length; i++) {
+    const r = allRoutes[i];
+    if (r.id && !map.has(r.id)) map.set(r.id, r);
+    if (r.shortName && !shortNameMap.has(r.shortName)) shortNameMap.set(r.shortName, r);
+  }
+  cachedRoutesMap = { map, shortNameMap, expires: now + CACHE_TTL_MS };
+  return cachedRoutesMap;
 }
 
 async function getAllTrips(kv: KVNamespace) {

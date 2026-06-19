@@ -1,6 +1,9 @@
 ## 2024-06-25 - Avoid intermediate allocations with flat().filter(Boolean)
 **Learning:** In V8/Node.js, chaining `.flat().filter(Boolean)` creates costly intermediate array allocations and causes the data to be traversed twice. A benchmark using 66 million items showed `.flat().filter(Boolean)` took ~7100ms, while `.flatMap(r => r || [])` took only ~3100ms.
 **Action:** When flattening an array of arrays and stripping out null/undefined/falsy values, use `.flatMap(r => r || [])` to perform both operations in a single pass without allocating a massive intermediate flattened array.
+## 2024-05-24 - Optimize Linear Route Search with TTL-cached Map Lookups
+**Learning:** When optimizing O(N) array `.find()` lookups on static or semi-static data (like transit routes) inside a request handler, simply substituting a `for` loop reduces closure overhead but doesn't fix the algorithmic complexity. Creating a Map on every request is O(N) and often slower than a simple loop due to map instantiation overhead.
+**Action:** Implemented a module-level, TTL-based memory cache (60 seconds) in the Cloudflare Worker to store both the raw array and O(1) lookup Maps (keyed by `id` and `shortName`). This avoids unbounded KV reads, eliminates per-request Map generation overhead, and successfully turns O(N) linear searches into true O(1) lookups across isolate requests.
 ## 2024-05-18 - Hoist Map Instantiation
 **Learning:** Instantiating `Map` objects inside loops using chained array iterations (`new Map(routes.map(r => [r.id, r]))`) can cause significant performance overhead in hot loops (e.g. `nearby.map` when `routeMap` doesn't change per item).
 **Action:** Always verify if object creations that don't depend on loop context can be hoisted to a wider scope to prevent unnecessary memory allocation and CPU cycles per iteration.
