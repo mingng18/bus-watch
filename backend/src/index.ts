@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { secureHeaders } from 'hono/secure-headers';
 import { timingSafeEqual } from 'hono/utils/buffer';
 import { fetchAndParseAgency } from './gtfs-static';
 import { fetchVehiclePositions } from './gtfs-realtime';
@@ -22,6 +23,7 @@ const REALTIME_AGENCIES = ['rapid-bus-kl', 'rapid-bus-mrtfeeder'];
 const AGENCIES = [...REALTIME_AGENCIES, ...SELANGOR_AGENCIES];
 
 const app = new Hono<{ Bindings: Env }>();
+app.use('*', secureHeaders());
 app.use('*', cors({ origin: (origin, c) => c.env.FRONTEND_URL || '*' }));
 
 app.get('/', (c) => c.json({ status: 'ok', service: 'bus-watch' }));
@@ -49,7 +51,15 @@ function validateLatLon(lat: number, lon: number): string | null {
 // See issue #131.
 app.post('/refresh', async (c) => {
   const authHeader = c.req.header('Authorization');
-  if (!c.env.ADMIN_TOKEN || !authHeader || !(await timingSafeEqual(authHeader, `Bearer ${c.env.ADMIN_TOKEN}`))) {
+  const expectedToken = `Bearer ${c.env.ADMIN_TOKEN}`;
+  if (!c.env.ADMIN_TOKEN || !authHeader) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+  const isLengthEqual = authHeader.length === expectedToken.length;
+  const compareStr = isLengthEqual ? authHeader : expectedToken;
+  const isMatch = await timingSafeEqual(compareStr, expectedToken);
+
+  if (!isLengthEqual || !isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
   await refreshStaticData(c.env.KV);
@@ -205,7 +215,9 @@ app.get('/bus/eta', async (c) => {
       let stops = routeIdForSeq ? seqs.get(routeIdForSeq) : undefined;
       if (!stops) {
         // Fallback: match by route short name (prasarana codes).
-        const r = allRoutes.find(x => x.shortName === route);
+        // Optimization: Turn O(N) linear search into O(1) Map lookup
+        const { shortNameMap } = await getRoutesMaps(c.env.KV);
+        const r = shortNameMap.get(route);
         if (r) stops = seqs.get(r.id);
       }
       if (stops) {
@@ -323,7 +335,15 @@ app.get('/rail/schedule', async (c) => {
 
 app.post('/rail/ingest', async (c) => {
   const authHeader = c.req.header('Authorization');
-  if (!c.env.ADMIN_TOKEN || !authHeader || !(await timingSafeEqual(authHeader, `Bearer ${c.env.ADMIN_TOKEN}`))) {
+  const expectedToken = `Bearer ${c.env.ADMIN_TOKEN}`;
+  if (!c.env.ADMIN_TOKEN || !authHeader) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+  const isLengthEqual = authHeader.length === expectedToken.length;
+  const compareStr = isLengthEqual ? authHeader : expectedToken;
+  const isMatch = await timingSafeEqual(compareStr, expectedToken);
+
+  if (!isLengthEqual || !isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
   try {
@@ -370,7 +390,9 @@ app.get('/alerts', async (c) => {
 app.get('/route/:routeId', async (c) => {
   const routeId = c.req.param('routeId');
   const allRoutes = await getAllRoutes(c.env.KV);
-  let route = allRoutes.find(r => r.id === routeId || r.shortName === routeId);
+  // Optimization: Turn O(N) linear search into O(1) Map lookup
+  const { map, shortNameMap } = await getRoutesMaps(c.env.KV);
+  let route = map.get(routeId) || shortNameMap.get(routeId);
 
   const { buses: prasaranaBuses } = await getPrasaranaBuses(c.env.KV);
 
@@ -511,8 +533,25 @@ async function getAllStops(kv: KVNamespace) {
   return getCachedStaticData<any[]>(kv, 'stops', STOPS_KEYS, true);
 }
 
+let cachedRoutesMap: { map: Map<string, Route>, shortNameMap: Map<string, Route>, expires: number } | null = null;
+
 async function getAllRoutes(kv: KVNamespace) {
   return getCachedStaticData<Route[]>(kv, 'routes', ROUTES_KEYS, true);
+}
+
+async function getRoutesMaps(kv: KVNamespace): Promise<{ map: Map<string, Route>, shortNameMap: Map<string, Route> }> {
+  const now = Date.now();
+  if (cachedRoutesMap && cachedRoutesMap.expires > now) return cachedRoutesMap;
+  const allRoutes = await getAllRoutes(kv);
+  const map = new Map<string, Route>();
+  const shortNameMap = new Map<string, Route>();
+  for (let i = 0; i < allRoutes.length; i++) {
+    const r = allRoutes[i];
+    if (r.id && !map.has(r.id)) map.set(r.id, r);
+    if (r.shortName && !shortNameMap.has(r.shortName)) shortNameMap.set(r.shortName, r);
+  }
+  cachedRoutesMap = { map, shortNameMap, expires: now + MEMORY_CACHE_TTL_MS };
+  return cachedRoutesMap;
 }
 
 async function getAllTrips(kv: KVNamespace) {
