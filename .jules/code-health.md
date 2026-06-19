@@ -1,3 +1,3 @@
-## 2024-05-18 - [Move klHour to time-kl.ts to clean up imports]
-**Learning:** Moving locally scoped helper functions which rely on other utility functions (like `toKlLocal` to `klHour`) into the central utility file where the dependencies exist, helps avoid unused imports on exports, and cleans up the code architecture.
-**Action:** Relocated `klHour` to `time-kl.ts` and simplified the imports in `nearby.ts`.
+## 2024-05-18 - [Align with PR 168 refactor for klHour]
+**Learning:** When addressing a code health issue, checking for recent merges that fix the same area is essential. Inlining utilities (like `toKlLocal` instead of a proxy `klHour` method) is a valid pattern if the usage context is local and short enough.
+**Action:** Rebased my fix on master, absorbing the inlined solution from PR #168 which effectively resolved the conflict and original issue.

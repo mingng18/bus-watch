@@ -14,7 +14,7 @@ import {
   EtaConfidence,
 } from "./types";
 import { haversineDistance } from "./haversine";
-import { klDayOfWeek, klHour } from "./time-kl";
+import { toKlLocal } from "./time-kl";
 // @ts-ignore
 import { expandTripsForStop } from "./frequency";
 
@@ -31,16 +31,21 @@ export function findNearbyStops(
   radiusM: number,
 ): NearbyStop[] {
   const now = new Date();
-  const nearby = stops
-    .map((stop) => ({
-      stop,
-      distance: haversineDistance(lat, lon, stop.lat, stop.lon),
-    }))
-    .filter(({ distance }) => distance <= radiusM)
-    .sort((a, b) => a.distance - b.distance);
+  // Performance optimization: Replaced chained array methods (.map().filter())
+  // with a standard loop to eliminate intermediate object allocations.
+  const nearby: { stop: Stop; distance: number }[] = [];
+  for (let i = 0; i < stops.length; i++) {
+    const stop = stops[i];
+    const distance = haversineDistance(lat, lon, stop.lat, stop.lon);
+    if (distance <= radiusM) {
+      nearby.push({ stop, distance });
+    }
+  }
+  nearby.sort((a, b) => a.distance - b.distance);
 
   // Performance optimization: Precompute map to avoid O(N^2) lookups in loop
   const tripMap = new Map(trips.map((t) => [t.id, t]));
+  const routeMap = new Map(routes.map((r) => [r.id, r]));
 
   return nearby.map(({ stop, distance }) => {
     const arrivals: Arrival[] = [];
@@ -49,7 +54,6 @@ export function findNearbyStops(
       const nearbyVehicles = vehicles.filter(
         (v) => haversineDistance(stop.lat, stop.lon, v.lat, v.lon) <= 500,
       );
-      const routeMap = new Map(routes.map((r) => [r.id, r]));
       const seen = new Set<string>();
       for (const v of nearbyVehicles) {
         const trip = tripMap.get(v.tripId);
@@ -228,13 +232,9 @@ export function confidenceFromSamples(
   spreadSeconds: number,
   avgSeconds: number,
 ): EtaConfidence {
-  if (
-    sampleCount >= 8 &&
-    (avgSeconds === 0 || spreadSeconds / avgSeconds <= 0.25)
-  )
-    return "high";
-  if (sampleCount >= 3) return "medium";
-  return "low";
+  if (sampleCount >= 8 && (avgSeconds === 0 || spreadSeconds / avgSeconds <= 0.25)) return 'high';
+  if (sampleCount >= 3) return 'medium';
+  return 'low';
 }
 
 /**
@@ -250,11 +250,7 @@ function resultFromRow(row: {
   return {
     minutes,
     uncertaintyMinutes,
-    confidence: confidenceFromSamples(
-      row.sample_count,
-      row.spread_seconds,
-      row.avg_seconds,
-    ),
+    confidence: confidenceFromSamples(row.sample_count, row.spread_seconds, row.avg_seconds),
     isLive: false,
     sampleCount: row.sample_count,
   };
@@ -270,14 +266,15 @@ function resultFromRow(row: {
  * is stored under.
  */
 export async function getHistoricalETA(
-  db: import("@cloudflare/workers-types").D1Database,
+  db: import('@cloudflare/workers-types').D1Database,
   route: string,
   fromStopId: string,
   toStopId: string,
   now: Date = new Date(),
 ): Promise<HistoricalEtaResult | null> {
-  const dow = klDayOfWeek(now);
-  const hour = klHour(now);
+  const klNow = toKlLocal(now);
+  const dow = klNow.getUTCDay();
+  const hour = klNow.getUTCHours();
   // Prefer an exact (day, hour) bucket; fall back to same-day any-hour, then
   // any bucket for this leg. ORDER BY sample_count desc picks the most
   // representative row when several hours match the fallback.
@@ -293,11 +290,7 @@ export async function getHistoricalETA(
        LIMIT 1`,
     )
     .bind(route, fromStopId, toStopId, dow, hour, dow)
-    .all<{
-      avg_seconds: number;
-      sample_count: number;
-      spread_seconds: number;
-    }>();
+    .all<{ avg_seconds: number; sample_count: number; spread_seconds: number }>();
   if (!results || results.length === 0) return null;
   return resultFromRow(results[0]);
 }
@@ -310,15 +303,16 @@ export async function getHistoricalETA(
  * upstream leg. Returns confidence + isLive alongside the minutes.
  */
 export async function getBatchedHistoricalETAs(
-  db: import("@cloudflare/workers-types").D1Database,
+  db: import('@cloudflare/workers-types').D1Database,
   queries: { route: string; stopId: string }[],
   now: Date = new Date(),
 ): Promise<Map<string, HistoricalEtaResult>> {
   const map = new Map<string, HistoricalEtaResult>();
   if (queries.length === 0) return map;
 
-  const dow = klDayOfWeek(now);
-  const hour = klHour(now);
+  const klNow = toKlLocal(now);
+  const dow = klNow.getUTCDay();
+  const hour = klNow.getUTCHours();
   const stmt = db.prepare(
     `SELECT avg_seconds, sample_count, spread_seconds FROM travel_times
      WHERE route = ? AND to_stop_id = ?
@@ -330,9 +324,7 @@ export async function getBatchedHistoricalETAs(
      LIMIT 1`,
   );
 
-  const dbQueries = queries.map((q) =>
-    stmt.bind(q.route, q.stopId, dow, hour, dow),
-  );
+  const dbQueries = queries.map((q) => stmt.bind(q.route, q.stopId, dow, hour, dow));
   const results = await db.batch<{
     avg_seconds: number;
     sample_count: number;

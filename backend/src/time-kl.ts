@@ -44,15 +44,7 @@ export function klDayOfWeek(date: Date): number {
 export function klDateYyyyMmDd(date: Date): string {
   const kl = toKlLocal(date);
   const y = kl.getUTCFullYear();
-  const m = String(kl.getUTCMonth() + 1).padStart(2, "0");
-  const d = String(kl.getUTCDate()).padStart(2, "0");
+  const m = String(kl.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(kl.getUTCDate()).padStart(2, '0');
   return `${y}${m}${d}`;
-}
-
-/**
- * KL-local hour (0..23) for "now". Mirrors the bucketing key written by
- * aggregateTravelTimes so a lookup at 09:30 MYT hits the 09 bucket.
- */
-export function klHour(date: Date): number {
-  return toKlLocal(date).getUTCHours();
 }
