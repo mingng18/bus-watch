@@ -15,8 +15,6 @@ import {
 } from "./types";
 import { haversineDistance } from "./haversine";
 import { klDayOfWeek, toKlLocal } from "./time-kl";
-// @ts-ignore
-import { expandTripsForStop } from "./frequency";
 
 export function findNearbyStops(
   stops: Stop[],
@@ -67,25 +65,6 @@ export function findNearbyStops(
           // Mark as a live GTFS-realtime position so the client can show the
           // scheduled-vs-live qualifier (issue #133).
           eta_source: "live",
-        });
-      }
-    } else {
-      const expanded = expandTripsForStop(
-        stop.id,
-        trips,
-        tripStops,
-        routes,
-        calendar,
-        frequencies,
-        now,
-        120,
-      );
-      for (const dep of expanded.slice(0, 3)) {
-        arrivals.push({
-          line: dep.line,
-          destination: dep.destination,
-          minutes: dep.minutesUntil,
-          isRealtime: false,
         });
       }
     }
@@ -228,9 +207,13 @@ export function confidenceFromSamples(
   spreadSeconds: number,
   avgSeconds: number,
 ): EtaConfidence {
-  if (sampleCount >= 8 && (avgSeconds === 0 || spreadSeconds / avgSeconds <= 0.25)) return 'high';
-  if (sampleCount >= 3) return 'medium';
-  return 'low';
+  if (
+    sampleCount >= 8 &&
+    (avgSeconds === 0 || spreadSeconds / avgSeconds <= 0.25)
+  )
+    return "high";
+  if (sampleCount >= 3) return "medium";
+  return "low";
 }
 
 /**
@@ -246,7 +229,11 @@ function resultFromRow(row: {
   return {
     minutes,
     uncertaintyMinutes,
-    confidence: confidenceFromSamples(row.sample_count, row.spread_seconds, row.avg_seconds),
+    confidence: confidenceFromSamples(
+      row.sample_count,
+      row.spread_seconds,
+      row.avg_seconds,
+    ),
     isLive: false,
     sampleCount: row.sample_count,
   };
@@ -270,7 +257,7 @@ function klHour(date: Date): number {
  * is stored under.
  */
 export async function getHistoricalETA(
-  db: import('@cloudflare/workers-types').D1Database,
+  db: import("@cloudflare/workers-types").D1Database,
   route: string,
   fromStopId: string,
   toStopId: string,
@@ -293,7 +280,11 @@ export async function getHistoricalETA(
        LIMIT 1`,
     )
     .bind(route, fromStopId, toStopId, dow, hour, dow)
-    .all<{ avg_seconds: number; sample_count: number; spread_seconds: number }>();
+    .all<{
+      avg_seconds: number;
+      sample_count: number;
+      spread_seconds: number;
+    }>();
   if (!results || results.length === 0) return null;
   return resultFromRow(results[0]);
 }
@@ -306,7 +297,7 @@ export async function getHistoricalETA(
  * upstream leg. Returns confidence + isLive alongside the minutes.
  */
 export async function getBatchedHistoricalETAs(
-  db: import('@cloudflare/workers-types').D1Database,
+  db: import("@cloudflare/workers-types").D1Database,
   queries: { route: string; stopId: string }[],
   now: Date = new Date(),
 ): Promise<Map<string, HistoricalEtaResult>> {
@@ -326,7 +317,9 @@ export async function getBatchedHistoricalETAs(
      LIMIT 1`,
   );
 
-  const dbQueries = queries.map((q) => stmt.bind(q.route, q.stopId, dow, hour, dow));
+  const dbQueries = queries.map((q) =>
+    stmt.bind(q.route, q.stopId, dow, hour, dow),
+  );
   const results = await db.batch<{
     avg_seconds: number;
     sample_count: number;
