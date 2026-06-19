@@ -196,8 +196,7 @@ interface ParsedSlug {
  * slugs so unknown content is never surfaced as a false alert.
  */
 function parseSlug(slug: string): ParsedSlug | null {
-  // Drop the trailing numeric post-id token (e.g. "-55", "-175") used by WP
-  // for disambiguation; it is not meaningful to riders.
+  // Drop the trailing numeric post-id token (e.g. "-55", "-175") used by WP for disambiguation, as it is not meaningful to riders.
   const base = slug.replace(/-\d+$/, '');
   const tokens = base.split('-');
 
