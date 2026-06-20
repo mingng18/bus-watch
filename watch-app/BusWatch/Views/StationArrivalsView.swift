@@ -29,6 +29,13 @@ struct StationArrivalsView: View {
 
                 Divider()
 
+                if schedule.departures.isEmpty {
+                    Text("No upcoming departures")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.vertical, 4)
+                }
+
                 ForEach(schedule.departures) { dep in
                     HStack {
                         Circle()
