@@ -1,8 +1,0 @@
-💡 **What:** Changed `getBusTripProgress` signature to accept a `Map<string, Route>` instead of `Route[]`, enabling O(1) lookups by ID.
-
-🎯 **Why:** Previously, inside `getBusTripProgress`, a linear search `routes.find()` was invoked, making it an O(N) operation over a potentially large array. This optimization reduces it to O(1).
-
-📊 **Measured Improvement:** In a standalone benchmark measuring 10,000 iterations over 10,000 generated routes:
-- Baseline (using `Array.prototype.find`): ~2025.8 ms
-- Optimized (using `Map.prototype.get`): ~8.4 ms
-- This represents a ~99.5% reduction in lookup time.
