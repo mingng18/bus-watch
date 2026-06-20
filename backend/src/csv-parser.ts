@@ -4,12 +4,12 @@ export function parseCsv(text: string): Record<string, string>[] {
   // That '\r' corrupts the header name (so lookups silently miss) and corrupts
   // stop/route name values. Normalize to '\n' before splitting.
   // See issue #132.
-  const normalized = text.replace(/\r\n?/g, '\n');
+  const normalized = text.replace(/\r\n?/g, "\n");
   const trimmed = normalized.trim();
   if (!trimmed) return [];
 
-  const lines = trimmed.split('\n');
-  const headers = parseLine(lines[0]).map(h => h.trim());
+  const lines = trimmed.split("\n");
+  const headers = parseLine(lines[0]).map((h) => h.trim());
   const rows: Record<string, string>[] = [];
   const headerLen = headers.length;
 
@@ -24,7 +24,7 @@ export function parseCsv(text: string): Record<string, string>[] {
       let start = 0;
       let colIdx = 0;
       while (colIdx < headerLen) {
-        const commaIdx = line.indexOf(',', start);
+        const commaIdx = line.indexOf(",", start);
         if (commaIdx === -1) {
           row[headers[colIdx]] = line.substring(start).trim();
           colIdx++;
@@ -38,7 +38,7 @@ export function parseCsv(text: string): Record<string, string>[] {
 
       // Fill remaining headers with empty string to match old behavior
       while (colIdx < headerLen) {
-        row[headers[colIdx]] = '';
+        row[headers[colIdx]] = "";
         colIdx++;
       }
 
@@ -50,7 +50,7 @@ export function parseCsv(text: string): Record<string, string>[] {
     const values = parseLine(line);
     const row: Record<string, string> = {};
     for (let j = 0; j < headerLen; j++) {
-      row[headers[j]] = (values[j] || '').trim();
+      row[headers[j]] = (values[j] || "").trim();
     }
     rows.push(row);
   }
@@ -59,7 +59,7 @@ export function parseCsv(text: string): Record<string, string>[] {
 
 function parseLine(line: string): string[] {
   const fields: string[] = [];
-  let current = '';
+  let current = "";
   let inQuotes = false;
 
   for (let i = 0; i < line.length; i++) {
@@ -71,9 +71,9 @@ function parseLine(line: string): string[] {
       } else {
         inQuotes = !inQuotes;
       }
-    } else if (ch === ',' && !inQuotes) {
+    } else if (ch === "," && !inQuotes) {
       fields.push(current);
-      current = '';
+      current = "";
     } else {
       current += ch;
     }

@@ -1,4 +1,10 @@
-import { Route, TripStopEntry, VehiclePosition, BusProgressResponse, TripStopStatus } from './types';
+import {
+  Route,
+  TripStopEntry,
+  VehiclePosition,
+  BusProgressResponse,
+  TripStopStatus,
+} from "./types";
 
 export function getBusTripProgress(
   tripId: string,
@@ -10,10 +16,10 @@ export function getBusTripProgress(
   if (!stops) throw new Error(`Trip not found: ${tripId}`);
 
   const route = vehicle?.routeId ? routeMap.get(vehicle.routeId) : undefined;
-  const destination = stops[stops.length - 1]?.stopName || '';
+  const destination = stops[stops.length - 1]?.stopName || "";
   const currentSeq = vehicle?.currentStopSequence || 0;
 
-  const stopStatuses: TripStopStatus[] = stops.map(s => ({
+  const stopStatuses: TripStopStatus[] = stops.map((s) => ({
     id: s.stopId,
     name: s.stopName,
     arrivalTime: s.arrivalTime,
@@ -21,13 +27,14 @@ export function getBusTripProgress(
     isCurrent: s.sequence === currentSeq,
   }));
 
-  const progressPercent = stops.length > 1
-    ? Math.round(((currentSeq - 1) / (stops.length - 1)) * 100)
-    : 0;
+  const progressPercent =
+    stops.length > 1
+      ? Math.round(((currentSeq - 1) / (stops.length - 1)) * 100)
+      : 0;
 
   return {
     tripId,
-    routeShortName: route?.shortName || '',
+    routeShortName: route?.shortName || "",
     destination,
     busPosition: vehicle ? { lat: vehicle.lat, lon: vehicle.lon } : null,
     stops: stopStatuses,

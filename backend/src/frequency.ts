@@ -6,7 +6,7 @@ export function expandTripsForStop(
   calendar: any[],
   frequencies: any[],
   now: Date,
-  timeWindow: number
+  timeWindow: number,
 ): any[] {
   return [];
 }

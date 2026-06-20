@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getRailSchedule } from '../src/rail-schedule';
-import { Env } from '../src/types';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { getRailSchedule } from "../src/rail-schedule";
+import { Env } from "../src/types";
 
-describe('getRailSchedule', () => {
+describe("getRailSchedule", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -11,9 +11,9 @@ describe('getRailSchedule', () => {
     vi.useRealTimers();
   });
 
-  it('handles overnight wrap-around window correctly', async () => {
+  it("handles overnight wrap-around window correctly", async () => {
     // 23:30 KL time (UTC+8) -> 15:30 UTC
-    const date = new Date('2023-10-10T15:30:00Z');
+    const date = new Date("2023-10-10T15:30:00Z");
     vi.setSystemTime(date);
 
     let stopTimesArgs: any[] = [];
@@ -22,28 +22,28 @@ describe('getRailSchedule', () => {
       DB: {
         prepare: vi.fn().mockImplementation((query) => {
           const firstFn = vi.fn().mockImplementation(async () => {
-            if (query.includes('FROM rail_stops')) {
-              return { stop_id: 's1', stop_name: 'Station 1' };
+            if (query.includes("FROM rail_stops")) {
+              return { stop_id: "s1", stop_name: "Station 1" };
             }
-            if (query.includes('rail_ingest_meta')) {
+            if (query.includes("rail_ingest_meta")) {
               return { value: date.toISOString() };
             }
             return null;
           });
 
           const allFn = vi.fn().mockImplementation(async () => {
-            if (query.includes('FROM rail_stop_times')) {
+            if (query.includes("FROM rail_stop_times")) {
               return {
                 results: [
                   {
-                    departure_time: '24:30:00',
-                    trip_id: 't1',
-                    headsign: 'Terminal',
-                    route_short_name: 'R1',
-                    route_long_name: 'Route 1',
-                    departure_minutes: 1470 // 24:30 in minutes
-                  }
-                ]
+                    departure_time: "24:30:00",
+                    trip_id: "t1",
+                    headsign: "Terminal",
+                    route_short_name: "R1",
+                    route_long_name: "Route 1",
+                    departure_minutes: 1470, // 24:30 in minutes
+                  },
+                ],
               };
             }
             return { results: [] };
@@ -51,19 +51,19 @@ describe('getRailSchedule', () => {
 
           return {
             bind: (...args: any[]) => {
-              if (query.includes('FROM rail_stop_times')) {
+              if (query.includes("FROM rail_stop_times")) {
                 stopTimesArgs = args;
               }
               return { first: firstFn, all: allFn };
             },
             first: firstFn,
-            all: allFn
+            all: allFn,
           };
-        })
-      }
+        }),
+      },
     } as unknown as Env;
 
-    const result = await getRailSchedule(mockEnv, 's1', 120);
+    const result = await getRailSchedule(mockEnv, "s1", 120);
 
     // Verify SQL bound parameters for wrap around logic
     // currentMinutes should be 23 * 60 + 30 = 1410
@@ -75,15 +75,15 @@ describe('getRailSchedule', () => {
     expect(result?.arrivals.length).toBe(1);
 
     // Should correctly wrap 24:30 to 00:30
-    expect(result?.arrivals[0].scheduled_time).toBe('00:30');
+    expect(result?.arrivals[0].scheduled_time).toBe("00:30");
 
     // Minutes until should be 60 (1470 - 1410)
     expect(result?.arrivals[0].minutes_until).toBe(60);
   });
 
-  it('handles standard window correctly', async () => {
+  it("handles standard window correctly", async () => {
     // 12:00 KL time (UTC+8) -> 04:00 UTC
-    const date = new Date('2023-10-10T04:00:00Z');
+    const date = new Date("2023-10-10T04:00:00Z");
     vi.setSystemTime(date);
 
     let stopTimesArgs: any[] = [];
@@ -92,28 +92,28 @@ describe('getRailSchedule', () => {
       DB: {
         prepare: vi.fn().mockImplementation((query) => {
           const firstFn = vi.fn().mockImplementation(async () => {
-            if (query.includes('FROM rail_stops')) {
-              return { stop_id: 's1', stop_name: 'Station 1' };
+            if (query.includes("FROM rail_stops")) {
+              return { stop_id: "s1", stop_name: "Station 1" };
             }
-            if (query.includes('rail_ingest_meta')) {
+            if (query.includes("rail_ingest_meta")) {
               return { value: date.toISOString() };
             }
             return null;
           });
 
           const allFn = vi.fn().mockImplementation(async () => {
-            if (query.includes('FROM rail_stop_times')) {
+            if (query.includes("FROM rail_stop_times")) {
               return {
                 results: [
                   {
-                    departure_time: '12:30:00',
-                    trip_id: 't2',
-                    headsign: 'Terminal',
-                    route_short_name: 'R1',
-                    route_long_name: 'Route 1',
-                    departure_minutes: 750 // 12:30 in minutes
-                  }
-                ]
+                    departure_time: "12:30:00",
+                    trip_id: "t2",
+                    headsign: "Terminal",
+                    route_short_name: "R1",
+                    route_long_name: "Route 1",
+                    departure_minutes: 750, // 12:30 in minutes
+                  },
+                ],
               };
             }
             return { results: [] };
@@ -121,19 +121,19 @@ describe('getRailSchedule', () => {
 
           return {
             bind: (...args: any[]) => {
-              if (query.includes('FROM rail_stop_times')) {
+              if (query.includes("FROM rail_stop_times")) {
                 stopTimesArgs = args;
               }
               return { first: firstFn, all: allFn };
             },
             first: firstFn,
-            all: allFn
+            all: allFn,
           };
-        })
-      }
+        }),
+      },
     } as unknown as Env;
 
-    const result = await getRailSchedule(mockEnv, 's1', 120);
+    const result = await getRailSchedule(mockEnv, "s1", 120);
 
     // Verify SQL bound parameters
     // currentMinutes should be 12 * 60 = 720
@@ -144,28 +144,28 @@ describe('getRailSchedule', () => {
     expect(result).not.toBeNull();
     expect(result?.arrivals.length).toBe(1);
 
-    expect(result?.arrivals[0].scheduled_time).toBe('12:30');
+    expect(result?.arrivals[0].scheduled_time).toBe("12:30");
     expect(result?.arrivals[0].minutes_until).toBe(30);
   });
 
-  it('returns null for unknown stop', async () => {
+  it("returns null for unknown stop", async () => {
     const mockEnv = {
       DB: {
         prepare: vi.fn().mockImplementation(() => {
           const firstFn = vi.fn().mockImplementation(async () => {
-             return null; // Stop not found
+            return null; // Stop not found
           });
 
           return {
             bind: () => ({ first: firstFn, all: vi.fn() }),
             first: firstFn,
-            all: vi.fn()
+            all: vi.fn(),
           };
-        })
-      }
+        }),
+      },
     } as unknown as Env;
 
-    const result = await getRailSchedule(mockEnv, 'unknown', 120);
+    const result = await getRailSchedule(mockEnv, "unknown", 120);
     expect(result).toBeNull();
   });
 });

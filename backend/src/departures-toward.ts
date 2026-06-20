@@ -1,6 +1,14 @@
-import { Stop, Route, Trip, TripStopEntry, CalendarEntry, StationScheduleResponse, Departure } from './types';
-import { getActiveServiceIds } from './gtfs-static';
-import { klSecondsSinceMidnight } from './time-kl';
+import {
+  Stop,
+  Route,
+  Trip,
+  TripStopEntry,
+  CalendarEntry,
+  StationScheduleResponse,
+  Departure,
+} from "./types";
+import { getActiveServiceIds } from "./gtfs-static";
+import { klSecondsSinceMidnight } from "./time-kl";
 
 /**
  * Given a current stop and a saved destination stop, return the next N
@@ -22,10 +30,10 @@ export function getDeparturesTowardDestination(
   calendar: CalendarEntry[],
   limit = 5,
 ): StationScheduleResponse {
-  const stop = stops.find(s => s.id === stopId);
+  const stop = stops.find((s) => s.id === stopId);
   if (!stop) throw new Error(`Stop not found: ${stopId}`);
 
-  const routeMap = new Map(routes.map(r => [r.id, r]));
+  const routeMap = new Map(routes.map((r) => [r.id, r]));
   const activeServiceIds = getActiveServiceIds(calendar, new Date());
 
   const departures: Departure[] = [];
@@ -41,7 +49,7 @@ export function getDeparturesTowardDestination(
     const stopsForTrip = tripStops[trip.id];
     if (!stopsForTrip) continue;
 
-    const currentIdx = stopsForTrip.findIndex(s => s.stopId === stopId);
+    const currentIdx = stopsForTrip.findIndex((s) => s.stopId === stopId);
     if (currentIdx === -1) continue;
 
     // The trip must continue on to the destination stop AFTER the current stop.
@@ -55,17 +63,18 @@ export function getDeparturesTowardDestination(
 
     // Zero-allocation time parsing (matches station.ts convention).
     const time = stopEntry.departureTime;
-    const c1 = time.indexOf(':');
-    const c2 = time.indexOf(':', c1 + 1);
+    const c1 = time.indexOf(":");
+    const c2 = time.indexOf(":", c1 + 1);
     const h = parseInt(time.substring(0, c1), 10) || 0;
-    const m = parseInt(time.substring(c1 + 1, c2 !== -1 ? c2 : undefined), 10) || 0;
+    const m =
+      parseInt(time.substring(c1 + 1, c2 !== -1 ? c2 : undefined), 10) || 0;
     const s = c2 !== -1 ? parseInt(time.substring(c2 + 1), 10) || 0 : 0;
 
     const depSeconds = h * 3600 + m * 60 + s;
     const minutesUntil = Math.round((depSeconds - nowSeconds) / 60);
 
     departures.push({
-      line: route?.shortName || '',
+      line: route?.shortName || "",
       destination: trip.headsign,
       departureTime: stopEntry.departureTime,
       minutesUntil,

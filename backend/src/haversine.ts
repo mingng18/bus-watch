@@ -8,7 +8,7 @@ export function haversineDistance(
   lat1: number,
   lon1: number,
   lat2: number,
-  lon2: number
+  lon2: number,
 ): number {
   // Inline lambda removed to prevent closure allocation per call.
   const dLat = (lat2 - lat1) * TO_RAD;

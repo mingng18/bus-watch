@@ -66,7 +66,7 @@ export interface Stop {
   name: string;
   lat: number;
   lon: number;
-  type: 'bus' | 'rail';
+  type: "bus" | "rail";
   parentStation: string;
 }
 
@@ -126,7 +126,7 @@ export interface VehiclePosition {
 export interface NearbyStop {
   id: string;
   name: string;
-  type: 'bus' | 'rail';
+  type: "bus" | "rail";
   lat: number;
   lon: number;
   distance_m: number;
@@ -156,7 +156,7 @@ export interface Arrival {
    * from a GTFS-realtime vehicle position. Omitted = legacy/unknown so older
    * clients are unaffected. See issue #133.
    */
-  eta_source?: 'scheduled' | 'live';
+  eta_source?: "scheduled" | "live";
 }
 
 export interface BusRouteEntry {
@@ -204,7 +204,7 @@ export interface RouteInfo {
   id: string;
   shortName: string;
   longName: string;
-  type: 'bus' | 'rail';
+  type: "bus" | "rail";
 }
 
 export interface Frequency {
@@ -291,7 +291,7 @@ export interface TravelTime {
  * can render an honest "approx N min" qualifier instead of a single point
  * estimate. See issue #133.
  */
-export type EtaConfidence = 'high' | 'medium' | 'low';
+export type EtaConfidence = "high" | "medium" | "low";
 
 export interface HistoricalEtaResult {
   /** Point estimate, in minutes (avg_seconds / 60, rounded for display only upstream). */
