@@ -117,16 +117,16 @@ private struct TripStopRow: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(rowLabel)
+        .accessibilityLabel(stopAccessibilityLabel)
     }
 
-    private var rowLabel: String {
+    private var stopAccessibilityLabel: String {
         if stop.isCurrent {
-            return "Current stop: \(stop.name), arrived at \(stop.arrivalTime)"
+            return "Current stop: \(stop.name), arriving now"
         } else if stop.passed {
             return "Passed stop: \(stop.name), arrived at \(stop.arrivalTime)"
         } else {
-            return "\(stop.name), expected at \(stop.arrivalTime)"
+            return "Upcoming stop: \(stop.name), arriving at \(stop.arrivalTime)"
         }
     }
 }
