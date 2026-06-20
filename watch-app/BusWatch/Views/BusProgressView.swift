@@ -124,7 +124,7 @@ private struct TripStopRow: View {
         if stop.isCurrent {
             return "Current stop: \(stop.name), arriving now"
         } else if stop.passed {
-            return "Passed stop: \(stop.name)"
+            return "Passed stop: \(stop.name), arrived at \(stop.arrivalTime)"
         } else {
             return "Upcoming stop: \(stop.name), arriving at \(stop.arrivalTime)"
         }
