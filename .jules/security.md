@@ -1,0 +1,3 @@
+## 2025-02-14 - Constant-Time String Comparison Vulnerability Fix
+**Learning:** `timingSafeEqual` from `hono/utils/buffer` and other standard implementations (like Node's `crypto`) might short-circuit, fall back on internal hashing which could change, or throw an error if the two input strings are of different lengths. This leads to length-leaking timing vulnerabilities and failures when checking authentication headers.
+**Action:** When implementing constant-time string comparisons, always guarantee the strings are equal length *before* calling `timingSafeEqual`. A safe technique is: if lengths differ, fallback to comparing the expected string to itself, and later fail the check due to length mismatch.
