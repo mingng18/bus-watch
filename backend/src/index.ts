@@ -24,11 +24,12 @@ const AGENCIES = [...REALTIME_AGENCIES, ...SELANGOR_AGENCIES];
 
 const app = new Hono<{ Bindings: Env }>();
 app.use('*', secureHeaders());
-app.use('*', cors({ origin: (origin, c) => c.env.FRONTEND_URL || '*' }));
+app.use('*', cors({ origin: (origin, c) => c.env.FRONTEND_URL || '' }));
 
 app.get('/', (c) => c.json({ status: 'ok', service: 'bus-watch' }));
 
 /**
+ * Validate a lat/lon pair. `parseFloat('foo')` is NaN and `parseFloat('999')`
  * Validate a lat/lon pair. `parseFloat('foo')` is NaN and `parseFloat('999')`
  * is 999; both must be rejected before they reach the spatial queries (NaN
  * poisons haversine math, out-of-range produces bogus "nearby" results).
