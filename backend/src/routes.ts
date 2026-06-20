@@ -10,10 +10,15 @@ export function findNearbyRoutes(
   lon: number,
   radiusM: number
 ): RouteInfo[] {
-  const stopsWithinRadius = stops.filter(
-    s => haversineDistance(lat, lon, s.lat, s.lon) <= radiusM
-  );
-  const stopIds = new Set(stopsWithinRadius.map(s => s.id));
+  // Performance optimization: Replaced chained array methods (.filter().map())
+  // with a standard for loop to avoid intermediate array allocations.
+  const stopIds = new Set<string>();
+  for (let i = 0; i < stops.length; i++) {
+    const s = stops[i];
+    if (haversineDistance(lat, lon, s.lat, s.lon) <= radiusM) {
+      stopIds.add(s.id);
+    }
+  }
 
   // Find route IDs that serve any of these stops
   const routeIds = new Set<string>();
