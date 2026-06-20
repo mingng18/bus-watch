@@ -7,6 +7,3 @@
 ## 2024-06-19 - Extracted parsing logic in fetchAndParseAgency
 **Learning:** Refactored a monolithic gtfs parsing function into independent helper functions (`parseStops`, `parseRoutes`, `parseTrips`, `parseTripStops`) to improve code health without changing functionality.
 **Action:** Created dedicated pure-ish functions that accept raw extracted arrays and map directly to structured objects, minimizing side-effects inside the main data-fetching control flow.
-## 2024-06-19 - Testing Confidence Scoring Logic
-**Learning:** Pure functions containing distinct conditional thresholds (like `confidenceFromSamples`) greatly benefit from exact boundary and sub-boundary numeric test inputs to confirm that internal ratios (e.g., `spreadSeconds / avgSeconds <= 0.25`) are computed and gated correctly.
-**Action:** When adding testing for similar utility logic, supply exact numerical boundaries for logic ratios and edge cases (like zero) to prevent regressions on score calculation boundaries.
