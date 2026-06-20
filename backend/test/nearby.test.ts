@@ -9,7 +9,11 @@ vi.mock("../src/frequency", () => ({
   ],
 }));
 import { describe, it, expect } from "vitest";
-import { findNearbyStops, findNearbyBusRoutes } from "../src/nearby";
+import {
+  findNearbyStops,
+  findNearbyPrasaranaBuses,
+  findNearbyBusRoutes,
+} from "../src/nearby";
 import {
   Stop,
   Route,
@@ -165,6 +169,244 @@ describe("findNearbyStops", () => {
     expect(railStop).toBeDefined();
     expect(railStop!.arrivals.length).toBeGreaterThan(0);
     expect(railStop!.arrivals[0].isRealtime).toBe(false);
+  });
+});
+describe("findNearbyPrasaranaBuses", () => {
+  const routes: Route[] = [
+    { id: "r1", shortName: "250", longName: "Route 250", type: 3 },
+    { id: "r2", shortName: "300", longName: "Route 300", type: 3 },
+  ];
+
+  const trips: Trip[] = [
+    {
+      id: "t1",
+      routeId: "r1",
+      serviceId: "weekday",
+      headsign: "Wangsa Maju",
+      directionId: 0,
+      shapeId: "",
+    },
+    {
+      id: "t2",
+      routeId: "r2",
+      serviceId: "weekday",
+      headsign: "KL Sentral",
+      directionId: 0,
+      shapeId: "",
+    },
+  ];
+
+  it("returns buses within radius sorted by ETA", () => {
+    // Both buses near Wangsa Maju (lat: 3.2045, lon: 101.7317)
+    const lat = 3.2045;
+    const lon = 101.7317;
+    const buses = [
+      {
+        bus_no: "B1",
+        route: "250",
+        latitude: 3.2046,
+        longitude: 101.7318,
+        speed: 20,
+        dir: null,
+        trip_rev_kind: "00",
+        provider: "A",
+        captain_id: "C1",
+        dt_gps: "",
+        dt_received: "",
+      }, // Very close, fast
+      {
+        bus_no: "B2",
+        route: "250",
+        latitude: 3.205,
+        longitude: 101.732,
+        speed: 10,
+        dir: null,
+        trip_rev_kind: "00",
+        provider: "A",
+        captain_id: "C2",
+        dt_gps: "",
+        dt_received: "",
+      }, // Slightly further, slow
+      {
+        bus_no: "B3",
+        route: "250",
+        latitude: 3.3,
+        longitude: 101.8,
+        speed: 40,
+        dir: null,
+        trip_rev_kind: "00",
+        provider: "A",
+        captain_id: "C3",
+        dt_gps: "",
+        dt_received: "",
+      }, // Far away
+    ];
+
+    const result = findNearbyPrasaranaBuses(
+      buses,
+      routes,
+      trips,
+      lat,
+      lon,
+      1000,
+    );
+
+    expect(result.length).toBe(2);
+    expect(result[0].busNo).toBe("B1"); // Should be faster, thus first
+    expect(result[1].busNo).toBe("B2");
+    expect(result[0].minutes).toBeLessThanOrEqual(result[1].minutes);
+    expect(result[0].destination).toBe("");
+  });
+
+  it("excludes specific trip_rev_kind values", () => {
+    const lat = 3.2045;
+    const lon = 101.7317;
+    const buses = [
+      {
+        bus_no: "B1",
+        route: "250",
+        latitude: 3.2046,
+        longitude: 101.7318,
+        speed: 20,
+        dir: null,
+        trip_rev_kind: "01",
+        provider: "",
+        captain_id: "",
+        dt_gps: "",
+        dt_received: "",
+      },
+      {
+        bus_no: "B2",
+        route: "250",
+        latitude: 3.2046,
+        longitude: 101.7318,
+        speed: 20,
+        dir: null,
+        trip_rev_kind: "03",
+        provider: "",
+        captain_id: "",
+        dt_gps: "",
+        dt_received: "",
+      },
+      {
+        bus_no: "B3",
+        route: "250",
+        latitude: 3.2046,
+        longitude: 101.7318,
+        speed: 20,
+        dir: null,
+        trip_rev_kind: "05",
+        provider: "",
+        captain_id: "",
+        dt_gps: "",
+        dt_received: "",
+      },
+      {
+        bus_no: "B4",
+        route: "250",
+        latitude: 3.2046,
+        longitude: 101.7318,
+        speed: 20,
+        dir: null,
+        trip_rev_kind: "00",
+        provider: "",
+        captain_id: "",
+        dt_gps: "",
+        dt_received: "",
+      },
+    ];
+
+    const result = findNearbyPrasaranaBuses(
+      buses,
+      routes,
+      trips,
+      lat,
+      lon,
+      1000,
+    );
+
+    expect(result.length).toBe(1);
+    expect(result[0].busNo).toBe("B4");
+  });
+
+  it("normalizes route codes", () => {
+    const lat = 3.2045;
+    const lon = 101.7317;
+    const buses = [
+      {
+        bus_no: "B1",
+        route: "2500",
+        latitude: 3.2046,
+        longitude: 101.7318,
+        speed: 20,
+        dir: null,
+        trip_rev_kind: "00",
+        provider: "",
+        captain_id: "",
+        dt_gps: "",
+        dt_received: "",
+      },
+    ];
+
+    const result = findNearbyPrasaranaBuses(
+      buses,
+      routes,
+      trips,
+      lat,
+      lon,
+      1000,
+    );
+
+    expect(result.length).toBe(1);
+    expect(result[0].routeShortName).toBe("250");
+    expect(result[0].destination).toBe("Wangsa Maju");
+  });
+
+  it("uses fallback speed calculation when speed is <= 0", () => {
+    const lat = 3.2045;
+    const lon = 101.7317;
+    const buses = [
+      {
+        bus_no: "B1",
+        route: "250",
+        latitude: 3.205,
+        longitude: 101.732,
+        speed: 0,
+        dir: null,
+        trip_rev_kind: "00",
+        provider: "",
+        captain_id: "",
+        dt_gps: "",
+        dt_received: "",
+      },
+      {
+        bus_no: "B2",
+        route: "250",
+        latitude: 3.205,
+        longitude: 101.732,
+        speed: -5,
+        dir: null,
+        trip_rev_kind: "00",
+        provider: "",
+        captain_id: "",
+        dt_gps: "",
+        dt_received: "",
+      },
+    ];
+
+    const result = findNearbyPrasaranaBuses(
+      buses,
+      routes,
+      trips,
+      lat,
+      lon,
+      1000,
+    );
+
+    expect(result.length).toBe(2);
+    // Even with 0 or negative speed, it should return a valid minutes estimation > 0
+    expect(result[0].minutes).toBeGreaterThan(0);
+    expect(result[1].minutes).toBeGreaterThan(0);
   });
 });
 describe("findNearbyBusRoutes", () => {
