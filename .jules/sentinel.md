@@ -2,3 +2,7 @@
 **Vulnerability:** Overly permissive wildcard CORS configuration (`app.use('*', cors())`).
 **Learning:** In Hono backend setups, standard CORS middleware invocation configures a static wildcard origin. When dynamic origin checking (e.g., matching against a configured `FRONTEND_URL` environment variable) is required, the `cors` middleware must be configured using its origin callback `cors({ origin: (origin, c) => c.env.FRONTEND_URL || '*' })` rather than wrapping the `cors` initialization within a custom middleware handler (`app.use('*', (c, next) => cors(...)(c, next))`), which performs poorly.
 **Prevention:** When configuring CORS with variable parameters dependent on the request context `c`, exclusively use the dynamic callback syntax built into Hono's `cors` plugin.
+## 2024-06-20 - [Fix DoS via unbound radius parameter]
+**Vulnerability:** The /nearby and /routes endpoints allowed unbounded radius parameter values, triggering large spatial queries and leading to DoS.
+**Learning:** Always bound spatial query parameters.
+**Prevention:** Clamp radius queries and enforce maximum allowable limits.

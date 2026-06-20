@@ -69,7 +69,9 @@ app.post('/refresh', async (c) => {
 app.get('/nearby', async (c) => {
   const lat = parseFloat(c.req.query('lat') || '');
   const lon = parseFloat(c.req.query('lon') || '');
-  const radius = parseInt(c.req.query('radius') || '500');
+  let radius = parseInt(c.req.query('radius') || '500', 10);
+  if (!Number.isFinite(radius) || radius < 0) radius = 500;
+  if (radius > 10000) radius = 10000;
   // Reject missing/NaN/out-of-range coords before they reach spatial queries.
   // Note: we cannot use `if (!lat)` here because lat=0 (the equator) is a
   // legitimate value; we must validate finiteness and range explicitly.
@@ -357,7 +359,9 @@ app.post('/rail/ingest', async (c) => {
 app.get('/routes', async (c) => {
   const lat = parseFloat(c.req.query('lat') || '');
   const lon = parseFloat(c.req.query('lon') || '');
-  const radius = parseInt(c.req.query('radius') || '500');
+  let radius = parseInt(c.req.query('radius') || '500', 10);
+  if (!Number.isFinite(radius) || radius < 0) radius = 500;
+  if (radius > 10000) radius = 10000;
   const coordErr = validateLatLon(lat, lon);
   if (coordErr) return c.json({ error: coordErr }, 400);
 
