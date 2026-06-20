@@ -31,8 +31,15 @@ struct NearbyListView: View {
             }
 
             Section {
-                ForEach(response.stops) { stop in
-                    stopRow(stop)
+                if response.stops.isEmpty {
+                    Text("No stops nearby")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .listRowBackground(Color.clear)
+                } else {
+                    ForEach(response.stops) { stop in
+                        stopRow(stop)
+                    }
                 }
             } header: {
                 Text("Nearby")
