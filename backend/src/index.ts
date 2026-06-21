@@ -503,25 +503,21 @@ async function getKvJson<T>(kv: KVNamespace, key: string): Promise<T> {
   return val as T;
 }
 
-let cachedStops: { data: any[], expires: number } | null = null;
-let cachedRoutesMap: { map: Map<string, Route>, shortNameMap: Map<string, Route>, expires: number } | null = null;
-let cachedRoutes: { routes: Route[], expires: number } | null = null;
-let cachedTrips: { data: any[], expires: number } | null = null;
-let cachedTripStops: { data: Record<string, any[]>, expires: number } | null = null;
-let cachedCalendar: { data: any[], expires: number } | null = null;
-let cachedFrequencies: { data: any[], expires: number } | null = null;
-
 const CACHE_TTL_MS = 60000; // 1 minute TTL
 
+let cachedStopsPromise: { promise: Promise<any[]>, expires: number } | null = null;
 async function getAllStops(kv: KVNamespace) {
   const now = Date.now();
-  if (cachedStops && cachedStops.expires > now) return cachedStops.data;
-  const results = await Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `stops:${a}`).catch(() => [])));
-  // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
-  const data = results.flatMap(r => r || []);
-  cachedStops = { data, expires: now + CACHE_TTL_MS };
-  return data;
+  if (cachedStopsPromise && cachedStopsPromise.expires > now) return cachedStopsPromise.promise;
+  const promise = Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `stops:${a}`).catch(() => [])))
+    // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
+    .then(results => results.flatMap(r => r || []));
+  cachedStopsPromise = { promise, expires: now + CACHE_TTL_MS };
+  return promise;
 }
+
+let cachedRoutesMap: { map: Map<string, Route>, shortNameMap: Map<string, Route>, expires: number } | null = null;
+let cachedRoutes: { routes: Route[], expires: number } | null = null;
 
 async function getAllRoutes(kv: KVNamespace) {
   const now = Date.now();
@@ -546,48 +542,57 @@ async function getRoutesMaps(kv: KVNamespace): Promise<{ map: Map<string, Route>
   return cachedRoutesMap;
 }
 
+let cachedTripsPromise: { promise: Promise<any[]>, expires: number } | null = null;
 async function getAllTrips(kv: KVNamespace) {
   const now = Date.now();
-  if (cachedTrips && cachedTrips.expires > now) return cachedTrips.data;
-  const results = await Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `trips:${a}`).catch(() => [])));
-  // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
-  const data = results.flatMap(r => r || []);
-  cachedTrips = { data, expires: now + CACHE_TTL_MS };
-  return data;
+  if (cachedTripsPromise && cachedTripsPromise.expires > now) return cachedTripsPromise.promise;
+  const promise = Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `trips:${a}`).catch(() => [])))
+    // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
+    .then(results => results.flatMap(r => r || []));
+  cachedTripsPromise = { promise, expires: now + CACHE_TTL_MS };
+  return promise;
 }
 
+let cachedTripStopsPromise: { promise: Promise<Record<string, any[]>>, expires: number } | null = null;
 async function getAllTripStops(kv: KVNamespace) {
   const now = Date.now();
-  if (cachedTripStops && cachedTripStops.expires > now) return cachedTripStops.data;
-  const results = await Promise.all(AGENCIES.map(a => getKvJson<Record<string, any[]>>(kv, `tripStops:${a}`).catch(() => ({}))));
-  const data = Object.assign({}, ...results);
-  cachedTripStops = { data, expires: now + CACHE_TTL_MS };
-  return data;
+  if (cachedTripStopsPromise && cachedTripStopsPromise.expires > now) return cachedTripStopsPromise.promise;
+  const promise = Promise.all(AGENCIES.map(a => getKvJson<Record<string, any[]>>(kv, `tripStops:${a}`).catch(() => ({}))))
+    .then(results => Object.assign({}, ...results));
+  cachedTripStopsPromise = { promise, expires: now + CACHE_TTL_MS };
+  return promise;
 }
 
+let cachedCalendarPromise: { promise: Promise<any[]>, expires: number } | null = null;
 async function getAllCalendar(kv: KVNamespace) {
   const now = Date.now();
-  if (cachedCalendar && cachedCalendar.expires > now) return cachedCalendar.data;
-  const results = await Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `calendar:${a}`).catch(() => [])));
-  // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
-  const data = results.flatMap(r => r || []);
-  cachedCalendar = { data, expires: now + CACHE_TTL_MS };
-  return data;
+  if (cachedCalendarPromise && cachedCalendarPromise.expires > now) return cachedCalendarPromise.promise;
+  const promise = Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `calendar:${a}`).catch(() => [])))
+    // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
+    .then(results => results.flatMap(r => r || []));
+  cachedCalendarPromise = { promise, expires: now + CACHE_TTL_MS };
+  return promise;
 }
 
+let cachedFrequenciesPromise: { promise: Promise<any[]>, expires: number } | null = null;
 async function getAllFrequencies(kv: KVNamespace) {
   const now = Date.now();
-  if (cachedFrequencies && cachedFrequencies.expires > now) return cachedFrequencies.data;
-  const results = await Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `frequencies:${a}`).catch(() => [])));
-  // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
-  const data = results.flatMap(r => r || []);
-  cachedFrequencies = { data, expires: now + CACHE_TTL_MS };
-  return data;
+  if (cachedFrequenciesPromise && cachedFrequenciesPromise.expires > now) return cachedFrequenciesPromise.promise;
+  const promise = Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `frequencies:${a}`).catch(() => [])))
+    // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
+    .then(results => results.flatMap(r => r || []));
+  cachedFrequenciesPromise = { promise, expires: now + CACHE_TTL_MS };
+  return promise;
 }
 
+let cachedShapesPromise: { promise: Promise<Record<string, [number, number][]>>, expires: number } | null = null;
 async function getAllShapes(kv: KVNamespace) {
-  const results = await Promise.all(AGENCIES.map(a => getKvJson<Record<string, [number, number][]>>(kv, `shapes:${a}`).catch(() => ({}))));
-  return Object.assign({}, ...results);
+  const now = Date.now();
+  if (cachedShapesPromise && cachedShapesPromise.expires > now) return cachedShapesPromise.promise;
+  const promise = Promise.all(AGENCIES.map(a => getKvJson<Record<string, [number, number][]>>(kv, `shapes:${a}`).catch(() => ({}))))
+    .then(results => Object.assign({}, ...results));
+  cachedShapesPromise = { promise, expires: now + CACHE_TTL_MS };
+  return promise;
 }
 
 async function getRealtimeVehicles(kv: KVNamespace): Promise<VehiclePosition[]> {
