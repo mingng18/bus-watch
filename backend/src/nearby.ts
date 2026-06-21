@@ -51,17 +51,18 @@ export function findNearbyStops(
     const arrivals: Arrival[] = [];
 
     if (stop.type === "bus") {
-      const nearbyVehicles = vehicles.filter(
-        (v) => haversineDistance(stop.lat, stop.lon, v.lat, v.lon) <= 500,
-      );
       const seen = new Set<string>();
-      for (const v of nearbyVehicles) {
+      // Performance optimization: Avoid intermediate array allocation from .filter()
+      // and redundant haversineDistance calculations by merging into a single loop.
+      for (const v of vehicles) {
+        const d = haversineDistance(stop.lat, stop.lon, v.lat, v.lon);
+        if (d > 500) continue;
+
         const trip = tripMap.get(v.tripId);
         const route = trip ? routeMap.get(trip.routeId) : null;
         const key = route?.id || v.tripId;
         if (seen.has(key)) continue;
         seen.add(key);
-        const d = haversineDistance(stop.lat, stop.lon, v.lat, v.lon);
         arrivals.push({
           route: route?.shortName || "",
           destination: trip?.headsign || "",
