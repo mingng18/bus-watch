@@ -61,23 +61,28 @@ function parseLine(line: string): string[] {
   const fields: string[] = [];
   let current = '';
   let inQuotes = false;
+  let start = 0;
 
   for (let i = 0; i < line.length; i++) {
     const ch = line[i];
     if (ch === '"') {
       if (inQuotes && i + 1 < line.length && line[i + 1] === '"') {
-        current += '"';
+        current += line.substring(start, i) + '"';
         i++;
+        start = i + 1;
       } else {
+        current += line.substring(start, i);
         inQuotes = !inQuotes;
+        start = i + 1;
       }
     } else if (ch === ',' && !inQuotes) {
+      current += line.substring(start, i);
       fields.push(current);
       current = '';
-    } else {
-      current += ch;
+      start = i + 1;
     }
   }
+  current += line.substring(start);
   fields.push(current);
   return fields;
 }

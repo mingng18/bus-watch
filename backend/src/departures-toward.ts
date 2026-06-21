@@ -45,10 +45,15 @@ export function getDeparturesTowardDestination(
     if (currentIdx === -1) continue;
 
     // The trip must continue on to the destination stop AFTER the current stop.
-    const destinationIdx = stopsForTrip.findIndex(
-      (s, i) => i > currentIdx && s.stopId === destinationStopId,
-    );
-    if (destinationIdx === -1) continue;
+    // Optimization: start searching from currentIdx + 1 directly instead of doing a full array iteration
+    let hasDestination = false;
+    for (let i = currentIdx + 1; i < stopsForTrip.length; i++) {
+      if (stopsForTrip[i].stopId === destinationStopId) {
+        hasDestination = true;
+        break;
+      }
+    }
+    if (!hasDestination) continue;
 
     const stopEntry = stopsForTrip[currentIdx];
     const route = routeMap.get(trip.routeId);
