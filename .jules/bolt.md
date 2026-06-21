@@ -33,3 +33,7 @@
 ## 2024-06-21 - Optimize CSV parsing string allocation
 **Learning:** In hot parsing loops in Node.js/Cloudflare Workers, performing character-by-character string concatenation (`str += char`) causes significant overhead due to constant memory allocation and GC pressure.
 **Action:** Replaced character-by-character concatenation with manual index tracking and `substring()` to slice larger contiguous chunks of the string at once. This reduces intermediate object creation and improved execution time by ~31% compared to the naive approach.
+
+## 2024-06-21 - Cache GTFS fetch helpers
+**Learning:** Functions doing expensive IO (like parsing/fetching JSON arrays) inside routes with multiple sequential or parallel `Promise.all`s should cache their resolved outputs to prevent severe latency hits and excessive allocations, especially on high-traffic workers or endpoints making many calls.
+**Action:** Introduced global caching variables (`cachedStops`, `cachedTrips`, `cachedTripStops`, `cachedCalendar`, `cachedFrequencies`) to cache `getAll*` data within memory across worker invocations to prevent repetitive KV fetches.
