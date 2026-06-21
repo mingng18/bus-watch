@@ -26,3 +26,6 @@
 ## 2024-06-21 - Intermediate array allocation in hot loops
 **Learning:** Found an instance in `backend/src/nearby.ts` where `vehicles.filter` was used inside a loop over `stops` to find nearby vehicles. This led to creating unnecessary intermediate array allocations repeatedly in a hot path. Benchmarks showed it to be ~25% slower than standard loops when scaling the stops and vehicles count.
 **Action:** Replace chained array methods `.map().filter()` or array allocations from `.filter()` inside inner hot loops with a standard single loop iteration to directly process items and eliminate intermediate array overhead and redundant calculations.
+## 2024-06-21 - Replace Array findIndex with manual standard for loop
+**Learning:** `findIndex` using a lambda expression with conditions (such as checking `i > currentIdx`) iterates over the whole array up to the match, checking the closure for each element pointlessly over the skipped range `0` through `currentIdx`.
+**Action:** Replaced `findIndex` with a manual `for` loop that strictly starts at `currentIdx + 1`, avoiding unnecessary iterations and memory allocations from closures.
