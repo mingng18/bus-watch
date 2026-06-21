@@ -73,8 +73,17 @@ struct AlertsView: View {
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(alert.severity) alert: \(alert.title)")
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(alertAccessibilityLabel(alert))
+    }
+
+    private func alertAccessibilityLabel(_ alert: Alert) -> String {
+        var parts = ["\(alert.severity) alert: \(alert.title)"]
+        if !alert.affectedLines.isEmpty {
+            parts.append(alert.affectedLines.joined(separator: ", "))
+        }
+        parts.append(RelativeDateTimeFormatter().localizedString(for: alert.parsedDate, relativeTo: Date()))
+        return parts.joined(separator: ", ")
     }
 
     private func severityTint(_ alert: Alert) -> Color {
