@@ -503,15 +503,25 @@ async function getKvJson<T>(kv: KVNamespace, key: string): Promise<T> {
   return val as T;
 }
 
-async function getAllStops(kv: KVNamespace) {
-  const results = await Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `stops:${a}`).catch(() => [])));
-  // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
-  return results.flatMap(r => r || []);
-}
-
+let cachedStops: { data: any[], expires: number } | null = null;
 let cachedRoutesMap: { map: Map<string, Route>, shortNameMap: Map<string, Route>, expires: number } | null = null;
 let cachedRoutes: { routes: Route[], expires: number } | null = null;
+let cachedTrips: { data: any[], expires: number } | null = null;
+let cachedTripStops: { data: Record<string, any[]>, expires: number } | null = null;
+let cachedCalendar: { data: any[], expires: number } | null = null;
+let cachedFrequencies: { data: any[], expires: number } | null = null;
+
 const CACHE_TTL_MS = 60000; // 1 minute TTL
+
+async function getAllStops(kv: KVNamespace) {
+  const now = Date.now();
+  if (cachedStops && cachedStops.expires > now) return cachedStops.data;
+  const results = await Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `stops:${a}`).catch(() => [])));
+  // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
+  const data = results.flatMap(r => r || []);
+  cachedStops = { data, expires: now + CACHE_TTL_MS };
+  return data;
+}
 
 async function getAllRoutes(kv: KVNamespace) {
   const now = Date.now();
@@ -537,26 +547,42 @@ async function getRoutesMaps(kv: KVNamespace): Promise<{ map: Map<string, Route>
 }
 
 async function getAllTrips(kv: KVNamespace) {
+  const now = Date.now();
+  if (cachedTrips && cachedTrips.expires > now) return cachedTrips.data;
   const results = await Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `trips:${a}`).catch(() => [])));
   // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
-  return results.flatMap(r => r || []);
+  const data = results.flatMap(r => r || []);
+  cachedTrips = { data, expires: now + CACHE_TTL_MS };
+  return data;
 }
 
 async function getAllTripStops(kv: KVNamespace) {
+  const now = Date.now();
+  if (cachedTripStops && cachedTripStops.expires > now) return cachedTripStops.data;
   const results = await Promise.all(AGENCIES.map(a => getKvJson<Record<string, any[]>>(kv, `tripStops:${a}`).catch(() => ({}))));
-  return Object.assign({}, ...results);
+  const data = Object.assign({}, ...results);
+  cachedTripStops = { data, expires: now + CACHE_TTL_MS };
+  return data;
 }
 
 async function getAllCalendar(kv: KVNamespace) {
+  const now = Date.now();
+  if (cachedCalendar && cachedCalendar.expires > now) return cachedCalendar.data;
   const results = await Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `calendar:${a}`).catch(() => [])));
   // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
-  return results.flatMap(r => r || []);
+  const data = results.flatMap(r => r || []);
+  cachedCalendar = { data, expires: now + CACHE_TTL_MS };
+  return data;
 }
 
 async function getAllFrequencies(kv: KVNamespace) {
+  const now = Date.now();
+  if (cachedFrequencies && cachedFrequencies.expires > now) return cachedFrequencies.data;
   const results = await Promise.all(AGENCIES.map(a => getKvJson<any[]>(kv, `frequencies:${a}`).catch(() => [])));
   // Optimization: flatMap avoids intermediate array allocations vs flat().filter()
-  return results.flatMap(r => r || []);
+  const data = results.flatMap(r => r || []);
+  cachedFrequencies = { data, expires: now + CACHE_TTL_MS };
+  return data;
 }
 
 async function getAllShapes(kv: KVNamespace) {

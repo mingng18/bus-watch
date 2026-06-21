@@ -26,3 +26,7 @@
 ## 2024-06-21 - Intermediate array allocation in hot loops
 **Learning:** Found an instance in `backend/src/nearby.ts` where `vehicles.filter` was used inside a loop over `stops` to find nearby vehicles. This led to creating unnecessary intermediate array allocations repeatedly in a hot path. Benchmarks showed it to be ~25% slower than standard loops when scaling the stops and vehicles count.
 **Action:** Replace chained array methods `.map().filter()` or array allocations from `.filter()` inside inner hot loops with a standard single loop iteration to directly process items and eliminate intermediate array overhead and redundant calculations.
+
+## 2024-06-21 - Cache GTFS fetch helpers
+**Learning:** Functions doing expensive IO (like parsing/fetching JSON arrays) inside routes with multiple sequential or parallel `Promise.all`s should cache their resolved outputs to prevent severe latency hits and excessive allocations, especially on high-traffic workers or endpoints making many calls.
+**Action:** Introduced global caching variables (`cachedStops`, `cachedTrips`, `cachedTripStops`, `cachedCalendar`, `cachedFrequencies`) to cache `getAll*` data within memory across worker invocations to prevent repetitive KV fetches.
