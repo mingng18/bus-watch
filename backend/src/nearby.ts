@@ -44,8 +44,15 @@ export function findNearbyStops(
   nearby.sort((a, b) => a.distance - b.distance);
 
   // Performance optimization: Precompute map to avoid O(N^2) lookups in loop
-  const tripMap = new Map(trips.map((t) => [t.id, t]));
-  const routeMap = new Map(routes.map((r) => [r.id, r]));
+  // and use standard loops instead of array mapping to avoid intermediate allocations
+  const tripMap = new Map<string, Trip>();
+  for (let i = 0; i < trips.length; i++) {
+    tripMap.set(trips[i].id, trips[i]);
+  }
+  const routeMap = new Map<string, Route>();
+  for (let i = 0; i < routes.length; i++) {
+    routeMap.set(routes[i].id, routes[i]);
+  }
 
   return nearby.map(({ stop, distance }) => {
     const arrivals: Arrival[] = [];
@@ -115,9 +122,16 @@ export function findNearbyBusRoutes(
   lon: number,
   radiusM: number = 1000,
 ): BusRouteEntry[] {
-  const routeMap = new Map(routes.map((r) => [r.id, r]));
+  const routeMap = new Map<string, Route>();
+  for (let i = 0; i < routes.length; i++) {
+    routeMap.set(routes[i].id, routes[i]);
+  }
   // Performance optimization: Precompute map to avoid O(N^2) lookups in loop
-  const tripMap = new Map(trips.map((t) => [t.id, t]));
+  // and use standard loops instead of array mapping to avoid intermediate allocations
+  const tripMap = new Map<string, Trip>();
+  for (let i = 0; i < trips.length; i++) {
+    tripMap.set(trips[i].id, trips[i]);
+  }
   const results: BusRouteEntry[] = [];
   const seen = new Set<string>();
 
