@@ -293,7 +293,8 @@ app.get('/station/:stopId/schedule/toward', async (c) => {
   const destinationStopId = c.req.query('destinationStopId');
   if (!destinationStopId) return c.json({ error: 'destinationStopId is required' }, 400);
 
-  const limit = parseInt(c.req.query('limit') || '5');
+  const parsed = parseInt(c.req.query('limit') || '5', 10);
+  const limit = Math.min(Math.max(Number.isFinite(parsed) ? parsed : 5, 1), 50);
 
   try {
     const allStops = await getAllStops(c.env.KV);
@@ -317,8 +318,8 @@ app.get('/station/:stopId/schedule/toward', async (c) => {
 
 app.get('/rail/stops', async (c) => {
   const q = c.req.query('q');
-  if (!q || q.trim().length < 2) {
-    return c.json({ error: 'q must be at least 2 characters' }, 400);
+  if (!q || q.trim().length < 2 || q.trim().length > 50) {
+    return c.json({ error: 'q must be between 2 and 50 characters' }, 400);
   }
   const stops = await searchRailStops(c.env, q.trim());
   return c.json({ stops });
@@ -328,7 +329,8 @@ app.get('/rail/schedule', async (c) => {
   const stationId = c.req.query('station_id');
   if (!stationId) return c.json({ error: 'station_id is required' }, 400);
 
-  const window = parseInt(c.req.query('window') || '120');
+  const parsed = parseInt(c.req.query('window') || '120', 10);
+  const window = Math.min(Math.max(Number.isFinite(parsed) ? parsed : 120, 1), 1440);
   const result = await getRailSchedule(c.env, stationId, window);
 
   if (!result) return c.json({ error: 'Station not found' }, 404);
