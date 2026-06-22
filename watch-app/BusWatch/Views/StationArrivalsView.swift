@@ -150,7 +150,7 @@ struct StationArrivalsView: View {
                 .font(.caption2)
                 .foregroundStyle(.orange)
         }
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel("Offline. Showing cached scheduled times.")
     }
 
