@@ -29,8 +29,15 @@ function parseStops(
   const stopMap = new Map<string, Stop>();
 
   // Build route type lookup
-  const routeIdToType = new Map(rawRoutes.map(r => [r.route_id, r.route_type]));
-  const tripToRouteType = new Map(rawTrips.map(t => [t.trip_id, routeIdToType.get(t.route_id) || '3']));
+  // Performance optimization: Replace array mapping with loops to avoid intermediate array allocations
+  const routeIdToType = new Map<string, string>();
+  for (let i = 0; i < rawRoutes.length; i++) {
+    routeIdToType.set(rawRoutes[i].route_id, rawRoutes[i].route_type);
+  }
+  const tripToRouteType = new Map<string, string>();
+  for (let i = 0; i < rawTrips.length; i++) {
+    tripToRouteType.set(rawTrips[i].trip_id, routeIdToType.get(rawTrips[i].route_id) || '3');
+  }
 
   // Parse stops - determine type from trips serving each stop
   const stops: Stop[] = rawStops.map(s => {

@@ -13,7 +13,10 @@ export function getStationSchedule(
   const stop = stops.find(s => s.id === stopId);
   if (!stop) throw new Error(`Stop not found: ${stopId}`);
 
-  const routeMap = new Map(routes.map(r => [r.id, r]));
+  const routeMap = new Map<string, Route>();
+  for (let i = 0; i < routes.length; i++) {
+    routeMap.set(routes[i].id, routes[i]);
+  }
   const activeServiceIds = getActiveServiceIds(calendar, new Date());
 
   const departures: Departure[] = [];
