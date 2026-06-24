@@ -44,3 +44,6 @@
 ## 2024-06-22 - Optimize `new Map` Array Allocation Overhead
 **Learning:** `new Map(array.map(...))` creates unnecessary intermediate arrays (due to `Array.prototype.map`), which severely degrades performance in hot loops, causing memory allocation and garbage collection overhead.
 **Action:** Replace `new Map(array.map(...))` allocations with a standard `for` loop combined with `map.set()` to prevent redundant array creation, specifically in performance-critical areas like processing thousands of GTFS objects or searching for nearby stops.
+## 2024-05-24 - Avoid inline lambda allocations in hot loops
+**Learning:** In very hot loops (like iterating over thousands of trips per request in `src/station.ts` and `src/departures-toward.ts`), standard array methods like `.find()` or `.findIndex()` that take an inline lambda function (`s => s.stopId === stopId`) create a new function allocation on every iteration. This leads to substantial garbage collection pressure.
+**Action:** Replace functional array methods like `.find()` and `.findIndex()` with standard `for` loops inside hot request paths to eliminate unnecessary memory allocations.
