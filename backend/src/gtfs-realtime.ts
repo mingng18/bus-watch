@@ -10,7 +10,13 @@ export async function fetchVehiclePositions(agency: string): Promise<VehiclePosi
   const url = REALTIME_URLS[agency as keyof typeof REALTIME_URLS];
   if (!url) return [];
 
-  const response = await fetch(url);
+  let response;
+  try {
+    response = await fetch(url, { signal: AbortSignal.timeout(10000) });
+  } catch (err) {
+    console.error(`fetchVehiclePositions timeout or error for ${agency}:`, err);
+    return [];
+  }
   if (!response.ok) return [];
 
   const buffer = await response.arrayBuffer();

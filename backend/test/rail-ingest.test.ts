@@ -37,7 +37,9 @@ describe('ingestRailTimetables', () => {
     const result = await ingestRailTimetables(mockEnv);
 
     // Assert fetch was called
-    expect(global.fetch).toHaveBeenCalledWith('https://api.data.gov.my/gtfs-static/prasarana?category=rapid-rail-kl');
+    expect(global.fetch).toHaveBeenCalledWith('https://api.data.gov.my/gtfs-static/prasarana?category=rapid-rail-kl', expect.objectContaining({
+      signal: expect.any(AbortSignal)
+    }));
 
     // stops: S1, S2 (2 stmts)
     // routes: R1 (1 stmt)
