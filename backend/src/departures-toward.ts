@@ -44,7 +44,15 @@ export function getDeparturesTowardDestination(
     const stopsForTrip = tripStops[trip.id];
     if (!stopsForTrip) continue;
 
-    const currentIdx = stopsForTrip.findIndex(s => s.stopId === stopId);
+    // Performance optimization: Replaced .findIndex() with a standard for loop to avoid
+    // intermediate inline lambda allocation per iteration in this hot path.
+    let currentIdx = -1;
+    for (let i = 0; i < stopsForTrip.length; i++) {
+      if (stopsForTrip[i].stopId === stopId) {
+        currentIdx = i;
+        break;
+      }
+    }
     if (currentIdx === -1) continue;
 
     // The trip must continue on to the destination stop AFTER the current stop.
