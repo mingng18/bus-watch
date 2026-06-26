@@ -44,3 +44,6 @@
 ## 2024-06-22 - Optimize `new Map` Array Allocation Overhead
 **Learning:** `new Map(array.map(...))` creates unnecessary intermediate arrays (due to `Array.prototype.map`), which severely degrades performance in hot loops, causing memory allocation and garbage collection overhead.
 **Action:** Replace `new Map(array.map(...))` allocations with a standard `for` loop combined with `map.set()` to prevent redundant array creation, specifically in performance-critical areas like processing thousands of GTFS objects or searching for nearby stops.
+## 2025-02-12 - Replacing array methods taking inline lambdas with for loops in hot paths
+**Learning:** Using inline lambda functions inside tight loops with array methods like `.find()` or `.findIndex()` causes per-iteration function allocations, increasing memory pressure and garbage collection overhead.
+**Action:** Replace `.find()`, `.findIndex()`, and similar methods with standard `for` loops inside heavily repeated hot paths to eliminate these per-iteration allocations.
