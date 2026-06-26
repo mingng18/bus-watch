@@ -10,11 +10,16 @@ export async function fetchVehiclePositions(agency: string): Promise<VehiclePosi
   const url = REALTIME_URLS[agency as keyof typeof REALTIME_URLS];
   if (!url) return [];
 
-  const response = await fetch(url);
-  if (!response.ok) return [];
-
-  const buffer = await response.arrayBuffer();
-  const feed = transit_realtime.FeedMessage.decode(new Uint8Array(buffer));
+  let feed;
+  try {
+    const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (!response.ok) return [];
+    const buffer = await response.arrayBuffer();
+    feed = transit_realtime.FeedMessage.decode(new Uint8Array(buffer));
+  } catch (err) {
+    console.error(`fetchVehiclePositions failed for ${agency}:`, err);
+    return [];
+  }
 
   const positions: VehiclePosition[] = [];
   for (const entity of feed.entity) {
