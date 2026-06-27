@@ -13,3 +13,6 @@
 ## 2024-06-21 - Fix VoiceOver truncation in .combine containers
 **Learning:** Applying an explicit `.accessibilityLabel` to a container that uses `.accessibilityElement(children: .combine)` overrides the combined text, causing VoiceOver to omit the children's contents completely.
 **Action:** When a combined label needs custom text (like severity prefixes), use `.accessibilityElement(children: .ignore)` and construct a unified `accessibilityLabel` string that includes all necessary details from the children to avoid data loss.
+## 2025-02-17 - Replace generic loading text with native visual feedback
+**Learning:** In SwiftUI, relying on generic static text like `Text("Loading...")` for asynchronous loading states provides a poor visual experience and does not adequately communicate ongoing progress to assistive technologies.
+**Action:** Replace `Text("Loading...")` with `ProgressView("Loading...")` to ensure standardized native visual feedback and robust screen reader announcements for background processes.
