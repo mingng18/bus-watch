@@ -15,7 +15,7 @@ export async function ingestRailTimetables(env: Env): Promise<{ inserted: number
   let inserted = 0;
 
   // 1. Download GTFS ZIP
-  const resp = await fetch(RAIL_GTFS_URL);
+  const resp = await fetch(RAIL_GTFS_URL, { signal: AbortSignal.timeout(10000) });
   if (!resp.ok) throw new Error(`GTFS fetch failed: ${resp.status}`);
   const zipBuffer = await resp.arrayBuffer();
   const files = unzipSync(new Uint8Array(zipBuffer));

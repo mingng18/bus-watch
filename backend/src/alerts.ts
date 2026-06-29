@@ -59,6 +59,7 @@ export async function fetchAlerts(): Promise<Alert[]> {
         "User-Agent": "bus-watch/1.0 (+https://github.com/mingng18/bus-watch)",
       },
       cf: { cacheTtl: 60 } as any,
+      signal: AbortSignal.timeout(5000),
     });
     if (!res.ok) {
       console.error(`alerts: sitemap fetch failed (HTTP ${res.status})`);
