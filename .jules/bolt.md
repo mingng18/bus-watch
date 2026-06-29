@@ -44,3 +44,6 @@
 ## 2024-06-22 - Optimize `new Map` Array Allocation Overhead
 **Learning:** `new Map(array.map(...))` creates unnecessary intermediate arrays (due to `Array.prototype.map`), which severely degrades performance in hot loops, causing memory allocation and garbage collection overhead.
 **Action:** Replace `new Map(array.map(...))` allocations with a standard `for` loop combined with `map.set()` to prevent redundant array creation, specifically in performance-critical areas like processing thousands of GTFS objects or searching for nearby stops.
+## 2024-06-29 - Array methods in hot schedule paths
+**Learning:** In Node.js/V8, inline lambda functions passed to higher-order array methods (like `.find()` and `.findIndex()`) cause minor garbage collection overhead because they are newly allocated on each iteration. When executed thousands of times within nested loops (such as iterating through GTFS trips and stops in the schedule builder endpoints), this memory allocation compounds into a measurable micro-latency overhead and CPU tax.
+**Action:** Always replace `.find()` and `.findIndex()` with standard `for` loops inside highly repetitious, tight loops, as `for` loops eliminate the closure creation per execution cycle.
