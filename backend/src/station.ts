@@ -32,7 +32,15 @@ export function getStationSchedule(
     const stopsForTrip = tripStops[trip.id];
     if (!stopsForTrip) continue;
 
-    const stopEntry = stopsForTrip.find(s => s.stopId === stopId);
+    // Performance optimization: Replace array method find with a standard loop
+    // to avoid inline lambda allocation and reduce GC overhead in hot path.
+    let stopEntry: TripStopEntry | undefined;
+    for (let i = 0; i < stopsForTrip.length; i++) {
+      if (stopsForTrip[i].stopId === stopId) {
+        stopEntry = stopsForTrip[i];
+        break;
+      }
+    }
     if (!stopEntry) continue;
 
     const route = routeMap.get(trip.routeId);
