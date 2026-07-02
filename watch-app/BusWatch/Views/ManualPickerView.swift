@@ -40,7 +40,7 @@ struct ManualPickerView: View {
                         }
                     }
                 } else {
-                    ProgressView("Loading...")
+                    Text("Loading...")
                         .foregroundStyle(.secondary)
                 }
             }
