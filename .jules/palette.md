@@ -13,3 +13,6 @@
 ## 2024-06-21 - Fix VoiceOver truncation in .combine containers
 **Learning:** Applying an explicit `.accessibilityLabel` to a container that uses `.accessibilityElement(children: .combine)` overrides the combined text, causing VoiceOver to omit the children's contents completely.
 **Action:** When a combined label needs custom text (like severity prefixes), use `.accessibilityElement(children: .ignore)` and construct a unified `accessibilityLabel` string that includes all necessary details from the children to avoid data loss.
+## 2024-07-02 - Provide fallback text for unsupported WatchOS deep-links
+**Learning:** `UIApplication.openSettingsURLString` is not available on watchOS. Wrapping unsupported deep-links in `#if !os(watchOS)` inside a button's action block leaves a dead, unresponsive button.
+**Action:** Instead, provide fallback text instructions (e.g., "Enable in Watch Settings") in an `#else` block to replace the button entirely on unsupported platforms.
