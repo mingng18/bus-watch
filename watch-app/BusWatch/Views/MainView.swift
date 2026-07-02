@@ -63,16 +63,29 @@ struct MainView: View {
     }
     @ViewBuilder
     private var noLocationView: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 12) {
             Image(systemName: "location.slash")
                 .font(.title2)
             Text("Location access needed")
                 .font(.caption)
                 .multilineTextAlignment(.center)
+
+            #if os(watchOS)
             Text("Enable in Watch Settings")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
+            #else
+            Button("Open Settings") {
+                #if canImport(UIKit)
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+                #endif
+            }
+            .buttonStyle(.bordered)
+            #endif
+
             Button("Manual Selection") {
                 showManual = true
             }
