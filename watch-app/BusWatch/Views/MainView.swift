@@ -68,11 +68,20 @@ struct MainView: View {
                 .font(.title2)
             Text("Location access needed")
                 .font(.caption)
+            #if os(watchOS)
             Text("Enable Location in Watch Settings")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
+            #else
+            Button("Open Settings") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            .buttonStyle(.bordered)
+            #endif
             Button("Manual Selection") {
                 showManual = true
             }
