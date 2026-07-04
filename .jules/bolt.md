@@ -44,6 +44,9 @@
 ## 2024-06-22 - Optimize `new Map` Array Allocation Overhead
 **Learning:** `new Map(array.map(...))` creates unnecessary intermediate arrays (due to `Array.prototype.map`), which severely degrades performance in hot loops, causing memory allocation and garbage collection overhead.
 **Action:** Replace `new Map(array.map(...))` allocations with a standard `for` loop combined with `map.set()` to prevent redundant array creation, specifically in performance-critical areas like processing thousands of GTFS objects or searching for nearby stops.
+## 2024-06-27 - Inline Lambda Allocations in Hot Paths
+**Learning:** Replacing native array methods (`.find()`, `.findIndex()`, `.some()`) that accept inline lambda functions with standard `for` loops inside heavily repeated hot paths eliminates per-iteration memory allocations, reducing garbage collection overhead.
+**Action:** When working in hot execution paths (like nested loops over thousands of transit trips), prefer standard loops over higher-order array functions to avoid continuous closure allocations. Always document these micro-optimizations with inline comments explaining the rationale.
 ## 2024-07-02 - Hoist Map Instantiation Out of Handlers
 **Learning:** Instantiating `Map` objects from arrays on every request inside route handlers causes O(N) allocation overhead per incoming HTTP request. When `getRoutesMaps` already provides a globally cached in-memory Map with a TTL, we can avoid recreating identical Maps over and over.
 **Action:** When a globally cached Map is available (e.g., via `getRoutesMaps`), pass it directly to downstream helper functions (like `getStationSchedule` and `getDeparturesTowardDestination`) instead of passing raw arrays and executing `new Map` inside the helper. This prevents repetitive allocations on hot API endpoints.
