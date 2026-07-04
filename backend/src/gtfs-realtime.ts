@@ -14,11 +14,10 @@ export async function fetchVehiclePositions(agency: string): Promise<VehiclePosi
   try {
     const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
     if (!response.ok) return [];
-
     const buffer = await response.arrayBuffer();
     feed = transit_realtime.FeedMessage.decode(new Uint8Array(buffer));
-  } catch (err: any) {
-    console.error(`Failed to fetch realtime for ${agency}:`, err?.message || err);
+  } catch (err) {
+    console.error(`fetchVehiclePositions failed for ${agency}:`, err);
     return [];
   }
 

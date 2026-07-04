@@ -132,11 +132,15 @@ export async function fetchAndParseAgency(agency: string): Promise<AgencyData> {
   const url = STATIC_URLS[agency as keyof typeof STATIC_URLS];
   if (!url) throw new Error(`Unknown agency: ${agency}`);
 
-  const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
-  if (!response.ok) throw new Error(`Failed to fetch ${agency}: ${response.status}`);
-
-  const zipBuffer = await response.arrayBuffer();
-  const files = unzipSync(new Uint8Array(zipBuffer));
+  let files;
+  try {
+    const response = await fetch(url, { signal: AbortSignal.timeout(15000) });
+    if (!response.ok) throw new Error(`Failed to fetch ${agency}: ${response.status}`);
+    const zipBuffer = await response.arrayBuffer();
+    files = unzipSync(new Uint8Array(zipBuffer));
+  } catch (err: any) {
+    throw new Error(`Failed to fetch ${agency}: ${err.message || err}`);
+  }
 
   const getFile = (name: string): string => {
     const key = Object.keys(files).find(k => k.endsWith(name));
