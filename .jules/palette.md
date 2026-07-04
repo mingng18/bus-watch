@@ -13,6 +13,9 @@
 ## 2024-06-21 - Fix VoiceOver truncation in .combine containers
 **Learning:** Applying an explicit `.accessibilityLabel` to a container that uses `.accessibilityElement(children: .combine)` overrides the combined text, causing VoiceOver to omit the children's contents completely.
 **Action:** When a combined label needs custom text (like severity prefixes), use `.accessibilityElement(children: .ignore)` and construct a unified `accessibilityLabel` string that includes all necessary details from the children to avoid data loss.
-## 2024-07-02 - Provide fallback text for unsupported WatchOS deep-links
-**Learning:** `UIApplication.openSettingsURLString` is not available on watchOS. Wrapping unsupported deep-links in `#if !os(watchOS)` inside a button's action block leaves a dead, unresponsive button.
-**Action:** Instead, provide fallback text instructions (e.g., "Enable in Watch Settings") in an `#else` block to replace the button entirely on unsupported platforms.
+## 2024-06-29 - Replace generic static text with ProgressView
+**Learning:** In SwiftUI, replace generic `Text('Loading...')` placeholders with `ProgressView('Loading...')` to provide standardized, native visual feedback for asynchronous loading states. This makes it immediately obvious to users that the app is actively loading data and automatically provides appropriate accessibility traits.
+**Action:** Always use `ProgressView` instead of static `Text` for loading states to improve user feedback and accessibility.
+## 2024-07-04 - watchOS Dead Button Fallback
+**Learning:** `UIApplication.openSettingsURLString` is not available on watchOS, leading to silent, unresponsive "Open Settings" buttons if unconditionally rendered.
+**Action:** Use platform guards (`#if canImport(UIKit) && !os(watchOS)`) and explicitly render a fallback text instruction (`#else`) explaining how the user can enable settings manually on watchOS, instead of just removing the button or leaving it dead.
