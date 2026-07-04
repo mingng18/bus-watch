@@ -13,7 +13,12 @@
 ## 2024-06-21 - Fix VoiceOver truncation in .combine containers
 **Learning:** Applying an explicit `.accessibilityLabel` to a container that uses `.accessibilityElement(children: .combine)` overrides the combined text, causing VoiceOver to omit the children's contents completely.
 **Action:** When a combined label needs custom text (like severity prefixes), use `.accessibilityElement(children: .ignore)` and construct a unified `accessibilityLabel` string that includes all necessary details from the children to avoid data loss.
-
+## 2024-06-29 - Replace generic static text with ProgressView
+**Learning:** In SwiftUI, replace generic `Text('Loading...')` placeholders with `ProgressView('Loading...')` to provide standardized, native visual feedback for asynchronous loading states. This makes it immediately obvious to users that the app is actively loading data and automatically provides appropriate accessibility traits.
+**Action:** Always use `ProgressView` instead of static `Text` for loading states to improve user feedback and accessibility.
+## 2024-07-04 - watchOS Dead Button Fallback
+**Learning:** `UIApplication.openSettingsURLString` is not available on watchOS, leading to silent, unresponsive "Open Settings" buttons if unconditionally rendered.
+**Action:** Use platform guards (`#if canImport(UIKit) && !os(watchOS)`) and explicitly render a fallback text instruction (`#elseif os(watchOS)`) explaining how the user can enable settings manually on watchOS, instead of just removing the button or leaving it dead.
 ## 2024-07-20 - Avoid dead buttons on watchOS for unsupported URLs
 **Learning:** `UIApplication.openSettingsURLString` is not available on watchOS. Avoid wrapping unsupported deep-links in `#if !os(watchOS)` blocks on watchOS-first UI elements, as this leaves dead, unresponsive buttons.
 **Action:** Always provide explicit text instructions (e.g., 'Enable in Watch Settings') inside `#if os(watchOS)` when dealing with unsupported features on watchOS instead of a button that does nothing.
