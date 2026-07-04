@@ -32,7 +32,10 @@ export function getStationSchedule(
     const stopsForTrip = tripStops[trip.id];
     if (!stopsForTrip) continue;
 
-    // Performance optimization: Avoid inline lambda allocation in hot loop
+    // Performance optimization: Replaced `.find()` taking an inline lambda with a standard loop
+    // to prevent per-iteration function allocation and reduce garbage collection overhead
+    // in this heavily repeated hot path (looping through thousands of trips).
+    // Expected impact: Minor reduction in memory allocation and slight CPU efficiency gain.
     let stopEntry: TripStopEntry | undefined;
     for (let i = 0; i < stopsForTrip.length; i++) {
       if (stopsForTrip[i].stopId === stopId) {
