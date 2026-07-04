@@ -10,6 +10,7 @@ const stops: Stop[] = [
 const routes: Route[] = [
   { id: 'r1', shortName: 'Line A', longName: 'Line A Long', type: 1 },
 ];
+const routeMap = new Map(routes.map(r => [r.id, r]));
 
 // t1: current -> dest (heads toward destination)
 // t2: dest -> current (goes away from destination)
@@ -41,20 +42,20 @@ const calendar: CalendarEntry[] = [
 
 describe('getDeparturesTowardDestination', () => {
   it('only includes trips that reach the destination after the current stop', () => {
-    const result = getDeparturesTowardDestination('current', 'dest', stops, routes, trips, tripStops, calendar);
+    const result = getDeparturesTowardDestination('current', 'dest', stops, routeMap, trips, tripStops, calendar);
     expect(result.stopName).toBe('Current Stop');
     expect(result.departures.length).toBe(1);
     expect(result.departures[0].destination).toBe('Toward Dest');
   });
 
   it('excludes trips going the opposite direction', () => {
-    const result = getDeparturesTowardDestination('current', 'dest', stops, routes, trips, tripStops, calendar);
+    const result = getDeparturesTowardDestination('current', 'dest', stops, routeMap, trips, tripStops, calendar);
     // t2 visits dest BEFORE current, so it must be excluded.
     expect(result.departures.find(d => d.destination === 'Away From Dest')).toBeUndefined();
   });
 
   it('excludes trips that never reach the destination', () => {
-    const result = getDeparturesTowardDestination('current', 'dest', stops, routes, trips, tripStops, calendar);
+    const result = getDeparturesTowardDestination('current', 'dest', stops, routeMap, trips, tripStops, calendar);
     expect(result.departures.find(d => d.destination === 'Short Trip')).toBeUndefined();
   });
 
@@ -71,19 +72,19 @@ describe('getDeparturesTowardDestination', () => {
         { stopId: 'dest', stopName: 'Destination Stop', lat: 3.1, lon: 101.1, arrivalTime: '09:00:00', departureTime: '09:00:30', sequence: 2 },
       ],
     };
-    const result = getDeparturesTowardDestination('current', 'dest', stops, routes, extraTrips, extraTripStops, calendar, 1);
+    const result = getDeparturesTowardDestination('current', 'dest', stops, routeMap, extraTrips, extraTripStops, calendar, 1);
     expect(result.departures.length).toBe(1);
   });
 
   it('returns sorted by departure time', () => {
-    const result = getDeparturesTowardDestination('current', 'dest', stops, routes, trips, tripStops, calendar);
+    const result = getDeparturesTowardDestination('current', 'dest', stops, routeMap, trips, tripStops, calendar);
     expect(result.departures.length).toBe(1);
     // Single result; verify it is the earliest toward-dest departure.
     expect(result.departures[0].departureTime).toBe('08:30:30');
   });
 
   it('throws for unknown stop', () => {
-    expect(() => getDeparturesTowardDestination('unknown', 'dest', stops, routes, trips, tripStops, calendar)).toThrow();
+    expect(() => getDeparturesTowardDestination('unknown', 'dest', stops, routeMap, trips, tripStops, calendar)).toThrow();
   });
 
   describe('KL timezone (issue #127)', () => {
@@ -104,7 +105,7 @@ describe('getDeparturesTowardDestination', () => {
         ],
       };
 
-      const result = getDeparturesTowardDestination('current', 'dest', stops, routes, tzTrips, tzTripStops, calendar);
+      const result = getDeparturesTowardDestination('current', 'dest', stops, routeMap, tzTrips, tzTripStops, calendar);
       expect(result.departures.length).toBe(1);
       expect(result.departures[0].minutesUntil).toBe(5);
     });

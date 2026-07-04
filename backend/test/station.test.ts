@@ -9,6 +9,7 @@ const stops: Stop[] = [
 const routes: Route[] = [
   { id: 'r1', shortName: 'Kelana Jaya', longName: 'Kelana Jaya Line', type: 1 },
 ];
+const routeMap = new Map(routes.map(r => [r.id, r]));
 
 const trips: Trip[] = [
   { id: 't1', routeId: 'r1', serviceId: 'wk', headsign: 'Gombak', directionId: 0, shapeId: '' },
@@ -32,7 +33,7 @@ const calendar: CalendarEntry[] = [
 
 describe('getStationSchedule', () => {
   it('returns departures for a station', () => {
-    const result = getStationSchedule('st1', stops, routes, trips, tripStops, calendar);
+    const result = getStationSchedule('st1', stops, routeMap, trips, tripStops, calendar);
     expect(result.stopName).toBe('Bangsar LRT');
     expect(result.departures.length).toBe(2);
     expect(result.departures[0].line).toBe('Kelana Jaya');
@@ -40,12 +41,12 @@ describe('getStationSchedule', () => {
   });
 
   it('returns departures sorted by time', () => {
-    const result = getStationSchedule('st1', stops, routes, trips, tripStops, calendar);
+    const result = getStationSchedule('st1', stops, routeMap, trips, tripStops, calendar);
     expect(result.departures[0].departureTime.localeCompare(result.departures[1].departureTime)).toBeLessThanOrEqual(0);
   });
 
   it('throws for unknown stop', () => {
-    expect(() => getStationSchedule('unknown', stops, routes, trips, tripStops, calendar)).toThrow();
+    expect(() => getStationSchedule('unknown', stops, routeMap, trips, tripStops, calendar)).toThrow();
   });
 
   describe('KL timezone (issue #127)', () => {
@@ -68,7 +69,7 @@ describe('getStationSchedule', () => {
         ],
       };
 
-      const result = getStationSchedule('st1', stops, routes, klTrips, klTripStops, calendar);
+      const result = getStationSchedule('st1', stops, routeMap, klTrips, klTripStops, calendar);
       expect(result.departures.length).toBe(1);
       expect(result.departures[0].minutesUntil).toBe(5);
     });
@@ -88,7 +89,7 @@ describe('getStationSchedule', () => {
         ],
       };
 
-      const result = getStationSchedule('st1', stops, routes, klTrips, klTripStops, calendar);
+      const result = getStationSchedule('st1', stops, routeMap, klTrips, klTripStops, calendar);
       expect(result.departures.length).toBe(1);
       expect(result.departures[0].minutesUntil).toBe(5);
     });

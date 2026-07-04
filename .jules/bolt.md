@@ -44,6 +44,6 @@
 ## 2024-06-22 - Optimize `new Map` Array Allocation Overhead
 **Learning:** `new Map(array.map(...))` creates unnecessary intermediate arrays (due to `Array.prototype.map`), which severely degrades performance in hot loops, causing memory allocation and garbage collection overhead.
 **Action:** Replace `new Map(array.map(...))` allocations with a standard `for` loop combined with `map.set()` to prevent redundant array creation, specifically in performance-critical areas like processing thousands of GTFS objects or searching for nearby stops.
-## 2024-07-02 - Micro-optimizations vs Readability and Type Safety
-**Learning:** Replacing native array methods like `.find()` with verbose `for` loops inside hot paths violates Bolt's philosophy of not sacrificing readability for micro-optimizations, as modern JS engines (V8) optimize these adequately. Also, declaring variables like `let stopEntry;` without explicit type annotations degrades TS type safety, potentially triggering strict mode errors.
-**Action:** Retain expressive native array methods unless a proven, measurable bottleneck exists. If manual loops are absolutely necessary, always provide explicit type annotations (e.g., `let entry: Type | undefined;`) to maintain type safety.
+## 2024-07-02 - Hoist Map Instantiation Out of Handlers
+**Learning:** Instantiating `Map` objects from arrays on every request inside route handlers causes O(N) allocation overhead per incoming HTTP request. When `getRoutesMaps` already provides a globally cached in-memory Map with a TTL, we can avoid recreating identical Maps over and over.
+**Action:** When a globally cached Map is available (e.g., via `getRoutesMaps`), pass it directly to downstream helper functions (like `getStationSchedule` and `getDeparturesTowardDestination`) instead of passing raw arrays and executing `new Map` inside the helper. This prevents repetitive allocations on hot API endpoints.

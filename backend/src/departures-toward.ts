@@ -16,7 +16,7 @@ export function getDeparturesTowardDestination(
   stopId: string,
   destinationStopId: string,
   stops: Stop[],
-  routes: Route[],
+  routeMap: Map<string, Route>,
   trips: Trip[],
   tripStops: Record<string, TripStopEntry[]>,
   calendar: CalendarEntry[],
@@ -25,10 +25,6 @@ export function getDeparturesTowardDestination(
   const stop = stops.find(s => s.id === stopId);
   if (!stop) throw new Error(`Stop not found: ${stopId}`);
 
-  const routeMap = new Map<string, Route>();
-  for (let i = 0; i < routes.length; i++) {
-    routeMap.set(routes[i].id, routes[i]);
-  }
   const activeServiceIds = getActiveServiceIds(calendar, new Date());
 
   const departures: Departure[] = [];
@@ -44,15 +40,7 @@ export function getDeparturesTowardDestination(
     const stopsForTrip = tripStops[trip.id];
     if (!stopsForTrip) continue;
 
-    // Performance optimization: Replaced .findIndex() with standard loop to prevent
-    // per-iteration lambda function allocation and reduce GC overhead in this hot loop.
-    let currentIdx = -1;
-    for (let i = 0; i < stopsForTrip.length; i++) {
-      if (stopsForTrip[i].stopId === stopId) {
-        currentIdx = i;
-        break;
-      }
-    }
+    const currentIdx = stopsForTrip.findIndex(s => s.stopId === stopId);
     if (currentIdx === -1) continue;
 
     // The trip must continue on to the destination stop AFTER the current stop.

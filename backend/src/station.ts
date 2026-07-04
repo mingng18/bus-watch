@@ -5,7 +5,7 @@ import { klSecondsSinceMidnight } from './time-kl';
 export function getStationSchedule(
   stopId: string,
   stops: Stop[],
-  routes: Route[],
+  routeMap: Map<string, Route>,
   trips: Trip[],
   tripStops: Record<string, TripStopEntry[]>,
   calendar: CalendarEntry[],
@@ -13,10 +13,6 @@ export function getStationSchedule(
   const stop = stops.find(s => s.id === stopId);
   if (!stop) throw new Error(`Stop not found: ${stopId}`);
 
-  const routeMap = new Map<string, Route>();
-  for (let i = 0; i < routes.length; i++) {
-    routeMap.set(routes[i].id, routes[i]);
-  }
   const activeServiceIds = getActiveServiceIds(calendar, new Date());
 
   const departures: Departure[] = [];
@@ -32,15 +28,7 @@ export function getStationSchedule(
     const stopsForTrip = tripStops[trip.id];
     if (!stopsForTrip) continue;
 
-    // Performance optimization: Replaced .find() with standard loop to prevent
-    // per-iteration lambda function allocation and reduce GC overhead in this hot loop.
-    let stopEntry: TripStopEntry | undefined;
-    for (let i = 0; i < stopsForTrip.length; i++) {
-      if (stopsForTrip[i].stopId === stopId) {
-        stopEntry = stopsForTrip[i];
-        break;
-      }
-    }
+    const stopEntry = stopsForTrip.find(s => s.stopId === stopId);
     if (!stopEntry) continue;
 
     const route = routeMap.get(trip.routeId);
