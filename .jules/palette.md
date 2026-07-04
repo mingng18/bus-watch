@@ -16,6 +16,6 @@
 ## 2024-06-29 - Replace generic static text with ProgressView
 **Learning:** In SwiftUI, replace generic `Text('Loading...')` placeholders with `ProgressView('Loading...')` to provide standardized, native visual feedback for asynchronous loading states. This makes it immediately obvious to users that the app is actively loading data and automatically provides appropriate accessibility traits.
 **Action:** Always use `ProgressView` instead of static `Text` for loading states to improve user feedback and accessibility.
-## 2024-05-24 - Dead UI Button on watchOS
-**Learning:** Found a "Open Settings" button that was totally unresponsive on watchOS due to platform guards inside the action block.
-**Action:** Use platform compilation directives (`#if canImport(UIKit) && !os(watchOS)`) around the UI element itself, and present a fallback textual instruction (`#elseif os(watchOS) Text("Enable in Watch Settings")`) instead of a dead button.
+## 2024-07-04 - watchOS Dead Button Fallback
+**Learning:** `UIApplication.openSettingsURLString` is not available on watchOS, leading to silent, unresponsive "Open Settings" buttons if unconditionally rendered.
+**Action:** Use platform guards (`#if canImport(UIKit) && !os(watchOS)`) and explicitly render a fallback text instruction (`#elseif os(watchOS)`) explaining how the user can enable settings manually on watchOS, instead of just removing the button or leaving it dead.
