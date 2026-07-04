@@ -25,7 +25,18 @@ export function findNearbyRoutes(
   for (const trip of trips) {
     const stopsForTrip = tripStops[trip.id];
     if (!stopsForTrip) continue;
-    if (stopsForTrip.some(s => stopIds.has(s.stopId))) {
+    // Performance optimization: Replaced `.some()` taking an inline lambda with a standard loop
+    // to prevent per-iteration function allocation and reduce garbage collection overhead
+    // in this heavily repeated hot path (looping through thousands of trips).
+    // Expected impact: Minor reduction in memory allocation and slight CPU efficiency gain.
+    let hasMatch = false;
+    for (let i = 0; i < stopsForTrip.length; i++) {
+      if (stopIds.has(stopsForTrip[i].stopId)) {
+        hasMatch = true;
+        break;
+      }
+    }
+    if (hasMatch) {
       routeIds.add(trip.routeId);
     }
   }
