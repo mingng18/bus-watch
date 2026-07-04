@@ -1,3 +1,6 @@
+## 2024-06-14 - Add accessibility label to icon-only button
+**Learning:** In SwiftUI, icon-only toolbar buttons using `Image(systemName:)` do not automatically receive an accessible label and must be explicitly tagged with `.accessibilityLabel()`.
+**Action:** Always add `.accessibilityLabel` to icon-only buttons to ensure VoiceOver users can understand their purpose.
 ## 2024-05-25 - Bus progress timeline accessibility
 **Learning:** Screen reader users lose critical contextual state (like past, current, and future positions) when it is conveyed only through visual indicators like color and icons in timeline views.
 **Action:** Always combine the timeline elements into a single ignored element (`accessibilityElement(children: .ignore)`) and provide a unified, descriptive label (e.g. "Current stop: KLCC, arriving now") using `.accessibilityLabel`.
@@ -10,6 +13,9 @@
 ## 2024-06-21 - Fix VoiceOver truncation in .combine containers
 **Learning:** Applying an explicit `.accessibilityLabel` to a container that uses `.accessibilityElement(children: .combine)` overrides the combined text, causing VoiceOver to omit the children's contents completely.
 **Action:** When a combined label needs custom text (like severity prefixes), use `.accessibilityElement(children: .ignore)` and construct a unified `accessibilityLabel` string that includes all necessary details from the children to avoid data loss.
-## 2024-06-30 - Replace dead deep-link buttons with text fallback on watchOS
-**Learning:** `UIApplication.openSettingsURLString` is not available on watchOS. Wrapping unsupported deep-links in `#if !os(watchOS)` blocks on watchOS-first UI elements leaves dead, unresponsive buttons.
-**Action:** Provide fallback text instructions (e.g., 'Enable in Watch Settings') instead of dead buttons when deep-links aren't supported.
+## 2024-06-29 - Replace generic static text with ProgressView
+**Learning:** In SwiftUI, replace generic `Text('Loading...')` placeholders with `ProgressView('Loading...')` to provide standardized, native visual feedback for asynchronous loading states. This makes it immediately obvious to users that the app is actively loading data and automatically provides appropriate accessibility traits.
+**Action:** Always use `ProgressView` instead of static `Text` for loading states to improve user feedback and accessibility.
+## 2024-07-04 - watchOS Dead Button Fallback
+**Learning:** `UIApplication.openSettingsURLString` is not available on watchOS, leading to silent, unresponsive "Open Settings" buttons if unconditionally rendered.
+**Action:** Use platform guards (`#if canImport(UIKit) && !os(watchOS)`) and explicitly render a fallback text instruction (`#elseif os(watchOS)`) explaining how the user can enable settings manually on watchOS, instead of just removing the button or leaving it dead.
