@@ -13,6 +13,9 @@
 ## 2024-06-21 - Fix VoiceOver truncation in .combine containers
 **Learning:** Applying an explicit `.accessibilityLabel` to a container that uses `.accessibilityElement(children: .combine)` overrides the combined text, causing VoiceOver to omit the children's contents completely.
 **Action:** When a combined label needs custom text (like severity prefixes), use `.accessibilityElement(children: .ignore)` and construct a unified `accessibilityLabel` string that includes all necessary details from the children to avoid data loss.
+## 2024-06-29 - Replace generic static text with ProgressView
+**Learning:** In SwiftUI, replace generic `Text('Loading...')` placeholders with `ProgressView('Loading...')` to provide standardized, native visual feedback for asynchronous loading states. This makes it immediately obvious to users that the app is actively loading data and automatically provides appropriate accessibility traits.
+**Action:** Always use `ProgressView` instead of static `Text` for loading states to improve user feedback and accessibility.
 ## YYYY-MM-DD - Fallback text for unsupported WatchOS deep-links
 **Learning:** `UIApplication.openSettingsURLString` is not available on watchOS. Wrapping unsupported deep-links in `#if !os(watchOS)` blocks on watchOS-first UI elements leaves dead, unresponsive buttons that provide poor UX and no feedback to the user.
 **Action:** Avoid `#if !os(watchOS)` blocks that leave empty UI states on watchOS. Instead, provide explicit fallback text instructions (e.g., 'Enable in Watch Settings') to guide the user when deep-linking is unsupported.
