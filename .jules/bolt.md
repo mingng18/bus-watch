@@ -44,6 +44,6 @@
 ## 2024-06-22 - Optimize `new Map` Array Allocation Overhead
 **Learning:** `new Map(array.map(...))` creates unnecessary intermediate arrays (due to `Array.prototype.map`), which severely degrades performance in hot loops, causing memory allocation and garbage collection overhead.
 **Action:** Replace `new Map(array.map(...))` allocations with a standard `for` loop combined with `map.set()` to prevent redundant array creation, specifically in performance-critical areas like processing thousands of GTFS objects or searching for nearby stops.
-## 2023-10-27 - Replace native array methods with standard loops in hot paths
-**Learning:** Replacing native array search methods like `.findIndex()` or `.find()` that take inline lambdas with standard `for` loops inside heavily repeated hot paths (like iterating over all transit trips) eliminates per-iteration function allocations and reduces GC overhead.
-**Action:** Always prefer standard `for` loops over array methods with lambdas when operating inside critical hot execution paths to prevent unnecessary memory allocation and recomputation. Include comments explaining the rationale.
+## 2024-06-27 - Inline Lambda Allocations in Hot Paths
+**Learning:** Replacing native array methods (`.find()`, `.findIndex()`, `.some()`) that accept inline lambda functions with standard `for` loops inside heavily repeated hot paths eliminates per-iteration memory allocations, reducing garbage collection overhead.
+**Action:** When working in hot execution paths (like nested loops over thousands of transit trips), prefer standard loops over higher-order array functions to avoid continuous closure allocations. Always document these micro-optimizations with inline comments explaining the rationale.
