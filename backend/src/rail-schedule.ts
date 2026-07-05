@@ -1,7 +1,7 @@
 import { Env } from './types';
 import { toKlLocal } from './time-kl';
 
-export interface RailArrival {
+interface RailArrival {
   trip_id: string;
   route_short_name: string;
   route_long_name: string;
