@@ -214,15 +214,6 @@ export interface Frequency {
   headwaySecs: number;
 }
 
-export interface RouteDetailsResponse {
-  routeId: string;
-  buses: BusRouteEntry[];
-  shapes: {
-    id: string;
-    points: [number, number][]; // Array of [lat, lon]
-  }[];
-}
-
 // --- Prasarana Socket.IO bus data ---
 
 export interface PrasaranaBus {
