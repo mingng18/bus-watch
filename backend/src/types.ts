@@ -265,27 +265,6 @@ export interface BusPosition {
   created_at: number;
 }
 
-export interface TravelTime {
-  id: number;
-  route: string;
-  from_stop_id: string;
-  to_stop_id: string;
-  from_lat: number;
-  from_lon: number;
-  to_lat: number;
-  to_lon: number;
-  /** Average travel time in seconds */
-  avg_seconds: number;
-  sample_count: number;
-  updated_at: number;
-  /** JS day index (0=Sun..6=Sat) in KL-local time. See time-kl.ts. */
-  day_of_week: number;
-  /** KL-local hour (0..23) of the from-stop passage. */
-  time_bucket: number;
-  /** Mean absolute deviation of samples, in seconds (robust spread signal). */
-  spread_seconds: number;
-}
-
 /**
  * Result of a historical-ETA lookup. Carries a confidence signal so callers
  * can render an honest "approx N min" qualifier instead of a single point
