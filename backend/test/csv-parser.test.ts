@@ -52,4 +52,33 @@ describe('parseCsv', () => {
       { name: 'Bob', age: '25', city: 'PG' },
     ]);
   });
+
+  describe('unquoted fast path edge cases', () => {
+    it('handles missing columns (fewer values than headers)', () => {
+      const input = 'name,age,city\nAlice,30\nBob';
+      const result = parseCsv(input);
+      expect(result).toEqual([
+        { name: 'Alice', age: '30', city: '' },
+        { name: 'Bob', age: '', city: '' },
+      ]);
+    });
+
+    it('handles extra columns (more values than headers)', () => {
+      const input = 'name,age\nAlice,30,KL,extra\nBob,25';
+      const result = parseCsv(input);
+      expect(result).toEqual([
+        { name: 'Alice', age: '30' }, // Extra columns are ignored
+        { name: 'Bob', age: '25' },
+      ]);
+    });
+
+    it('handles empty columns (consecutive commas)', () => {
+      const input = 'name,age,city\nAlice,,KL\n,25,';
+      const result = parseCsv(input);
+      expect(result).toEqual([
+        { name: 'Alice', age: '', city: 'KL' },
+        { name: '', age: '25', city: '' },
+      ]);
+    });
+  });
 });
