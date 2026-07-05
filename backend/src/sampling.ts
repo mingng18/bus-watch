@@ -46,7 +46,7 @@ export interface TravelTimeSample {
  * An aggregated travel_times row keyed by (route, from, to, day, hour), with a
  * spread measure for ETA confidence.
  */
-export interface AggregatedTravelTime {
+interface AggregatedTravelTime {
   route: string;
   from_stop_id: string;
   to_stop_id: string;
