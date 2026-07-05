@@ -6,8 +6,18 @@ const RAIL_GTFS_URL = 'https://api.data.gov.my/gtfs-static/prasarana?category=ra
 const BATCH_SIZE = 100;
 
 async function batch(db: D1Database, stmts: D1PreparedStatement[]): Promise<void> {
+  // Use Promise.all with chunking to execute batches concurrently but limit concurrency
+  // to avoid overloading the DB connections
+  const CONCURRENCY_LIMIT = 5;
+  const chunks: D1PreparedStatement[][] = [];
+
   for (let i = 0; i < stmts.length; i += BATCH_SIZE) {
-    await db.batch(stmts.slice(i, i + BATCH_SIZE));
+    chunks.push(stmts.slice(i, i + BATCH_SIZE));
+  }
+
+  for (let i = 0; i < chunks.length; i += CONCURRENCY_LIMIT) {
+    const concurrentBatches = chunks.slice(i, i + CONCURRENCY_LIMIT);
+    await Promise.all(concurrentBatches.map(chunk => db.batch(chunk)));
   }
 }
 
