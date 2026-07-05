@@ -56,11 +56,9 @@ app.post('/refresh', async (c) => {
   if (!c.env.ADMIN_TOKEN || !authHeader) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
-  const isLengthEqual = authHeader.length === expectedToken.length;
-  const compareStr = isLengthEqual ? authHeader : expectedToken;
-  const isMatch = await timingSafeEqual(compareStr, expectedToken);
+  const isMatch = await timingSafeEqual(authHeader, expectedToken);
 
-  if (!isLengthEqual || !isMatch) {
+  if (!isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
   await refreshStaticData(c.env.KV);
@@ -344,11 +342,9 @@ app.post('/rail/ingest', async (c) => {
   if (!c.env.ADMIN_TOKEN || !authHeader) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
-  const isLengthEqual = authHeader.length === expectedToken.length;
-  const compareStr = isLengthEqual ? authHeader : expectedToken;
-  const isMatch = await timingSafeEqual(compareStr, expectedToken);
+  const isMatch = await timingSafeEqual(authHeader, expectedToken);
 
-  if (!isLengthEqual || !isMatch) {
+  if (!isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
   try {
