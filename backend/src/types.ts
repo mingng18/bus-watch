@@ -52,7 +52,7 @@ export interface GtfsCalendar {
   end_date: string;
 }
 
-export interface GtfsShape {
+interface GtfsShape {
   shape_id: string;
   shape_pt_lat: string;
   shape_pt_lon: string;
