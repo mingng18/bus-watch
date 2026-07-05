@@ -26,7 +26,7 @@ export const ALERTS_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 /** Default number of alerts returned when no limit is requested. */
 export const DEFAULT_ALERT_LIMIT = 20;
 
-export type AlertSeverity = "info" | "warning" | "severe";
+type AlertSeverity = "info" | "warning" | "severe";
 
 export interface Alert {
   /** Stable id derived from the post URL slug. */
