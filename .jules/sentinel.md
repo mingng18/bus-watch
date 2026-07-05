@@ -18,7 +18,3 @@
 **Vulnerability:** Several API endpoints (`/station/:stopId/schedule/toward`, `/rail/schedule`, `/rail/stops`) were missing bounds checking on integer and string length inputs. For example, `limit` and `window` parameters could be parsed as unbounded integers, and `q` search query could be an excessively long string. This left the application vulnerable to Denial of Service (DoS) attacks via resource exhaustion.
 **Learning:** Security fixes applied to one endpoint (like the DoS fix applied to `/alerts`) can easily be missed in other similar endpoints if the codebase isn't audited comprehensively. Unbounded resource queries are a common pattern in unvalidated inputs.
 **Prevention:** Always apply bounds checking and clamp parsed integer inputs (e.g., `parseInt(req.query('limit'), 10)`) to strict maximums. Validate input string lengths before passing them to expensive operations (like database queries). Whenever fixing a security issue in one location, proactively search the codebase for similar patterns.
-## 2024-06-27 - Unconstrained External Fetch
-**Vulnerability:** External fetch calls without timeouts.
-**Learning:** In serverless environments, hanging connections can cause Denial of Service (DoS) attacks by exhausting resources.
-**Prevention:** Always configure external fetch calls with an AbortSignal.timeout(ms) and wrap them in a try...catch block to securely handle TimeoutErrors without crashing the application.
