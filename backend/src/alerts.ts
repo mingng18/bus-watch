@@ -15,7 +15,7 @@ import type { Env } from "./types";
 // -------------------------------------------------------------------------
 
 /** Where alerts are read from. Sitemap is the only unchallenged, structured source. */
-export const ALERTS_SITEMAP_URL = "https://myrapid.com.my/post-sitemap1.xml";
+const ALERTS_SITEMAP_URL = "https://myrapid.com.my/post-sitemap1.xml";
 
 /** KV key for the cached parsed alert list. */
 export const ALERTS_KV_KEY = "alerts:recent";
