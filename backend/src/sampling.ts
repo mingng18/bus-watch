@@ -26,7 +26,7 @@ export interface PositionSample {
  * One measured inter-stop travel time, before aggregation. Produced by
  * detectStopPassages from a time-ordered bus trace + an ordered stop list.
  */
-export interface TravelTimeSample {
+interface TravelTimeSample {
   route: string;
   from_stop_id: string;
   to_stop_id: string;
