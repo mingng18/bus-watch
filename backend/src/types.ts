@@ -251,20 +251,6 @@ export interface AgencyData {
   shapes: Record<string, [number, number][]>;
 }
 
-export interface BusPosition {
-  id: number;
-  bus_no: string;
-  route: string;
-  /** 'gtfs' | 'prasarana' | string */
-  source: string;
-  lat: number;
-  lon: number;
-  speed: number | null;
-  /** Unix seconds */
-  timestamp: number;
-  created_at: number;
-}
-
 export interface TravelTime {
   id: number;
   route: string;
