@@ -56,11 +56,9 @@ app.post('/refresh', async (c) => {
   if (!c.env.ADMIN_TOKEN || !authHeader) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
-  const isLengthEqual = authHeader.length === expectedToken.length;
-  const compareStr = isLengthEqual ? authHeader : expectedToken;
-  const isMatch = await timingSafeEqual(compareStr, expectedToken);
+  const isMatch = await timingSafeEqual(authHeader, expectedToken);
 
-  if (!isLengthEqual || !isMatch) {
+  if (!isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
   await refreshStaticData(c.env.KV);
@@ -152,7 +150,14 @@ app.get('/bus/trip/:tripId/progress', async (c) => {
   try {
     const allRoutes = await getAllRoutes(c.env.KV);
     const vehicles = await getRealtimeVehicles(c.env.KV);
-    const vehicle = vehicles.find(v => v.tripId === tripId) || null;
+    // Optimization: Prevent lambda allocation in hot path
+    let vehicle = null;
+    for (let i = 0, len = vehicles.length; i < len; i++) {
+      if (vehicles[i].tripId === tripId) {
+        vehicle = vehicles[i];
+        break;
+      }
+    }
     const allTripStops = await getAllTripStops(c.env.KV);
     const routeMap = new Map<string, Route>();
     for (const r of allRoutes) routeMap.set(r.id, r);
@@ -183,7 +188,14 @@ app.get('/bus/eta', async (c) => {
     let routeIdForSeq: string | null = null; // GTFS route_id for stop-sequence lookup
     if (busNo) {
       const { buses } = await getPrasaranaBuses(c.env.KV);
-      const bus = buses.find(b => b.bus_no === busNo);
+      // Optimization: Prevent lambda allocation in hot path
+      let bus;
+      for (let i = 0, len = buses.length; i < len; i++) {
+        if (buses[i].bus_no === busNo) {
+          bus = buses[i];
+          break;
+        }
+      }
       if (bus) {
         route = bus.route;
         busLat = bus.latitude;
@@ -191,7 +203,14 @@ app.get('/bus/eta', async (c) => {
       }
     } else if (tripId) {
       const vehicles = await getRealtimeVehicles(c.env.KV);
-      const vehicle = vehicles.find(v => v.tripId === tripId);
+      // Optimization: Prevent lambda allocation in hot path
+      let vehicle;
+      for (let i = 0, len = vehicles.length; i < len; i++) {
+        if (vehicles[i].tripId === tripId) {
+          vehicle = vehicles[i];
+          break;
+        }
+      }
       if (vehicle) {
         route = vehicle.routeId;
         routeIdForSeq = vehicle.routeId;
@@ -255,7 +274,14 @@ app.get('/bus/eta', async (c) => {
 app.get('/bus/position/:busId', async (c) => {
   const busId = c.req.param('busId');
   const { buses } = await getPrasaranaBuses(c.env.KV);
-  const bus = buses.find(b => b.bus_no === busId);
+  // Optimization: Prevent lambda allocation in hot path
+  let bus;
+  for (let i = 0, len = buses.length; i < len; i++) {
+    if (buses[i].bus_no === busId) {
+      bus = buses[i];
+      break;
+    }
+  }
   if (!bus) return c.json({ error: 'Bus not found' }, 404);
   return c.json({
     bus_no: bus.bus_no,
@@ -344,11 +370,9 @@ app.post('/rail/ingest', async (c) => {
   if (!c.env.ADMIN_TOKEN || !authHeader) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
-  const isLengthEqual = authHeader.length === expectedToken.length;
-  const compareStr = isLengthEqual ? authHeader : expectedToken;
-  const isMatch = await timingSafeEqual(compareStr, expectedToken);
+  const isMatch = await timingSafeEqual(authHeader, expectedToken);
 
-  if (!isLengthEqual || !isMatch) {
+  if (!isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
   try {
