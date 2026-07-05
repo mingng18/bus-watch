@@ -298,10 +298,24 @@ function rejectOutliers(values: number[], threshold = 3): number[] {
   if (values.length <= 3) return values;
   const sorted = [...values].sort((a, b) => a - b);
   const median = sorted[Math.floor(sorted.length / 2)];
-  const devs = values.map(v => Math.abs(v - median));
-  const mad = devs.reduce((a, b) => a + b, 0) / devs.length;
+
+  // Calculate MAD using a standard loop to avoid array allocations from .map and .reduce
+  let totalDev = 0;
+  for (let i = 0; i < values.length; i++) {
+    totalDev += Math.abs(values[i] - median);
+  }
+  const mad = totalDev / values.length;
   if (mad === 0) return values; // all values identical or near-median
-  return values.filter((_, i) => devs[i] <= threshold * mad);
+
+  // Filter using a standard loop to prevent lambda allocations per iteration in a hot path
+  const result: number[] = [];
+  const maxDev = threshold * mad;
+  for (let i = 0; i < values.length; i++) {
+    if (Math.abs(values[i] - median) <= maxDev) {
+      result.push(values[i]);
+    }
+  }
+  return result;
 }
 
 /**
