@@ -19,6 +19,9 @@
 ## 2024-07-04 - watchOS Dead Button Fallback
 **Learning:** `UIApplication.openSettingsURLString` is not available on watchOS, leading to silent, unresponsive "Open Settings" buttons if unconditionally rendered.
 **Action:** Use platform guards (`#if canImport(UIKit) && !os(watchOS)`) and explicitly render a fallback text instruction (`#elseif os(watchOS)`) explaining how the user can enable settings manually on watchOS, instead of just removing the button or leaving it dead.
+## 2024-08-01 - Prefer Label for icon-only buttons
+**Learning:** In SwiftUI, icon-only toolbar buttons using `Image(systemName:)` require an explicit `.accessibilityLabel()`. However, using a `Label` with `.labelStyle(.iconOnly)` automatically provides the label text to VoiceOver, making a manual accessibility label redundant and reducing boilerplate.
+**Action:** Always use `Label("Text", systemImage: "icon").labelStyle(.iconOnly)` for icon-only buttons instead of manually adding accessibility labels to Images to improve code consistency and automatic accessibility.
 ## 2024-07-20 - Avoid dead buttons on watchOS for unsupported URLs
 **Learning:** `UIApplication.openSettingsURLString` is not available on watchOS. Avoid wrapping unsupported deep-links in `#if !os(watchOS)` blocks on watchOS-first UI elements, as this leaves dead, unresponsive buttons.
 **Action:** Always provide explicit text instructions (e.g., 'Enable in Watch Settings') inside `#if os(watchOS)` when dealing with unsupported features on watchOS instead of a button that does nothing.
