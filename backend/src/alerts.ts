@@ -28,7 +28,7 @@ export const DEFAULT_ALERT_LIMIT = 20;
 
 export type AlertSeverity = "info" | "warning" | "severe";
 
-export interface Alert {
+interface Alert {
   /** Stable id derived from the post URL slug. */
   id: string;
   /** Human-readable title derived from the slug. */
