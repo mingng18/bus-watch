@@ -2,15 +2,16 @@ import CoreLocation
 import Combine
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
-    private let manager = CLLocationManager()
+    private let manager: CLLocationManager
     @Published var location: CLLocation?
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
 
-    override init() {
+    init(manager: CLLocationManager = CLLocationManager()) {
+        self.manager = manager
         super.init()
-        manager.delegate = self
-        manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
-        manager.distanceFilter = 50
+        self.manager.delegate = self
+        self.manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+        self.manager.distanceFilter = 50
     }
 
     func requestPermission() {
