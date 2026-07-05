@@ -17,7 +17,7 @@ export interface RailScheduleResponse {
   stale?: boolean; // true if ingest metadata is older than 8 days
 }
 
-export interface RailStopResult {
+interface RailStopResult {
   stop_id: string;
   stop_name: string;
   lat: number;
