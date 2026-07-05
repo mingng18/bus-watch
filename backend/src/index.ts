@@ -404,7 +404,15 @@ app.get('/route/:routeId', async (c) => {
   const { buses: prasaranaBuses } = await getPrasaranaBuses(c.env.KV);
 
   if (!route) {
-    const hasPrasarana = prasaranaBuses.some(b => b.route === routeId || b.route === routeId + '0');
+    // Optimization: Standard for loop instead of .some() to prevent per-request lambda allocations in hot path
+    let hasPrasarana = false;
+    for (let i = 0, len = prasaranaBuses.length; i < len; i++) {
+      const r = prasaranaBuses[i].route;
+      if (r === routeId || r === routeId + '0') {
+        hasPrasarana = true;
+        break;
+      }
+    }
     if (!hasPrasarana) return c.json({ error: 'Route not found' }, 404);
     route = { id: routeId, shortName: routeId, longName: '', type: 3 } as any;
   }
