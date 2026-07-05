@@ -47,3 +47,6 @@
 ## 2024-06-27 - Inline Lambda Allocations in Hot Paths
 **Learning:** Replacing native array methods (`.find()`, `.findIndex()`, `.some()`) that accept inline lambda functions with standard `for` loops inside heavily repeated hot paths eliminates per-iteration memory allocations, reducing garbage collection overhead.
 **Action:** When working in hot execution paths (like nested loops over thousands of transit trips), prefer standard loops over higher-order array functions to avoid continuous closure allocations. Always document these micro-optimizations with inline comments explaining the rationale.
+## 2023-11-20 - Concurrent DB Batches
+**Learning:** Sequential await loops for DB batch operations cause unnecessary I/O waits, creating an N+1 bottleneck when there are many batches.
+**Action:** Replaced sequential `await` loops inside chunked iterators with a `Promise.all` mapping over the array of promises, ensuring batch statements are sent to the database concurrently for significantly faster bulk operations.

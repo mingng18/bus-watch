@@ -422,13 +422,15 @@ export async function aggregateTravelTimes(
   );
 
   // Chunk to stay under D1's per-batch limit.
+  const batchPromises = [];
   for (let i = 0; i < upsertStmts.length; i += 100) {
-    try {
-      await env.DB.batch(upsertStmts.slice(i, i + 100));
-    } catch (err) {
-      console.error('aggregateTravelTimes: upsert batch failed:', err);
-    }
+    batchPromises.push(
+      env.DB.batch(upsertStmts.slice(i, i + 100)).catch(err => {
+        console.error('aggregateTravelTimes: upsert batch failed:', err);
+      })
+    );
   }
+  await Promise.all(batchPromises);
 }
 
 
