@@ -33,6 +33,7 @@ struct AlertsView: View {
                     Image(systemName: "exclamationmark.triangle")
                         .font(.title2)
                         .foregroundStyle(.red)
+                        .accessibilityHidden(true)
                     Text(message)
                         .font(.caption2)
                     Button("Retry") {
