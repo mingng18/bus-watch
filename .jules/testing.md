@@ -19,3 +19,5 @@
 ## 2024-06-19 - Extracted parsing logic in fetchAndParseAgency
 **Learning:** Refactored a monolithic gtfs parsing function into independent helper functions (`parseStops`, `parseRoutes`, `parseTrips`, `parseTripStops`) to improve code health without changing functionality.
 **Action:** Created dedicated pure-ish functions that accept raw extracted arrays and map directly to structured objects, minimizing side-effects inside the main data-fetching control flow.
+## 2024-05-19 - Use explicit TypeScript interfaces over `any` types for better Code Health
+**Action:** Replaced `any[]` and `Record<string, any[]>` types in `backend/src/frequency.ts` with explicit domain interfaces (`Trip`, `TripStopEntry`, `Route`, `CalendarEntry`, `Frequency`, `Departure`) to improve maintainability, readability, and leverage TypeScript's static type checking.
