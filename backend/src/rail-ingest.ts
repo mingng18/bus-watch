@@ -21,9 +21,8 @@ async function batch(db: D1Database, stmts: D1PreparedStatement[]): Promise<void
   }
 }
 
-export async function ingestRailTimetables(env: Env): Promise<{ inserted: number; error?: string }> {
-  let inserted = 0;
 
+async function fetchAndParseGtfsData() {
   // 1. Download GTFS ZIP
   let files;
   try {
@@ -45,6 +44,18 @@ export async function ingestRailTimetables(env: Env): Promise<{ inserted: number
   const rawRoutes   = parseCsv(getFile('routes.txt'));
   const rawTrips    = parseCsv(getFile('trips.txt'));
   const rawStopTimes = parseCsv(getFile('stop_times.txt'));
+
+  return { rawStops, rawRoutes, rawTrips, rawStopTimes };
+}
+
+async function mapAndInsertGtfsData(
+  env: Env,
+  rawStops: Record<string, string>[],
+  rawRoutes: Record<string, string>[],
+  rawTrips: Record<string, string>[],
+  rawStopTimes: Record<string, string>[]
+): Promise<number> {
+  let inserted = 0;
 
   // 3. Filter: only keep rail route types (0=tram, 1=subway, 2=rail)
   const railRouteIds = new Set(
@@ -114,6 +125,16 @@ export async function ingestRailTimetables(env: Env): Promise<{ inserted: number
     );
   await batch(env.DB, stStmts);
   inserted += stStmts.length;
+
+  return inserted;
+}
+
+
+
+export async function ingestRailTimetables(env: Env): Promise<{ inserted: number; error?: string }> {
+  // Let exceptions from fetchAndParseGtfsData bubble up, which is what the tests expect
+  const { rawStops, rawRoutes, rawTrips, rawStopTimes } = await fetchAndParseGtfsData();
+  const inserted = await mapAndInsertGtfsData(env, rawStops, rawRoutes, rawTrips, rawStopTimes);
 
   // 8. Update ingest metadata
   const now = new Date().toISOString();
