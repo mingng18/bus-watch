@@ -50,7 +50,3 @@
 ## 2025-02-12 - Prevent lambda allocation in .find() hot paths
 **Learning:** In heavily repeated request handlers (like bus position and ETA), using `Array.prototype.find()` with an inline lambda function allocates a new function per invocation, causing GC overhead. Building a `Map` dynamically per request is even slower (79.48 µs vs 15.27 µs for `.find()`).
 **Action:** Replace `Array.prototype.find()` in hot array lookups (`vehicles`, `buses`) with standard `for` loops. This reduced execution time to ~13.85 µs and eliminated intermediate lambda allocations.
-
-## 2023-11-20 - Concurrent DB Batches
-**Learning:** Sequential await loops for DB batch operations cause unnecessary I/O waits, creating an N+1 bottleneck when there are many batches.
-**Action:** Replaced sequential `await` loops inside chunked iterators with a `Promise.all` mapping over the array of promises, ensuring batch statements are sent to the database concurrently for significantly faster bulk operations.
