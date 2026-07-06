@@ -369,12 +369,26 @@ export async function aggregateTravelTimes(
   if (rows.length === 0) return;
 
   // Group positions by (route, bus_no) so each trace is one bus's path.
+  // The query orders by route, bus_no, so consecutive rows usually share the same key.
+  // We cache the last key and array to skip expensive Map lookups in the hot loop.
   const traces = new Map<string, PositionSample[]>();
+  let lastKey = '';
+  let lastArr: PositionSample[] | null = null;
+
   for (const r of rows) {
     const key = `${r.route}|${r.bus_no}`;
-    let arr = traces.get(key);
-    if (!arr) traces.set(key, arr = []);
-    arr.push(r);
+    if (key === lastKey) {
+      lastArr!.push(r);
+    } else {
+      let arr = traces.get(key);
+      if (!arr) {
+        arr = [];
+        traces.set(key, arr);
+      }
+      arr.push(r);
+      lastKey = key;
+      lastArr = arr;
+    }
   }
 
   const allSamples: TravelTimeSample[] = [];

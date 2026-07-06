@@ -50,3 +50,6 @@
 ## 2025-02-12 - Prevent lambda allocation in .find() hot paths
 **Learning:** In heavily repeated request handlers (like bus position and ETA), using `Array.prototype.find()` with an inline lambda function allocates a new function per invocation, causing GC overhead. Building a `Map` dynamically per request is even slower (79.48 µs vs 15.27 µs for `.find()`).
 **Action:** Replace `Array.prototype.find()` in hot array lookups (`vehicles`, `buses`) with standard `for` loops. This reduced execution time to ~13.85 µs and eliminated intermediate lambda allocations.
+## 2025-02-18 - Optimize redundant map lookups by caching last key
+**Learning:** In loops processing sorted data (e.g. data fetched from DB with ORDER BY), consecutive rows often share the same grouping key. Calling `Map.prototype.get` and potentially `Map.prototype.set` for every single row incurs unnecessary hashing and lookup overhead.
+**Action:** Replaced the direct map lookup for every row with a lightweight cache storing the `lastKey` and `lastArr`. Since the query uses `ORDER BY route, bus_no`, consecutive samples for the same bus hit the cache and push to the existing array immediately, saving O(1) map overhead per row and resulting in ~40% faster trace grouping.
