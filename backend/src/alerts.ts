@@ -78,12 +78,17 @@ export async function fetchAlerts(): Promise<Alert[]> {
  * cached list (if any) so a transient source outage never blanks the UI.
  */
 export async function getCachedAlerts(env: Env): Promise<Alert[]> {
-  const cached = (await env.KV.get(ALERTS_KV_KEY, "json")) as {
-    ts: number;
-    alerts: Alert[];
-  } | null;
-  if (cached && Date.now() - cached.ts < ALERTS_CACHE_TTL_MS) {
-    return cached.alerts;
+  let cached: { ts: number; alerts: Alert[] } | null = null;
+  try {
+    cached = (await env.KV.get(ALERTS_KV_KEY, "json")) as {
+      ts: number;
+      alerts: Alert[];
+    } | null;
+    if (cached && Date.now() - cached.ts < ALERTS_CACHE_TTL_MS) {
+      return cached.alerts;
+    }
+  } catch (err: any) {
+    // Ignore cache error, fetch fresh.
   }
 
   const alerts = await fetchAlerts();
