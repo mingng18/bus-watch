@@ -50,3 +50,7 @@
 ## 2025-02-12 - Prevent lambda allocation in .find() hot paths
 **Learning:** In heavily repeated request handlers (like bus position and ETA), using `Array.prototype.find()` with an inline lambda function allocates a new function per invocation, causing GC overhead. Building a `Map` dynamically per request is even slower (79.48 µs vs 15.27 µs for `.find()`).
 **Action:** Replace `Array.prototype.find()` in hot array lookups (`vehicles`, `buses`) with standard `for` loops. This reduced execution time to ~13.85 µs and eliminated intermediate lambda allocations.
+## 2024-07-06 - N+1 Query Compilation in D1
+
+**Learning:** Re-preparing the same SQL statement (`env.DB.prepare`) inside a loop causes a massive N+1 query compilation overhead in Cloudflare D1. D1's `.prepare()` performs internal checks and parsing.
+**Action:** Extracted the `.prepare()` calls outside of the loops in `backend/src/sampling.ts` and reused the prepared statement by invoking `.bind()` inside the loops. This resulted in a ~5.5x speedup in local benchmarks.

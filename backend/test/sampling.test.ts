@@ -82,11 +82,12 @@ describe('sampling logic', () => {
 
     await sampleBusPositions(env, vehicles, []);
 
-    // No INSERT should have been prepared (the only prepare call is the
-    // last-position SELECT).
-    const sqls = prepareMock.mock.calls.map(c => c[0] as string);
-    const insertCalls = sqls.filter(s => /INSERT INTO bus_positions/.test(s));
-    expect(insertCalls.length).toBe(0);
+    // The INSERT queries are prepared unconditionally now for performance,
+    // but they shouldn't be executed (bind not called on them, or batch not called).
+    // The only batch call would be if stmts had items.
+    expect((env.DB.batch as any).mock.calls.length).toBe(0);
+    // Alternatively, ensure `bindMock` was not called (or rather, we know it's skipped).
+    expect(bindMock).not.toHaveBeenCalled();
   });
 
   it('aggregateTravelTimes returns early and logs error if DB fetch fails', async () => {
