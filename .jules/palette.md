@@ -13,6 +13,15 @@
 ## 2024-06-21 - Fix VoiceOver truncation in .combine containers
 **Learning:** Applying an explicit `.accessibilityLabel` to a container that uses `.accessibilityElement(children: .combine)` overrides the combined text, causing VoiceOver to omit the children's contents completely.
 **Action:** When a combined label needs custom text (like severity prefixes), use `.accessibilityElement(children: .ignore)` and construct a unified `accessibilityLabel` string that includes all necessary details from the children to avoid data loss.
-## 2024-06-23 - Hide non-functional deep links on watchOS
-**Learning:** `UIApplication.openSettingsURLString` is not available on watchOS, so wrapping it in `#if !os(watchOS)` leaves a broken, unresponsive button in the UI.
-**Action:** When a system capability isn't available on the current platform, provide text instructions instead of rendering a non-functional button.
+## 2024-06-29 - Replace generic static text with ProgressView
+**Learning:** In SwiftUI, replace generic `Text('Loading...')` placeholders with `ProgressView('Loading...')` to provide standardized, native visual feedback for asynchronous loading states. This makes it immediately obvious to users that the app is actively loading data and automatically provides appropriate accessibility traits.
+**Action:** Always use `ProgressView` instead of static `Text` for loading states to improve user feedback and accessibility.
+## 2024-07-04 - watchOS Dead Button Fallback
+**Learning:** `UIApplication.openSettingsURLString` is not available on watchOS, leading to silent, unresponsive "Open Settings" buttons if unconditionally rendered.
+**Action:** Use platform guards (`#if canImport(UIKit) && !os(watchOS)`) and explicitly render a fallback text instruction (`#elseif os(watchOS)`) explaining how the user can enable settings manually on watchOS, instead of just removing the button or leaving it dead.
+## 2024-08-01 - Prefer Label for icon-only buttons
+**Learning:** In SwiftUI, icon-only toolbar buttons using `Image(systemName:)` require an explicit `.accessibilityLabel()`. However, using a `Label` with `.labelStyle(.iconOnly)` automatically provides the label text to VoiceOver, making a manual accessibility label redundant and reducing boilerplate.
+**Action:** Always use `Label("Text", systemImage: "icon").labelStyle(.iconOnly)` for icon-only buttons instead of manually adding accessibility labels to Images to improve code consistency and automatic accessibility.
+## 2024-07-06 - watchOS dead button fallback via explicit text
+**Learning:** `UIApplication.openSettingsURLString` is not available on watchOS, so unconditionally rendering a button for it results in a dead interface.
+**Action:** Use platform guards (`#if os(watchOS)`) to render fallback text instructions and put the button inside an `#else` block.

@@ -1,7 +1,7 @@
 import { Env } from './types';
 import { toKlLocal } from './time-kl';
 
-export interface RailArrival {
+interface RailArrival {
   trip_id: string;
   route_short_name: string;
   route_long_name: string;
@@ -10,14 +10,14 @@ export interface RailArrival {
   minutes_until: number;
 }
 
-export interface RailScheduleResponse {
+interface RailScheduleResponse {
   stop_id: string;
   stop_name: string;
   arrivals: RailArrival[];
   stale?: boolean; // true if ingest metadata is older than 8 days
 }
 
-export interface RailStopResult {
+interface RailStopResult {
   stop_id: string;
   stop_name: string;
   lat: number;

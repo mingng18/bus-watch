@@ -29,14 +29,14 @@ struct MainView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button(action: { showAlerts = true }) {
-                    Image(systemName: "exclamationmark.bubble")
+                    Label("Service alerts", systemImage: "exclamationmark.bubble")
+                        .labelStyle(.iconOnly)
                 }
-                .accessibilityLabel("Service alerts")
             }
             ToolbarItem(placement: .cancellationAction) {
                 Button(action: { showManual = true }) {
-                    Image(systemName: "list.bullet")
-                        .accessibilityLabel("Manual Selection")
+                    Label("Manual Selection", systemImage: "list.bullet")
+                        .labelStyle(.iconOnly)
                 }
             }
             // Deep link into Prasarana's Journey Planner so riders can plan a
@@ -66,6 +66,7 @@ struct MainView: View {
         VStack(spacing: 12) {
             Image(systemName: "location.slash")
                 .font(.title2)
+                .accessibilityHidden(true)
             Text("Location access needed")
                 .font(.caption)
                 .multilineTextAlignment(.center)
@@ -99,6 +100,7 @@ struct MainView: View {
             Image(systemName: "exclamationmark.triangle")
                 .font(.title2)
                 .foregroundStyle(.red)
+                .accessibilityHidden(true)
             Text(message)
                 .font(.caption)
             Button("Retry") {
