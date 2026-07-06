@@ -53,7 +53,7 @@ function validateLatLon(lat: number, lon: number): string | null {
 app.post('/refresh', async (c) => {
   const authHeader = c.req.header('Authorization');
   const expectedToken = `Bearer ${c.env.ADMIN_TOKEN}`;
-  if (!c.env.ADMIN_TOKEN || !authHeader) {
+  if (!c.env.ADMIN_TOKEN || !authHeader || authHeader.length !== expectedToken.length) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
   const isMatch = await timingSafeEqual(authHeader, expectedToken);
@@ -367,7 +367,7 @@ app.get('/rail/schedule', async (c) => {
 app.post('/rail/ingest', async (c) => {
   const authHeader = c.req.header('Authorization');
   const expectedToken = `Bearer ${c.env.ADMIN_TOKEN}`;
-  if (!c.env.ADMIN_TOKEN || !authHeader) {
+  if (!c.env.ADMIN_TOKEN || !authHeader || authHeader.length !== expectedToken.length) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
   const isMatch = await timingSafeEqual(authHeader, expectedToken);
