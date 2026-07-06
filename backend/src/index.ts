@@ -97,14 +97,19 @@ app.get('/nearby', async (c) => {
   // Enrich bus arrivals with historical ETA when available
   // Collect all unique route-stop pairs
   const queries: { route: string; stopId: string }[] = [];
-  const seenQueries = new Set<string>();
+  // Use a Map of Sets for faster membership checking without building strings
+  const seenQueries = new Map<string, Set<string>>();
   for (const stop of result) {
     if (stop.type === 'bus') {
+      let stopSeen = seenQueries.get(stop.id);
+      if (!stopSeen) {
+        stopSeen = new Set<string>();
+        seenQueries.set(stop.id, stopSeen);
+      }
       for (const arrival of stop.arrivals) {
         if (arrival.route) {
-          const key = `${arrival.route}-${stop.id}`;
-          if (!seenQueries.has(key)) {
-            seenQueries.add(key);
+          if (!stopSeen.has(arrival.route)) {
+            stopSeen.add(arrival.route);
             queries.push({ route: arrival.route, stopId: stop.id });
           }
         }
@@ -119,7 +124,7 @@ app.get('/nearby', async (c) => {
       if (stop.type === 'bus') {
         for (const arrival of stop.arrivals) {
           if (arrival.route) {
-            const key = `${arrival.route}-${stop.id}`;
+            const key = arrival.route + '-' + stop.id;
             const eta = etas.get(key);
             if (eta) {
               // Only let the historical estimate override the live distance-
