@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA9E8284560E58F6174A53D9 /* ContextEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFD4A2B974151B08C7DBB2F0 /* ContextEngineTests.swift */; };
 		008048A267FC22116C9D1BB9 /* FavoriteStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D1724C45852F288A8E5D67B /* FavoriteStore.swift */; };
 		04B1911148FE652AB32F0FD7 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA23D7007211D6374E78CEBB /* LocationManager.swift */; };
 		0AA434EB051E74BD6DDB0692 /* NearbyResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9119CEEDDA6CF6EEC99A61D /* NearbyResponse.swift */; };
@@ -84,6 +85,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		FFD4A2B974151B08C7DBB2F0 /* ContextEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextEngineTests.swift; sourceTree = "<group>"; };
 		0201780118097EB4794658BD /* ScheduleCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleCacheTests.swift; sourceTree = "<group>"; };
 		06C7A620AA96C75AF147E067 /* WatchKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchKit.framework; path = System/Library/Frameworks/WatchKit.framework; sourceTree = SDKROOT; };
 		0C9182C1585161C48872BE9C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -265,6 +267,7 @@
 			children = (
 				334E0D65B5CD21F0D1DA369F /* AlertTests.swift */,
 				CF8CFC561458D130999433FD /* ContextEngineRefreshTimerTests.swift */,
+				FFD4A2B974151B08C7DBB2F0 /* ContextEngineTests.swift */,
 				15E59554D807808701FB9CA1 /* CountdownResolverTests.swift */,
 				FC0372CE38EE878F810F9C45 /* DeparturesTowardViewTests.swift */,
 				EB36B0779CD1EA4C52BA132E /* FavoriteStoreTests.swift */,
@@ -429,6 +432,7 @@
 			files = (
 				8716E5F77E1B073993C15FD5 /* AlertTests.swift in Sources */,
 				12346F46C5E13A7AAE0F9651 /* ContextEngineRefreshTimerTests.swift in Sources */,
+				AA9E8284560E58F6174A53D9 /* ContextEngineTests.swift in Sources */,
 				935B7750E57B68C4A427DAF2 /* CountdownResolverTests.swift in Sources */,
 				F094818FD43F316C008EA6D8 /* DeparturesTowardViewTests.swift in Sources */,
 				67282E8DD2D0CA451A52963C /* FavoriteStoreTests.swift in Sources */,
