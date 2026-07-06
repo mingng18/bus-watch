@@ -23,3 +23,7 @@
 **Vulnerability:** Manual length checking and string padding used alongside `timingSafeEqual` introduces unnecessary complexity and potential side channels.
 **Learning:** `hono/utils/buffer`'s `timingSafeEqual` securely handles strings of differing lengths by internally hashing them before comparison.
 **Prevention:** Rely on the built-in properties of robust cryptographic comparison functions (like Hono's `timingSafeEqual`) instead of attempting manual length-matching workarounds, which can often inadvertently introduce new side channels or bugs.
+## 2024-05-18 - CORS Wildcard Origin Fallback
+**Vulnerability:** The backend's CORS configuration used a hardcoded local development URL ('http://localhost:8081') as a fallback origin when `FRONTEND_URL` environment variable is absent. This could allow attackers to exploit local ports to bypass CORS protections if the variable is unset.
+**Learning:** The `FRONTEND_URL` fallback for CORS origins should always be an empty string, not a local URL, to prevent overly permissive CORS rules.
+**Prevention:** Always configure `origin` to fallback to an empty string (`c.env.FRONTEND_URL || ''`) instead of local domains in serverless environments.
