@@ -2,3 +2,6 @@
 **Vulnerability:** The application used Hono's `timingSafeEqual` function to compare the incoming `Authorization` header against the expected token. However, if the strings provided to `timingSafeEqual` are of different lengths, it might leak length information or process in varying times. This exposes a timing side-channel that an attacker could use to infer the expected token length.
 **Learning:** Always ensure that strings passed to timing-safe comparison functions (which often expect equal-length buffers) are checked for equal length first, especially if the underlying function doesn't handle length mismatches safely. The length of a server admin token is generally not considered sensitive information that needs to be protected from disclosure via timing attacks.
 **Prevention:** Implement a strict length check (`authHeader.length !== expectedToken.length`) before calling `timingSafeEqual`, returning an unauthorized response immediately if the lengths differ.
+## 2026-07-06 - Remove redundant length check before timingSafeEqual
+**Learning:** `hono/utils/buffer`'s `timingSafeEqual` securely handles strings of differing lengths natively by internally hashing them before comparison.
+**Action:** Removed the manual length check before calling `timingSafeEqual`, as it conflicted with existing security notes and was unnecessary.
