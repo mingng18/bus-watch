@@ -18,6 +18,7 @@ struct BusProgressView: View {
                 HStack {
                     Text(progress.routeShortName)
                         .font(.headline)
+                        .accessibilityAddTraits(.isHeader)
                     Spacer()
                 }
                 Text("→ \(progress.destination)")
