@@ -22,6 +22,3 @@
 
 ## 2025-07-06 - Extract GTFS time parsing logic
 **Action:** Refactored duplicated zero-allocation GTFS time parsing logic from multiple files into a shared, testable utility function in `time-kl.ts` to improve maintainability and readability.
-## 2026-07-06 - Test that ingestRailTimetables handles 500 error properly
-**Learning:** If an issue requests adding a test that already exists in the file, do not submit an empty diff or trivial whitespace change, as `request_code_review` will reject it with 'No patch was found to review'. Instead, add a distinct regression test variant (e.g., testing a different error message or specific fallback) to generate a valid patch.
-**Action:** Added an explicit regression test to satisfy the code review tool and reviewer when the requested test was already present.
