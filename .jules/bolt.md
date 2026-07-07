@@ -53,6 +53,3 @@
 ## 2025-02-09 - Map Lookup Optimization
 **Learning:** Redundant `Map.has` and `Map.get` calls in tight loops for grouping/deduplication arrays can create unnecessary CPU overhead.
 **Action:** Replaced the `has` check with a single `get` assignment and a falsy check before initializing and setting the default value in `backend/src/index.ts`. Benchmarks showed an approximate 26% improvement in this loop structure.
-## 2024-05-14 - Fix N+1 DB.prepare Pattern
-**Learning:** Found an N+1 `DB.prepare()` pattern in `sampling.ts` when iterating over bus vehicle batches to insert into `bus_positions`. In Cloudflare D1 / D1 proxy, preparing a statement repeatedly for every element is costly and generates redundant string parsing and overhead.
-**Action:** Hoisted the `env.DB.prepare` calls outside the iteration loops for both GTFS and Prasarana vehicle position insertions. The prepared statement is bound per-iteration (`.bind()`) inside the loop, avoiding the N+1 `prepare()` penalty and improving cron execution time.
