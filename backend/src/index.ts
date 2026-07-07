@@ -24,7 +24,7 @@ const AGENCIES = [...REALTIME_AGENCIES, ...SELANGOR_AGENCIES];
 
 const app = new Hono<{ Bindings: Env }>();
 app.use('*', secureHeaders());
-app.use('*', cors({ origin: (origin, c) => c.env.FRONTEND_URL || 'http://localhost:8081' }));
+app.use('*', cors({ origin: (origin, c) => c.env.FRONTEND_URL || '' }));
 
 app.get('/', (c) => c.json({ status: 'ok', service: 'bus-watch' }));
 
@@ -501,8 +501,11 @@ app.get('/route/:routeId', async (c) => {
         // Group by bus_no to get per-bus traces
         const groups = new Map<string, [number, number][]>();
         for (const row of posRows) {
-          if (!groups.has(row.bus_no)) groups.set(row.bus_no, []);
-          const pts = groups.get(row.bus_no)!;
+          let pts = groups.get(row.bus_no);
+          if (!pts) {
+            pts = [];
+            groups.set(row.bus_no, pts);
+          }
           // Deduplicate: only add if >50m from last point
           const last = pts[pts.length - 1];
           if (!last || haversineDistance(last[0], last[1], row.lat, row.lon) > 50) {
