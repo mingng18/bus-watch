@@ -19,6 +19,7 @@ struct StationArrivalsView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text(stop.name)
                     .font(.headline)
+                    .accessibilityAddTraits(.isHeader)
 
                 favoriteControls
                     .padding(.top, 2)
