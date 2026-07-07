@@ -1,7 +1,7 @@
 import XCTest
 @testable import BusWatch
 
-class MockURLProtocol: URLProtocol {
+class APIClientMockURLProtocol: URLProtocol {
     static var requestHandler: ((URLRequest) throws -> (HTTPURLResponse, Data))?
 
     override class func canInit(with request: URLRequest) -> Bool {
@@ -13,7 +13,7 @@ class MockURLProtocol: URLProtocol {
     }
 
     override func startLoading() {
-        guard let handler = MockURLProtocol.requestHandler else {
+        guard let handler = APIClientMockURLProtocol.requestHandler else {
             XCTFail("Received unexpected request with no handler set")
             return
         }
@@ -39,14 +39,14 @@ final class APIClientTests: XCTestCase {
         super.setUp()
 
         let configuration = URLSessionConfiguration.ephemeral
-        configuration.protocolClasses = [MockURLProtocol.self]
+        configuration.protocolClasses = [APIClientMockURLProtocol.self]
         session = URLSession(configuration: configuration)
 
         sut = APIClient(baseURL: "https://test.api", session: session)
     }
 
     override func tearDown() {
-        MockURLProtocol.requestHandler = nil
+        APIClientMockURLProtocol.requestHandler = nil
         sut = nil
         session = nil
         super.tearDown()
@@ -68,7 +68,7 @@ final class APIClientTests: XCTestCase {
         }
         """.data(using: .utf8)!
 
-                MockURLProtocol.requestHandler = { request in
+                APIClientMockURLProtocol.requestHandler = { request in
             guard let url = request.url,
                   let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
                 XCTFail("Invalid URL")
@@ -111,7 +111,7 @@ final class APIClientTests: XCTestCase {
         }
         """.data(using: .utf8)!
 
-        MockURLProtocol.requestHandler = { request in
+        APIClientMockURLProtocol.requestHandler = { request in
             XCTAssertEqual(request.url?.absoluteString, "https://test.api/station/stop1/schedule")
             let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
             return (response, expectedJSON)
@@ -149,7 +149,7 @@ final class APIClientTests: XCTestCase {
 
     func testBadResponseStatusCode() async {
         // Given
-        MockURLProtocol.requestHandler = { request in
+        APIClientMockURLProtocol.requestHandler = { request in
             let response = HTTPURLResponse(url: request.url!, statusCode: 404, httpVersion: nil, headerFields: nil)!
             return (response, Data())
         }
@@ -168,7 +168,7 @@ final class APIClientTests: XCTestCase {
 
     func testNetworkError() async {
         // Given
-        MockURLProtocol.requestHandler = { request in
+        APIClientMockURLProtocol.requestHandler = { request in
             throw URLError(.notConnectedToInternet)
         }
 
