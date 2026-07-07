@@ -14,6 +14,7 @@ struct DeparturesTowardView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text(stopName)
                     .font(.headline)
+                    .accessibilityAddTraits(.isHeader)
 
                 Text("→ \(destinationName)")
                     .font(.caption)

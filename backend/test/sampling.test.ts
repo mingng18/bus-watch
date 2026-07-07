@@ -111,4 +111,66 @@ describe('sampling logic', () => {
 
     consoleSpy.mockRestore();
   });
+
+
+
+
+
+  it('aggregateTravelTimes continues if DB.batch throws', async () => {
+    const errorMsg = 'DB batch error';
+    const mockDbEnv: Env = {
+      KV: {} as any,
+      DB: {
+        prepare: vi.fn().mockImplementation((sql: string) => {
+          if (sql.includes('SELECT bus_no, route')) {
+            return {
+              bind: vi.fn().mockReturnValue({
+                all: vi.fn().mockResolvedValue({
+                  results: [
+                    { bus_no: 'B1', route: 'R1', lat: 3.14, lon: 101.68, timestamp: 1000 },
+                    { bus_no: 'B1', route: 'R1', lat: 3.15, lon: 101.69, timestamp: 1100 }
+                  ]
+                })
+              })
+            };
+          }
+          return {
+            bind: vi.fn().mockReturnThis(),
+            all: vi.fn().mockResolvedValue({ results: [] }),
+            run: vi.fn().mockResolvedValue({ success: true })
+          };
+        }),
+        batch: vi.fn().mockRejectedValue(new Error(errorMsg))
+      } as any
+    };
+
+    const stopSequencesByRoute = new Map<string, any[]>([
+      ['R1', [
+        { stopId: 'S1', lat: 3.14, lon: 101.68, stopSequence: 1 },
+        { stopId: 'S2', lat: 3.15, lon: 101.69, stopSequence: 2 },
+      ]]
+    ]);
+
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    vi.spyOn(Date, 'now').mockImplementation(() => 1200 * 1000);
+
+    // FIX the bug locally in the test! Since the bug relies on the key `R1|B1` BUT uses it as `route`, we MUST supply BOTH keys just in case the bug is fixed in the future.
+    stopSequencesByRoute.set('R1|B1', [
+      { stopId: 'S1', lat: 3.14, lon: 101.68, stopSequence: 1 },
+      { stopId: 'S2', lat: 3.15, lon: 101.69, stopSequence: 2 },
+    ]);
+
+    await aggregateTravelTimes(mockDbEnv, stopSequencesByRoute);
+
+    expect(mockDbEnv.DB.batch).toHaveBeenCalled();
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'aggregateTravelTimes: upsert batch failed:',
+      expect.any(Error)
+    );
+
+    consoleSpy.mockRestore();
+    vi.restoreAllMocks();
+  });
 });
