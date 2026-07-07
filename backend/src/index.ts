@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
 import { timingSafeEqual } from 'hono/utils/buffer';
+import { sha256 } from 'hono/utils/crypto';
 import { fetchAndParseAgency } from './gtfs-static';
 import { fetchVehiclePositions } from './gtfs-realtime';
 // @ts-ignore
@@ -56,7 +57,9 @@ app.post('/refresh', async (c) => {
   if (!c.env.ADMIN_TOKEN || !authHeader) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
-  const isMatch = await timingSafeEqual(authHeader, expectedToken);
+  const authHash = await sha256(authHeader);
+  const expectedHash = await sha256(expectedToken);
+  const isMatch = authHash && expectedHash && await timingSafeEqual(authHash, expectedHash);
 
   if (!isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -370,7 +373,9 @@ app.post('/rail/ingest', async (c) => {
   if (!c.env.ADMIN_TOKEN || !authHeader) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
-  const isMatch = await timingSafeEqual(authHeader, expectedToken);
+  const authHash = await sha256(authHeader);
+  const expectedHash = await sha256(expectedToken);
+  const isMatch = authHash && expectedHash && await timingSafeEqual(authHash, expectedHash);
 
   if (!isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
