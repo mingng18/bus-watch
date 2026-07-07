@@ -501,8 +501,11 @@ app.get('/route/:routeId', async (c) => {
         // Group by bus_no to get per-bus traces
         const groups = new Map<string, [number, number][]>();
         for (const row of posRows) {
-          if (!groups.has(row.bus_no)) groups.set(row.bus_no, []);
-          const pts = groups.get(row.bus_no)!;
+          let pts = groups.get(row.bus_no);
+          if (!pts) {
+            pts = [];
+            groups.set(row.bus_no, pts);
+          }
           // Deduplicate: only add if >50m from last point
           const last = pts[pts.length - 1];
           if (!last || haversineDistance(last[0], last[1], row.lat, row.lon) > 50) {
