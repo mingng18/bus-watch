@@ -23,3 +23,7 @@
 **Vulnerability:** Manual length checking and string padding used alongside `timingSafeEqual` introduces unnecessary complexity and potential side channels.
 **Learning:** `hono/utils/buffer`'s `timingSafeEqual` securely handles strings of differing lengths by internally hashing them before comparison.
 **Prevention:** Rely on the built-in properties of robust cryptographic comparison functions (like Hono's `timingSafeEqual`) instead of attempting manual length-matching workarounds, which can often inadvertently introduce new side channels or bugs.
+## 2026-07-07 - Insecure CORS Fallback Configuration
+**Vulnerability:** Hardcoded local development fallback (http://localhost:8081) in CORS origin configuration allowed potential bypass of CORS protections if the FRONTEND_URL environment variable was absent.
+**Learning:** Hardcoding local ports as default CORS origins in a production environment exposes the application to risks where attackers could exploit local networking setups or host a malicious site on the matching local port to perform unauthorized cross-origin requests.
+**Prevention:** Avoid fallback local ports in CORS configurations; if an environment variable is expected for CORS origin, provide a secure default such as an empty string or strict validation if not provided.
