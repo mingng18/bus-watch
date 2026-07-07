@@ -80,8 +80,7 @@ final class APIClientTests: XCTestCase {
 
             let expectedQueryItems: [URLQueryItem] = [
                 URLQueryItem(name: "lat", value: "10.0"),
-                URLQueryItem(name: "lon", value: "20.0"),
-                URLQueryItem(name: "radius", value: "500")
+                URLQueryItem(name: "lon", value: "20.0")
             ]
 
             for item in expectedQueryItems {

@@ -33,4 +33,15 @@ describe('CORS policy', () => {
     // It should NOT be '*'
     expect(res.headers.get('Access-Control-Allow-Origin')).not.toBe('*');
   });
+
+  it('does not fallback to localhost when FRONTEND_URL is not set', async () => {
+    const mockEnv = {} as any;
+    const req = new Request('http://localhost/', {
+      headers: { Origin: 'http://localhost:8081' }
+    });
+    const res = await worker.fetch(req, mockEnv);
+
+    // It should NOT be 'http://localhost:8081'
+    expect(res.headers.get('Access-Control-Allow-Origin')).not.toBe('http://localhost:8081');
+  });
 });
