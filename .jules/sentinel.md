@@ -23,7 +23,7 @@
 **Vulnerability:** Manual length checking and string padding used alongside `timingSafeEqual` introduces unnecessary complexity and potential side channels.
 **Learning:** `hono/utils/buffer`'s `timingSafeEqual` securely handles strings of differing lengths by internally hashing them before comparison.
 **Prevention:** Rely on the built-in properties of robust cryptographic comparison functions (like Hono's `timingSafeEqual`) instead of attempting manual length-matching workarounds, which can often inadvertently introduce new side channels or bugs.
-## 2024-05-18 - CORS Wildcard Origin Fallback
-**Vulnerability:** The backend's CORS configuration used a hardcoded local development URL ('http://localhost:8081') as a fallback origin when `FRONTEND_URL` environment variable is absent. This could allow attackers to exploit local ports to bypass CORS protections if the variable is unset.
-**Learning:** The `FRONTEND_URL` fallback for CORS origins should always be an empty string, not a local URL, to prevent overly permissive CORS rules.
-**Prevention:** Always configure `origin` to fallback to an empty string (`c.env.FRONTEND_URL || ''`) instead of local domains in serverless environments.
+## 2025-02-27 - Fix overly permissive CORS policy fallback (localhost)
+**Vulnerability:** The CORS policy in Hono used a hardcoded local development URL (`'http://localhost:8081'`) as a fallback when `c.env.FRONTEND_URL` was undefined. This meant attackers could run a malicious site on `localhost:8081` to bypass CORS protections.
+**Learning:** Hardcoding local development domains in production CORS middleware can expose the application to cross-origin attacks originating from users' own machines. A missing environment variable should degrade securely (i.e. to no access), rather than falling back to local development defaults.
+**Prevention:** Always use securely restrictive fallbacks (like an empty string `''` or a specifically crafted blocked state) instead of development defaults when configuring dynamic CORS policies.
