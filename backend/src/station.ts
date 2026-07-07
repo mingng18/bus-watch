@@ -1,6 +1,6 @@
 import { Stop, Route, Trip, TripStopEntry, CalendarEntry, StationScheduleResponse, Departure } from './types';
 import { getActiveServiceIds } from './gtfs-static';
-import { klSecondsSinceMidnight } from './time-kl';
+import { klSecondsSinceMidnight, parseGtfsTimeSeconds } from './time-kl';
 
 export function getStationSchedule(
   stopId: string,
@@ -47,15 +47,7 @@ export function getStationSchedule(
 
     const route = routeMap.get(trip.routeId);
 
-    // Performance optimization: Replace string split/map with faster zero-allocation index search
-    const time = stopEntry.departureTime;
-    const c1 = time.indexOf(':');
-    const c2 = time.indexOf(':', c1 + 1);
-    const h = parseInt(time.substring(0, c1), 10) || 0;
-    const m = parseInt(time.substring(c1 + 1, c2 !== -1 ? c2 : undefined), 10) || 0;
-    const s = c2 !== -1 ? parseInt(time.substring(c2 + 1), 10) || 0 : 0;
-
-    const depSeconds = h * 3600 + m * 60 + s;
+    const depSeconds = parseGtfsTimeSeconds(stopEntry.departureTime);
     const minutesUntil = Math.round((depSeconds - nowSeconds) / 60);
 
     departures.push({
