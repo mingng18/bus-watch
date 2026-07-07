@@ -48,3 +48,18 @@ export function klDateYyyyMmDd(date: Date): string {
   const d = String(kl.getUTCDate()).padStart(2, '0');
   return `${y}${m}${d}`;
 }
+
+/**
+ * Parses a GTFS time string (HH:MM:SS) into seconds since midnight.
+ * Uses a fast zero-allocation index search for performance.
+ * Note that GTFS times can exceed 24:00:00 for trips extending into the next day.
+ */
+export function parseGtfsTimeSeconds(time: string): number {
+  const c1 = time.indexOf(':');
+  const c2 = time.indexOf(':', c1 + 1);
+  const h = parseInt(time.substring(0, c1), 10) || 0;
+  const m = parseInt(time.substring(c1 + 1, c2 !== -1 ? c2 : undefined), 10) || 0;
+  const s = c2 !== -1 ? parseInt(time.substring(c2 + 1), 10) || 0 : 0;
+
+  return h * 3600 + m * 60 + s;
+}
