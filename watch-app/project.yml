@@ -90,6 +90,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.buswatch.watchapp.tests
+        GENERATE_INFOPLIST_FILE: YES
 
 schemes:
   BusWatchComplications:
