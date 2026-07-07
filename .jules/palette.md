@@ -22,3 +22,6 @@
 ## 2024-08-01 - Prefer Label for icon-only buttons
 **Learning:** In SwiftUI, icon-only toolbar buttons using `Image(systemName:)` require an explicit `.accessibilityLabel()`. However, using a `Label` with `.labelStyle(.iconOnly)` automatically provides the label text to VoiceOver, making a manual accessibility label redundant and reducing boilerplate.
 **Action:** Always use `Label("Text", systemImage: "icon").labelStyle(.iconOnly)` for icon-only buttons instead of manually adding accessibility labels to Images to improve code consistency and automatic accessibility.
+## 2025-01-20 - Add explicit accessibility header traits
+**Learning:** In SwiftUI, large bold text indicating the title or heading of a view isn't automatically recognized as a heading by VoiceOver. Screen reader users often rely on the rotor to navigate quickly between headings, and failing to mark main titles as headers degrades their navigation experience.
+**Action:** Always append `.accessibilityAddTraits(.isHeader)` to main `.font(.headline)` or title texts that serve as the heading for a view or section.
