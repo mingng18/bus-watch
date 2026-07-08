@@ -68,7 +68,7 @@ final class APIClientTests: XCTestCase {
         }
         """.data(using: .utf8)!
 
-                APIClientMockURLProtocol.requestHandler = { request in
+        APIClientMockURLProtocol.requestHandler = { request in
             guard let url = request.url,
                   let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
                 XCTFail("Invalid URL")
@@ -126,12 +126,6 @@ final class APIClientTests: XCTestCase {
 
     func testInvalidURLHandling() async {
         // Given
-        // We'll pass a stopId that breaks the URL string when combined with the path.
-        // Swift 5.9 URL(string:) handles spaces, but empty string or complex invalid chars might still fail parsing if not percent encoded (though we percent encode).
-        // To force invalidURL without relying on percent encoding (which fixes spaces), we can modify the APIClient to test makeURL throws, but it's easier to test the base URL being invalid or similar.
-        // Since `baseURL` + `path` is constructed, if we set an empty baseURL it might still form a relative URL.
-        // Let's create an APIClient with an invalid character in baseURL.
-
         let invalidClient = APIClient(baseURL: "https://test.api/invalid char", session: session)
 
         // When
