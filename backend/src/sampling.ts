@@ -92,6 +92,10 @@ export async function sampleBusPositions(env: Env, vehicles: VehiclePosition[], 
   }
   
   // Insert GTFS vehicles
+  const gtfsInsertStmt = env.DB.prepare(
+    `INSERT INTO bus_positions (bus_no, route, source, lat, lon, speed, timestamp)
+     VALUES (?, ?, ?, ?, ?, NULL, ?)`
+  );
   for (const v of vehicles) {
     if (!v.tripId || !v.routeId) continue;
     
@@ -100,14 +104,15 @@ export async function sampleBusPositions(env: Env, vehicles: VehiclePosition[], 
     const timedOut = last ? (now - last.ts) >= 300 : true;
     
     if (moved || timedOut) {
-      stmts.push(env.DB.prepare(
-        `INSERT INTO bus_positions (bus_no, route, source, lat, lon, speed, timestamp) 
-         VALUES (?, ?, ?, ?, ?, NULL, ?)`
-      ).bind(v.tripId, v.routeId, 'gtfs', v.lat, v.lon, v.timestamp));
+      stmts.push(gtfsInsertStmt.bind(v.tripId, v.routeId, 'gtfs', v.lat, v.lon, v.timestamp));
     }
   }
   
   // Insert Prasarana vehicles
+  const prasaInsertStmt = env.DB.prepare(
+    `INSERT INTO bus_positions (bus_no, route, source, lat, lon, speed, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`
+  );
   for (const b of prasaranaBuses) {
     const last = lastPositions.get(b.bus_no);
     
@@ -121,10 +126,7 @@ export async function sampleBusPositions(env: Env, vehicles: VehiclePosition[], 
     const timedOut = last ? (ts - last.ts) >= 300 : true;
     
     if (moved || timedOut) {
-      stmts.push(env.DB.prepare(
-        `INSERT INTO bus_positions (bus_no, route, source, lat, lon, speed, timestamp)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`
-      ).bind(b.bus_no, b.route, 'prasarana', b.latitude, b.longitude, b.speed, ts));
+      stmts.push(prasaInsertStmt.bind(b.bus_no, b.route, 'prasarana', b.latitude, b.longitude, b.speed, ts));
     }
   }
   
