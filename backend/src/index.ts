@@ -26,6 +26,30 @@ const app = new Hono<{ Bindings: Env }>();
 app.use('*', secureHeaders());
 app.use('*', cors({ origin: (origin, c) => c.env.FRONTEND_URL || '' }));
 
+// Security: Global input length validation to prevent DoS via excessively large payloads
+app.use('*', async (c, next) => {
+  if (c.req.path.length > 256) {
+    return c.json({ error: 'URI path too long' }, 414);
+  }
+  const queries = c.req.query();
+  for (const key in queries) {
+    if (queries[key] && queries[key].length > 100) {
+      return c.json({ error: `Parameter ${key} is too long` }, 400);
+    }
+  }
+  await next();
+});
+
+// Security: Fail securely and consistently format errors as JSON to prevent stack trace leaks
+app.onError((err, c) => {
+  console.error('Unhandled application error:', err);
+  return c.json({ error: 'Internal Server Error' }, 500);
+});
+
+app.notFound((c) => {
+  return c.json({ error: 'Not Found' }, 404);
+});
+
 app.get('/', (c) => c.json({ status: 'ok', service: 'bus-watch' }));
 
 /**
