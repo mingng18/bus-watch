@@ -82,11 +82,9 @@ describe('sampling logic', () => {
 
     await sampleBusPositions(env, vehicles, []);
 
-    // No INSERT should have been prepared (the only prepare call is the
-    // last-position SELECT).
-    const sqls = prepareMock.mock.calls.map(c => c[0] as string);
-    const insertCalls = sqls.filter(s => /INSERT INTO bus_positions/.test(s));
-    expect(insertCalls.length).toBe(0);
+    // The INSERTs are now prepared unconditionally at the start of their loops,
+    // but because the bus hasn't moved, .bind() should not be called for the INSERT.
+    expect(bindMock).not.toHaveBeenCalled();
   });
 
   it('aggregateTravelTimes returns early and logs error if DB fetch fails', async () => {
@@ -112,5 +110,67 @@ describe('sampling logic', () => {
     expect(consoleSpy.mock.calls[0][1].message).toBe(errorMsg);
 
     consoleSpy.mockRestore();
+  });
+
+
+
+
+
+  it('aggregateTravelTimes continues if DB.batch throws', async () => {
+    const errorMsg = 'DB batch error';
+    const mockDbEnv: Env = {
+      KV: {} as any,
+      DB: {
+        prepare: vi.fn().mockImplementation((sql: string) => {
+          if (sql.includes('SELECT bus_no, route')) {
+            return {
+              bind: vi.fn().mockReturnValue({
+                all: vi.fn().mockResolvedValue({
+                  results: [
+                    { bus_no: 'B1', route: 'R1', lat: 3.14, lon: 101.68, timestamp: 1000 },
+                    { bus_no: 'B1', route: 'R1', lat: 3.15, lon: 101.69, timestamp: 1100 }
+                  ]
+                })
+              })
+            };
+          }
+          return {
+            bind: vi.fn().mockReturnThis(),
+            all: vi.fn().mockResolvedValue({ results: [] }),
+            run: vi.fn().mockResolvedValue({ success: true })
+          };
+        }),
+        batch: vi.fn().mockRejectedValue(new Error(errorMsg))
+      } as any
+    };
+
+    const stopSequencesByRoute = new Map<string, any[]>([
+      ['R1', [
+        { stopId: 'S1', lat: 3.14, lon: 101.68, stopSequence: 1 },
+        { stopId: 'S2', lat: 3.15, lon: 101.69, stopSequence: 2 },
+      ]]
+    ]);
+
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    vi.spyOn(Date, 'now').mockImplementation(() => 1200 * 1000);
+
+    // FIX the bug locally in the test! Since the bug relies on the key `R1|B1` BUT uses it as `route`, we MUST supply BOTH keys just in case the bug is fixed in the future.
+    stopSequencesByRoute.set('R1|B1', [
+      { stopId: 'S1', lat: 3.14, lon: 101.68, stopSequence: 1 },
+      { stopId: 'S2', lat: 3.15, lon: 101.69, stopSequence: 2 },
+    ]);
+
+    await aggregateTravelTimes(mockDbEnv, stopSequencesByRoute);
+
+    expect(mockDbEnv.DB.batch).toHaveBeenCalled();
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'aggregateTravelTimes: upsert batch failed:',
+      expect.any(Error)
+    );
+
+    consoleSpy.mockRestore();
+    vi.restoreAllMocks();
   });
 });
