@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		008048A267FC22116C9D1BB9 /* FavoriteStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D1724C45852F288A8E5D67B /* FavoriteStore.swift */; };
 		04B1911148FE652AB32F0FD7 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA23D7007211D6374E78CEBB /* LocationManager.swift */; };
-		071343E2866E930C97EA3EDA /* APIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58F540569D88A04C61CF126E /* APIClientTests.swift */; };
 		0AA434EB051E74BD6DDB0692 /* NearbyResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9119CEEDDA6CF6EEC99A61D /* NearbyResponse.swift */; };
 		0F249E3F0FB7753692DDE4A2 /* CountdownViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD985B0AFA169D2F2B53A9D5 /* CountdownViews.swift */; };
 		0FFEB2057F81421C78BEF5CE /* Alert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1169157644BA148145F5B77A /* Alert.swift */; };
@@ -97,7 +96,6 @@
 		3A40775DF6CF3FA724842FE0 /* BusTripProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusTripProgress.swift; sourceTree = "<group>"; };
 		3D1724C45852F288A8E5D67B /* FavoriteStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteStore.swift; sourceTree = "<group>"; };
 		4F0A9870EB9E5F712DC55BCA /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
-		58F540569D88A04C61CF126E /* APIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = APIClientTests.swift; path = "watch-app/BusWatchTests/APIClientTests.swift"; sourceTree = SOURCE_ROOT; };
 		62F733BAAECBF1FC5EFAA930 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		65EBD009FF20DCCED6D0DC9A /* AlertsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertsView.swift; sourceTree = "<group>"; };
 		660B1B1D915AC221A4B4B533 /* StationArrivalsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationArrivalsView.swift; sourceTree = "<group>"; };
@@ -205,7 +203,6 @@
 				B7EBE68AFE1317D0AE0B1D8B /* BusWatchTests */,
 				13927479AC7291F46CAC4AC5 /* Frameworks */,
 				B4F69C6376210F090DCB4D78 /* Products */,
-				58F540569D88A04C61CF126E /* APIClientTests.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -438,7 +435,6 @@
 				2692D34E085A4A4C076C363F /* NotificationServiceTests.swift in Sources */,
 				70EC8754E53497421BF64466 /* ScheduleCacheTests.swift in Sources */,
 				431678AB1F2CC579E76BEAB1 /* SharedDefaultsTests.swift in Sources */,
-				071343E2866E930C97EA3EDA /* APIClientTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

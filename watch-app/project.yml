@@ -85,7 +85,7 @@ targets:
     platform: watchOS
     sources:
       - BusWatchTests
-      - BusWatchTests/APIClientTests.swift
+      - path: BusWatchTests/APIClientTests.swift
     dependencies:
       - target: BusWatch
     settings:
