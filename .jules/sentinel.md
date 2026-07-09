@@ -23,6 +23,10 @@
 **Vulnerability:** Manual length checking and string padding used alongside `timingSafeEqual` introduces unnecessary complexity and potential side channels.
 **Learning:** `hono/utils/buffer`'s `timingSafeEqual` securely handles strings of differing lengths by internally hashing them before comparison.
 **Prevention:** Rely on the built-in properties of robust cryptographic comparison functions (like Hono's `timingSafeEqual`) instead of attempting manual length-matching workarounds, which can often inadvertently introduce new side channels or bugs.
+## 2025-02-27 - Fix overly permissive CORS policy fallback (localhost)
+**Vulnerability:** The CORS policy in Hono used a hardcoded local development URL (`'http://localhost:8081'`) as a fallback when `c.env.FRONTEND_URL` was undefined. This meant attackers could run a malicious site on `localhost:8081` to bypass CORS protections.
+**Learning:** Hardcoding local development domains in production CORS middleware can expose the application to cross-origin attacks originating from users' own machines. A missing environment variable should degrade securely (i.e. to no access), rather than falling back to local development defaults.
+**Prevention:** Always use securely restrictive fallbacks (like an empty string `''` or a specifically crafted blocked state) instead of development defaults when configuring dynamic CORS policies.
 ## 2026-07-07 - Insecure CORS Fallback Configuration
 **Vulnerability:** Hardcoded local development fallback (http://localhost:8081) in CORS origin configuration allowed potential bypass of CORS protections if the FRONTEND_URL environment variable was absent.
 **Learning:** Hardcoding local ports as default CORS origins in a production environment exposes the application to risks where attackers could exploit local networking setups or host a malicious site on the matching local port to perform unauthorized cross-origin requests.
