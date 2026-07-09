@@ -22,6 +22,3 @@
 
 ## 2025-07-06 - Extract GTFS time parsing logic
 **Action:** Refactored duplicated zero-allocation GTFS time parsing logic from multiple files into a shared, testable utility function in `time-kl.ts` to improve maintainability and readability.
-## 2024-05-14 - Handle errors properly when extracting functions
-**Learning:** When extracting code from a function that returns an expected error object upon failure (e.g., returning `{ inserted: number; error: string }` rather than throwing), ensure the try-catch block inside the main controller preserves this behavior. Directly bubbling up network failures into an un-handled union return can cause hidden ReferenceErrors or unexpected TypeErrors further down the execution path if destructuring doesn't handle failures correctly.
-**Action:** When creating extracted helper functions, either design them to throw and be caught by the parent function's existing error handler, or explicitly handle and type the error return objects correctly. For this refactor, wrapping the helper calls in a try-catch and returning the error string in the expected object format resolved the issue and passed tests.

@@ -22,7 +22,6 @@ async function batch(db: D1Database, stmts: D1PreparedStatement[]): Promise<void
 }
 
 
-
 class IngestError extends Error {
   inserted: number;
   constructor(message: string, inserted: number) {
