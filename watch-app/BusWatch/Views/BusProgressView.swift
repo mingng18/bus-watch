@@ -36,9 +36,11 @@ struct BusProgressView: View {
                 HStack {
                     Spacer()
                     let remaining = progress.stops.filter { !$0.passed }.count
-                    Text("\(remaining) stops remaining")
+                    Text("\(remaining) stop\(remaining == 1 ? "" : "s") remaining")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
+                        .contentTransition(.numericText())
+                        .animation(.default, value: remaining)
                 }
             }
             .padding()
@@ -102,6 +104,7 @@ private struct TripStopRow: View {
 
             Text(stop.name)
                 .font(.caption)
+                .strikethrough(stop.passed && !stop.isCurrent)
                 .foregroundStyle(stop.passed && !stop.isCurrent ? Color.secondary : Color.white)
 
             Spacer()
