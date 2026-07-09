@@ -524,11 +524,22 @@ app.get('/route/:routeId', async (c) => {
       if (posRows && posRows.length > 0) {
         // Group by bus_no to get per-bus traces
         const groups = new Map<string, [number, number][]>();
+        // Performance optimization: Data is already sorted by bus_no.
+        // Cache lastKey and lastArr to prevent redundant map lookups.
+        let lastKey: string | null = null;
+        let lastArr: [number, number][] = [];
+
         for (const row of posRows) {
-          let pts = groups.get(row.bus_no);
-          if (!pts) {
-            pts = [];
-            groups.set(row.bus_no, pts);
+          let pts: [number, number][];
+          if (row.bus_no === lastKey) {
+            pts = lastArr;
+          } else {
+            pts = groups.get(row.bus_no) || [];
+            if (pts.length === 0) {
+              groups.set(row.bus_no, pts);
+            }
+            lastKey = row.bus_no;
+            lastArr = pts;
           }
           // Deduplicate: only add if >50m from last point
           const last = pts[pts.length - 1];
