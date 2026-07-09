@@ -416,9 +416,8 @@ export async function aggregateTravelTimes(
   // than being overwritten by the latest 6h window. A single D1 batch keeps
   // this atomic and bounded.
   const now = Math.floor(Date.now() / 1000);
-  const upsertStmts = aggregated.map(a =>
-    env.DB.prepare(
-      `INSERT INTO travel_times
+  const travelTimesPrepStmt = env.DB.prepare(
+    `INSERT INTO travel_times
          (route, from_stop_id, to_stop_id, from_lat, from_lon, to_lat, to_lon,
           avg_seconds, sample_count, updated_at, day_of_week, time_bucket, spread_seconds)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -430,8 +429,10 @@ export async function aggregateTravelTimes(
                                  + travel_times.spread_seconds * travel_times.sample_count)
                                 / (excluded.sample_count + travel_times.sample_count)),
          sample_count = travel_times.sample_count + excluded.sample_count,
-         updated_at = excluded.updated_at`,
-    ).bind(
+         updated_at = excluded.updated_at`
+  );
+  const upsertStmts = aggregated.map(a =>
+    travelTimesPrepStmt.bind(
       a.route, a.from_stop_id, a.to_stop_id, a.from_lat, a.from_lon, a.to_lat, a.to_lon,
       a.avg_seconds, a.sample_count, now, a.day_of_week, a.time_bucket, a.spread_seconds,
     ),
@@ -449,7 +450,7 @@ export async function aggregateTravelTimes(
         env.DB.batch(upsertStmts.slice(start, start + BATCH_SIZE)).catch(err => {
           console.error('aggregateTravelTimes: upsert batch failed:', err);
         })
-      );
+  );
     }
     await Promise.all(batchPromises);
   }

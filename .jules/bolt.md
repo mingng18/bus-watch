@@ -53,6 +53,12 @@
 ## 2025-02-09 - Map Lookup Optimization
 **Learning:** Redundant `Map.has` and `Map.get` calls in tight loops for grouping/deduplication arrays can create unnecessary CPU overhead.
 **Action:** Replaced the `has` check with a single `get` assignment and a falsy check before initializing and setting the default value in `backend/src/index.ts`. Benchmarks showed an approximate 26% improvement in this loop structure.
+## 2025-02-18 - Hoist Cloudflare D1 Prepared Statements
+**Learning:** Initializing Cloudflare D1 prepared statements (e.g., `env.DB.prepare(...)`) inside loop iterations like `.map()` causes significant N+1 compilation overhead because the query is unnecessarily recompiled per iteration.
+**Action:** Extract the `env.DB.prepare()` statements outside the loops. Keep the `.bind(...)` or execute portion inside the loop mapping, enabling the prepared statement to be reused correctly across iterations and significantly lowering overhead.
+## 2024-07-09 - Cache last key during Map aggregation of sorted arrays
+**Learning:** When grouping SQL result rows into a `Map` that were already ordered by the grouping key (`ORDER BY ...`), the loop consecutively inserts identical keys. Using `map.get()` repeatedly for consecutive rows generates redundant hash computations and map lookups overhead.
+**Action:** Track `lastKey` and `lastArr` during iteration, and bypass `map.get()` by pushing directly to `lastArr` when the current key strictly equals `lastKey`.
 ## 2025-02-18 - Optimize redundant map lookups by caching last key
 **Learning:** In loops processing sorted data (e.g. data fetched from DB with ORDER BY), consecutive rows often share the same grouping key. Calling `Map.prototype.get` and potentially `Map.prototype.set` for every single row incurs unnecessary hashing and lookup overhead.
 **Action:** Replaced the direct map lookup for every row with a lightweight cache storing the `lastKey` and `lastArr`. Since the query uses `ORDER BY route, bus_no`, consecutive samples for the same bus hit the cache and push to the existing array immediately, saving O(1) map overhead per row and resulting in ~40% faster trace grouping.
