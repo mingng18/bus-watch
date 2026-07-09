@@ -56,12 +56,6 @@
 ## 2025-02-18 - Hoist Cloudflare D1 Prepared Statements
 **Learning:** Initializing Cloudflare D1 prepared statements (e.g., `env.DB.prepare(...)`) inside loop iterations like `.map()` causes significant N+1 compilation overhead because the query is unnecessarily recompiled per iteration.
 **Action:** Extract the `env.DB.prepare()` statements outside the loops. Keep the `.bind(...)` or execute portion inside the loop mapping, enabling the prepared statement to be reused correctly across iterations and significantly lowering overhead.
-
 ## 2024-07-09 - Cache last key during Map aggregation of sorted arrays
 **Learning:** When grouping SQL result rows into a `Map` that were already ordered by the grouping key (`ORDER BY ...`), the loop consecutively inserts identical keys. Using `map.get()` repeatedly for consecutive rows generates redundant hash computations and map lookups overhead.
 **Action:** Track `lastKey` and `lastArr` during iteration, and bypass `map.get()` by pushing directly to `lastArr` when the current key strictly equals `lastKey`.
-
-## 2024-07-06 - N+1 Query Compilation in D1
-
-**Learning:** Re-preparing the same SQL statement (`env.DB.prepare`) inside a loop causes a massive N+1 query compilation overhead in Cloudflare D1. D1's `.prepare()` performs internal checks and parsing.
-**Action:** Extracted the `.prepare()` calls outside of the loops in `backend/src/sampling.ts` and reused the prepared statement by invoking `.bind()` inside the loops. This resulted in a ~5.5x speedup in local benchmarks.

@@ -82,9 +82,9 @@ describe('sampling logic', () => {
 
     await sampleBusPositions(env, vehicles, []);
 
-    // The INSERT queries are prepared unconditionally now for performance,
-    // but they shouldn't be executed (batch not called since no elements matched).
-    expect((env.DB.batch as any).mock.calls.length).toBe(0);
+    // The INSERTs are now prepared unconditionally at the start of their loops,
+    // but because the bus hasn't moved, .bind() should not be called for the INSERT.
+    expect(bindMock).not.toHaveBeenCalled();
   });
 
   it('aggregateTravelTimes returns early and logs error if DB fetch fails', async () => {

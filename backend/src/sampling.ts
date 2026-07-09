@@ -92,7 +92,6 @@ export async function sampleBusPositions(env: Env, vehicles: VehiclePosition[], 
   }
   
   // Insert GTFS vehicles
-  // Performance optimization: prepare statement outside the loop to prevent D1 query parsing overhead on every iteration
   const gtfsInsertStmt = env.DB.prepare(
     `INSERT INTO bus_positions (bus_no, route, source, lat, lon, speed, timestamp)
      VALUES (?, ?, ?, ?, ?, NULL, ?)`
@@ -110,8 +109,7 @@ export async function sampleBusPositions(env: Env, vehicles: VehiclePosition[], 
   }
   
   // Insert Prasarana vehicles
-  // Performance optimization: prepare statement outside the loop to prevent D1 query parsing overhead on every iteration
-  const prasaranaInsertStmt = env.DB.prepare(
+  const prasaInsertStmt = env.DB.prepare(
     `INSERT INTO bus_positions (bus_no, route, source, lat, lon, speed, timestamp)
      VALUES (?, ?, ?, ?, ?, ?, ?)`
   );
@@ -128,7 +126,7 @@ export async function sampleBusPositions(env: Env, vehicles: VehiclePosition[], 
     const timedOut = last ? (ts - last.ts) >= 300 : true;
     
     if (moved || timedOut) {
-      stmts.push(prasaranaInsertStmt.bind(b.bus_no, b.route, 'prasarana', b.latitude, b.longitude, b.speed, ts));
+      stmts.push(prasaInsertStmt.bind(b.bus_no, b.route, 'prasarana', b.latitude, b.longitude, b.speed, ts));
     }
   }
   
