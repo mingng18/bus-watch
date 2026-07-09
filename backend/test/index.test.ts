@@ -253,3 +253,37 @@ describe('Input-validation hardening (issue #131)', () => {
     });
   });
 });
+
+
+describe('Global Security middleware', () => {
+  const dummyEnv = {
+    KV: { get: vi.fn(), put: vi.fn() },
+    DB: { prepare: vi.fn(), batch: vi.fn() },
+  };
+
+  it('rejects overly long paths (414 URI Too Long)', async () => {
+    const longPath = 'a'.repeat(300);
+    const req = new Request(`http://localhost/${longPath}`);
+    const res = await worker.fetch(req, dummyEnv as any);
+    expect(res.status).toBe(414);
+    const json = await res.json() as any;
+    expect(json.error).toBe('URI path too long');
+  });
+
+  it('rejects overly long query parameters (400 Bad Request)', async () => {
+    const longQuery = 'a'.repeat(150);
+    const req = new Request(`http://localhost/nearby?lat=3&lon=101&foo=${longQuery}`);
+    const res = await worker.fetch(req, dummyEnv as any);
+    expect(res.status).toBe(400);
+    const json = await res.json() as any;
+    expect(json.error).toBe('Parameter foo is too long');
+  });
+
+  it('handles 404 cleanly in JSON', async () => {
+    const req = new Request('http://localhost/does-not-exist');
+    const res = await worker.fetch(req, dummyEnv as any);
+    expect(res.status).toBe(404);
+    const json = await res.json() as any;
+    expect(json.error).toBe('Not Found');
+  });
+});
