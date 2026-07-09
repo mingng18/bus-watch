@@ -25,3 +25,6 @@
 ## 2025-01-20 - Add explicit accessibility header traits
 **Learning:** In SwiftUI, large bold text indicating the title or heading of a view isn't automatically recognized as a heading by VoiceOver. Screen reader users often rely on the rotor to navigate quickly between headings, and failing to mark main titles as headers degrades their navigation experience.
 **Action:** Always append `.accessibilityAddTraits(.isHeader)` to main `.font(.headline)` or title texts that serve as the heading for a view or section.
+## 2024-05-24 - Dynamic Text Transitions and Irrelevant State Reduction
+**Learning:** Strikethroughs combined with color muting effectively reduce cognitive load for obsolete list items (like passed stops). SwiftUIs `.contentTransition(.numericText())` is a zero-effort way to make countdowns and remaining counts feel polished and delightful without custom animation logic.
+**Action:** Use `.strikethrough()` with muted colors for expired data, and default to `.contentTransition(.numericText())` for any dynamic countdowns or metric texts.
