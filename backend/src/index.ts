@@ -27,6 +27,30 @@ const app = new Hono<{ Bindings: Env }>();
 app.use('*', secureHeaders());
 app.use('*', cors({ origin: (origin, c) => c.env.FRONTEND_URL || '' }));
 
+// Security: Global input length validation to prevent DoS via excessively large payloads
+app.use('*', async (c, next) => {
+  if (c.req.path.length > 256) {
+    return c.json({ error: 'URI path too long' }, 414);
+  }
+  const queries = c.req.query();
+  for (const key in queries) {
+    if (queries[key] && queries[key].length > 100) {
+      return c.json({ error: `Parameter ${key} is too long` }, 400);
+    }
+  }
+  await next();
+});
+
+// Security: Fail securely and consistently format errors as JSON to prevent stack trace leaks
+app.onError((err, c) => {
+  console.error('Unhandled application error:', err);
+  return c.json({ error: 'Internal Server Error' }, 500);
+});
+
+app.notFound((c) => {
+  return c.json({ error: 'Not Found' }, 404);
+});
+
 app.get('/', (c) => c.json({ status: 'ok', service: 'bus-watch' }));
 
 /**
@@ -505,11 +529,22 @@ app.get('/route/:routeId', async (c) => {
       if (posRows && posRows.length > 0) {
         // Group by bus_no to get per-bus traces
         const groups = new Map<string, [number, number][]>();
+        // Performance optimization: Data is already sorted by bus_no.
+        // Cache lastKey and lastArr to prevent redundant map lookups.
+        let lastKey: string | null = null;
+        let lastArr: [number, number][] = [];
+
         for (const row of posRows) {
-          let pts = groups.get(row.bus_no);
-          if (!pts) {
-            pts = [];
-            groups.set(row.bus_no, pts);
+          let pts: [number, number][];
+          if (row.bus_no === lastKey) {
+            pts = lastArr;
+          } else {
+            pts = groups.get(row.bus_no) || [];
+            if (pts.length === 0) {
+              groups.set(row.bus_no, pts);
+            }
+            lastKey = row.bus_no;
+            lastArr = pts;
           }
           // Deduplicate: only add if >50m from last point
           const last = pts[pts.length - 1];

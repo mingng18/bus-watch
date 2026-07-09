@@ -54,6 +54,8 @@ struct StationArrivalsView: View {
                             .font(.caption)
                             .bold()
                             .foregroundStyle(dep.minutesUntil <= 3 ? Color.green : .white)
+                            .contentTransition(.numericText())
+                            .animation(.default, value: dep.minutesUntil)
                     }
                     // Combine the row into one VoiceOver element so the rider
                     // hears "U82 to Sentul, 5 minutes, arriving soon" rather
