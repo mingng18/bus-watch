@@ -44,6 +44,8 @@ struct DeparturesTowardView: View {
                                 .font(.caption)
                                 .bold()
                                 .foregroundStyle(dep.minutesUntil <= 3 ? Color.green : .white)
+                                .contentTransition(.numericText())
+                                .animation(.default, value: dep.minutesUntil)
                         }
                         .accessibilityElement(children: .ignore)
                         .accessibilityLabel(departureLabel(dep))
