@@ -772,8 +772,7 @@ export default {
     } else if (event.cron === '0 2 * * 1') {
       // Weekly: refresh rail timetables from GTFS static
       try {
-        const result = await ingestRailTimetables(env);
-        console.log(`Rail timetable ingest complete: ${result.inserted} rows`);
+        await ingestRailTimetables(env);
       } catch (err) {
         console.error('Failed to ingest rail timetables:', err);
       }
