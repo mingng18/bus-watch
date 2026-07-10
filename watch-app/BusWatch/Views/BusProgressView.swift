@@ -1,4 +1,18 @@
+import MapKit
 import SwiftUI
+
+struct BusProgressMapModel: Equatable {
+    let routeShortName: String
+    let latitude: Double
+    let longitude: Double
+
+    init?(progress: BusProgressResponse) {
+        guard let position = progress.busPosition else { return nil }
+        routeShortName = progress.routeShortName
+        latitude = position.lat
+        longitude = position.lon
+    }
+}
 
 struct BusProgressView: View {
     let progress: BusProgressResponse
@@ -24,6 +38,11 @@ struct BusProgressView: View {
                 Text("→ \(progress.destination)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+
+                if let mapModel = BusProgressMapModel(progress: progress) {
+                    RealtimeBusLocationMap(model: mapModel)
+                        .padding(.vertical, 4)
+                }
 
                 Divider()
 
@@ -81,6 +100,50 @@ struct BusProgressView: View {
             return position < approachingThreshold ? match : nil
         }
         return upcoming.first
+    }
+}
+
+private struct RealtimeBusLocationMap: View {
+    let model: BusProgressMapModel
+    @State private var cameraPosition: MapCameraPosition = .automatic
+
+    private var coordinate: CLLocationCoordinate2D {
+        CLLocationCoordinate2D(latitude: model.latitude, longitude: model.longitude)
+    }
+
+    private var region: MKCoordinateRegion {
+        MKCoordinateRegion(
+            center: coordinate,
+            span: MKCoordinateSpan(latitudeDelta: 0.008, longitudeDelta: 0.008)
+        )
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Label("Live location", systemImage: "location.fill")
+                .font(.caption2)
+                .foregroundStyle(.green)
+
+            Map(position: $cameraPosition, interactionModes: [.pan, .zoom]) {
+                Marker(
+                    model.routeShortName.isEmpty ? "Bus" : model.routeShortName,
+                    systemImage: "bus.fill",
+                    coordinate: coordinate
+                )
+                .tint(.orange)
+            }
+            .mapStyle(.standard)
+            .frame(height: 120)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .onAppear(perform: recenter)
+        .onChange(of: model) { _, _ in recenter() }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Live location of bus \(model.routeShortName)")
+    }
+
+    private func recenter() {
+        cameraPosition = .region(region)
     }
 }
 

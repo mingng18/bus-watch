@@ -139,4 +139,30 @@ final class FeatureFlagsAndMapModelTests: XCTestCase {
         XCTAssertEqual(response.busRoutes.first?.busNo, "BUS-42")
         XCTAssertFalse(try XCTUnwrap(response.busRoutes.first).supportsTripProgress)
     }
+
+    func testBusProgressMapModelRequiresAndPreservesRealtimePosition() throws {
+        let liveProgress = BusProgressResponse(
+            tripId: "trip-202",
+            routeShortName: "202",
+            destination: "Kuala Lumpur",
+            busPosition: BusPosition(lat: 3.15148, lon: 101.69551),
+            stops: [],
+            progressPercent: 25
+        )
+        let unavailableProgress = BusProgressResponse(
+            tripId: "trip-202",
+            routeShortName: "202",
+            destination: "Kuala Lumpur",
+            busPosition: nil,
+            stops: [],
+            progressPercent: 25
+        )
+
+        let model = try XCTUnwrap(BusProgressMapModel(progress: liveProgress))
+
+        XCTAssertEqual(model.routeShortName, "202")
+        XCTAssertEqual(model.latitude, 3.15148)
+        XCTAssertEqual(model.longitude, 101.69551)
+        XCTAssertNil(BusProgressMapModel(progress: unavailableProgress))
+    }
 }
