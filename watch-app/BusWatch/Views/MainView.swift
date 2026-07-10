@@ -49,13 +49,12 @@ struct MainView: View {
                         .labelStyle(.iconOnly)
                 }
             }
-            // Deep link into Prasarana's Journey Planner so riders can plan a
-            // multi-modal trip (Bus/BRT/LRT/MRT/Monorail) without leaving the
-            // BusWatch launch flow. Opens the universal link in the system browser.
-            ToolbarItem(placement: .bottomBar) {
-                Link(destination: JourneyPlanner.url) {
-                    Label("Plan a trip", systemImage: "arrow.triangle.turn.up.right.diamond")
-                        .labelStyle(.iconOnly)
+            if AppFeatureFlags.externalJourneyPlanner {
+                ToolbarItem(placement: .bottomBar) {
+                    Link(destination: JourneyPlanner.url) {
+                        Label("Plan a trip", systemImage: "arrow.triangle.turn.up.right.diamond")
+                            .labelStyle(.iconOnly)
+                    }
                 }
             }
         }

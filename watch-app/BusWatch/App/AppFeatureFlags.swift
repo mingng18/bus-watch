@@ -8,6 +8,9 @@ enum AppFeatureFlags {
     /// Arrival reminders and approaching-stop notification prompts are deferred.
     static let arrivalNotifications = false
 
+    /// Web pages cannot open inside the standalone Watch app, so hide this handoff.
+    static let externalJourneyPlanner = false
+
     /// Show live nearby bus positions supplied by `/nearby.busRoutes`.
     static let liveBusMap = true
 }

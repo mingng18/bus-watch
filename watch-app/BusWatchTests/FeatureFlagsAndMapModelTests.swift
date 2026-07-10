@@ -6,6 +6,7 @@ final class FeatureFlagsAndMapModelTests: XCTestCase {
         XCTAssertFalse(AppFeatureFlags.favoritesAndHome)
         XCTAssertFalse(AppFeatureFlags.serviceAlerts)
         XCTAssertFalse(AppFeatureFlags.arrivalNotifications)
+        XCTAssertFalse(AppFeatureFlags.externalJourneyPlanner)
         XCTAssertTrue(AppFeatureFlags.liveBusMap)
     }
 
