@@ -3,9 +3,11 @@ import SwiftUI
 struct NearbyListView: View {
     let response: NearbyResponse
     let onSelectStop: (NearbyStop) -> Void
+    var onSelectTrip: (String) -> Void = { _ in }
     var favorites: FavoriteStore? = nil
 
     private var favoriteStops: [NearbyStop] {
+        guard AppFeatureFlags.favoritesAndHome else { return [] }
         guard let favorites else { return [] }
         let byId = Dictionary(uniqueKeysWithValues: response.stops.map { ($0.id, $0) })
         // Home first, then the rest, matching FavoriteStore.sortedFavorites but
@@ -13,8 +15,41 @@ struct NearbyListView: View {
         return favorites.sortedFavorites.compactMap { byId[$0] }
     }
 
+    private var trackedTrips: [BusRouteEntry] {
+        Array(response.busRoutes.lazy.filter(\.supportsTripProgress).prefix(4))
+    }
+
     var body: some View {
         List {
+            if AppFeatureFlags.liveBusMap, !response.busRoutes.isEmpty {
+                Section("Live buses") {
+                    NearbyBusMapView(response: response)
+                        .frame(height: 128)
+                        .listRowInsets(EdgeInsets())
+
+                    ForEach(trackedTrips) { bus in
+                        Button {
+                            onSelectTrip(bus.tripId)
+                        } label: {
+                            HStack {
+                                Image(systemName: "bus.fill")
+                                    .foregroundStyle(.orange)
+                                Text(bus.routeShortName.isEmpty ? "Live bus" : bus.routeShortName)
+                                    .font(.caption)
+                                Spacer()
+                                Text("\(bus.minutes) min")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                Image(systemName: "chevron.right")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .accessibilityHint("Shows live trip progress.")
+                    }
+                }
+            }
+
             if !favoriteStops.isEmpty {
                 Section {
                     ForEach(favoriteStops) { stop in
@@ -59,12 +94,15 @@ struct NearbyListView: View {
                     Text(stop.name)
                         .font(.caption)
                     Spacer()
-                    if let favorites, favorites.isHome(stop.id) {
+                    if AppFeatureFlags.favoritesAndHome,
+                       let favorites,
+                       favorites.isHome(stop.id) {
                         Image(systemName: "house.fill")
                             .foregroundStyle(.yellow)
                             .accessibilityLabel("Home stop")
                     }
-                    if favorites?.contains(stop.id) == true {
+                    if AppFeatureFlags.favoritesAndHome,
+                       favorites?.contains(stop.id) == true {
                         Image(systemName: "star.fill")
                             .foregroundStyle(.yellow)
                             .accessibilityHidden(true)
@@ -85,7 +123,7 @@ struct NearbyListView: View {
         .accessibilityLabel(stopRowLabel(stop))
         .accessibilityHint("Shows arrivals for this stop.")
         .swipeActions(edge: .leading, allowsFullSwipe: true) {
-            if let favorites {
+            if AppFeatureFlags.favoritesAndHome, let favorites {
                 Button {
                     favorites.toggleHome(stop.id)
                 } label: {
@@ -96,7 +134,7 @@ struct NearbyListView: View {
             }
         }
         .swipeActions(edge: .trailing) {
-            if let favorites {
+            if AppFeatureFlags.favoritesAndHome, let favorites {
                 Button(role: favorites.contains(stop.id) ? .destructive : nil) {
                     favorites.toggle(stop.id)
                 } label: {
@@ -125,7 +163,7 @@ struct NearbyListView: View {
             let approx = arrivalSpokenApprox(first)
             parts.append("\(source)\(route) to \(first.destination), \(approx)\(first.minutes) minutes")
         }
-        if let favorites {
+        if AppFeatureFlags.favoritesAndHome, let favorites {
             if favorites.isHome(stop.id) { parts.append("home stop") }
             if favorites.contains(stop.id) { parts.append("favorited") }
         }

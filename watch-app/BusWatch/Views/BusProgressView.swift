@@ -49,7 +49,7 @@ struct BusProgressView: View {
             await maybeFireApproachingAlert()
         }
         // Re-evaluate whenever the stop list changes (e.g. auto-refresh).
-        .onChange(of: progress.stops.map(\.id)) { _ in
+        .onChange(of: progress.stops.map(\.id)) { _, _ in
             Task { await maybeFireApproachingAlert() }
         }
     }
@@ -58,6 +58,7 @@ struct BusProgressView: View {
     /// when the bus is within `approachingThreshold` stops of it. Idempotent:
     /// the NotificationService de-duplicates by trip+stop identifier.
     private func maybeFireApproachingAlert() async {
+        guard AppFeatureFlags.arrivalNotifications else { return }
         guard let target = upcomingTargetStop() else { return }
         guard target.id != lastAlertedStopId else { return }
         lastAlertedStopId = target.id
