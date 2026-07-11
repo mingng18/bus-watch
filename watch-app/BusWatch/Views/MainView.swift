@@ -20,6 +20,8 @@ struct MainView: View {
             case .nearby(let response):
                 NearbyListView(response: response, onSelectStop: { stop in
                     engine.selectStation(stop)
+                }, onSelectTrip: { tripId in
+                    engine.selectBusTrip(tripId)
                 }, favorites: favorites)
             case .error(let message):
                 errorView(message: message)
@@ -27,34 +29,46 @@ struct MainView: View {
         }
         .navigationTitle("BusWatch")
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button(action: { showAlerts = true }) {
-                    Label("Service alerts", systemImage: "exclamationmark.bubble")
-                        .labelStyle(.iconOnly)
+            if engine.state.showsBackNavigation {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: { engine.showNearby() }) {
+                        Label("Back", systemImage: "chevron.left")
+                    }
+                }
+            } else if AppFeatureFlags.serviceAlerts {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: { showAlerts = true }) {
+                        Label("Service alerts", systemImage: "exclamationmark.bubble")
+                            .labelStyle(.iconOnly)
+                    }
                 }
             }
-            ToolbarItem(placement: .cancellationAction) {
+            ToolbarItem(placement: .topBarTrailing) {
                 Button(action: { showManual = true }) {
                     Label("Manual Selection", systemImage: "list.bullet")
                         .labelStyle(.iconOnly)
                 }
             }
-            // Deep link into Prasarana's Journey Planner so riders can plan a
-            // multi-modal trip (Bus/BRT/LRT/MRT/Monorail) without leaving the
-            // BusWatch launch flow. Opens the universal link in the system browser.
-            ToolbarItem(placement: .bottomBar) {
-                Link(destination: JourneyPlanner.url) {
-                    Label("Plan a trip", systemImage: "arrow.triangle.turn.up.right.diamond")
-                        .labelStyle(.iconOnly)
+            if AppFeatureFlags.externalJourneyPlanner {
+                ToolbarItem(placement: .bottomBar) {
+                    Link(destination: JourneyPlanner.url) {
+                        Label("Plan a trip", systemImage: "arrow.triangle.turn.up.right.diamond")
+                            .labelStyle(.iconOnly)
+                    }
                 }
             }
         }
         .sheet(isPresented: $showManual) {
-            ManualPickerView(engine: engine, favorites: favorites)
+            ManualPickerView(engine: engine, favorites: favorites) { stop in
+                showManual = false
+                engine.selectStation(stop)
+            }
         }
         .sheet(isPresented: $showAlerts) {
-            NavigationStack {
-                AlertsView()
+            if AppFeatureFlags.serviceAlerts {
+                NavigationStack {
+                    AlertsView()
+                }
             }
         }
         .onAppear {

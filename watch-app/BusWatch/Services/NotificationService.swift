@@ -30,6 +30,7 @@ final class NotificationService: ObservableObject {
     /// status; failures default to `false`.
     @discardableResult
     func requestAuthorization() async -> Bool {
+        guard AppFeatureFlags.arrivalNotifications else { return false }
         do {
             return try await center.requestAuthorization(options: [.alert, .badge, .sound])
         } catch {
@@ -53,6 +54,7 @@ final class NotificationService: ObservableObject {
                               leadMinutes: Int,
                               stopName: String? = nil,
                               now: Date = Date()) async -> String? {
+        guard AppFeatureFlags.arrivalNotifications else { return nil }
         guard let trigger = Self.arrivalTrigger(minutesUntil: departure.minutesUntil,
                                                 leadMinutes: leadMinutes,
                                                 now: now) else {
@@ -84,6 +86,7 @@ final class NotificationService: ObservableObject {
     /// When the lead time has already elapsed (or is exactly now), fire the
     /// alert immediately rather than scheduling it.
     func fireImmediateArrivalAlert(for departure: Departure, stopName: String? = nil) async {
+        guard AppFeatureFlags.arrivalNotifications else { return }
         let content = UNMutableNotificationContent()
         content.title = "Bus arriving now"
         content.body = Self.arrivalBody(departure: departure, leadMinutes: 0, stopName: stopName)
@@ -106,6 +109,7 @@ final class NotificationService: ObservableObject {
                                stopId: String,
                                stopName: String,
                                minutesAway: Int? = nil) async {
+        guard AppFeatureFlags.arrivalNotifications else { return }
         let content = UNMutableNotificationContent()
         content.title = "Approaching your stop"
         content.body = Self.approachingBody(stopName: stopName, minutesAway: minutesAway)
@@ -122,6 +126,26 @@ final class NotificationService: ObservableObject {
         let id = Self.approachingIdentifier(tripId: tripId, stopId: stopId)
         center.removePendingNotificationRequests(withIdentifiers: [id])
         center.removeDeliveredNotifications(withIdentifiers: [id])
+    }
+
+    /// Removes BusWatch requests left over from a build where notifications
+    /// were enabled when the current release flag disables the feature.
+    func removeFeatureNotificationsIfDisabled() async {
+        guard !AppFeatureFlags.arrivalNotifications else { return }
+
+        let pendingIdentifiers = await center.pendingNotificationRequests()
+            .filter { Self.isFeatureNotificationCategory($0.content.categoryIdentifier) }
+            .map(\.identifier)
+        if !pendingIdentifiers.isEmpty {
+            center.removePendingNotificationRequests(withIdentifiers: pendingIdentifiers)
+        }
+
+        let deliveredIdentifiers = await center.deliveredNotifications()
+            .filter { Self.isFeatureNotificationCategory($0.request.content.categoryIdentifier) }
+            .map { $0.request.identifier }
+        if !deliveredIdentifiers.isEmpty {
+            center.removeDeliveredNotifications(withIdentifiers: deliveredIdentifiers)
+        }
     }
 
     // MARK: - Pure trigger-time logic (unit-tested)
@@ -154,6 +178,10 @@ final class NotificationService: ObservableObject {
 
     static func approachingIdentifier(tripId: String, stopId: String) -> String {
         "approaching-\(tripId)-\(stopId)"
+    }
+
+    static func isFeatureNotificationCategory(_ category: String) -> Bool {
+        category == Category.arrivalAlert || category == Category.approachingStop
     }
 
     static func arrivalBody(departure: Departure, leadMinutes: Int, stopName: String?) -> String {

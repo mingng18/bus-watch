@@ -8,10 +8,15 @@ struct BusWatchApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MainView()
-                .environmentObject(contextEngine)
-                .environmentObject(favorites)
-                .environmentObject(notifications)
+            NavigationStack {
+                MainView()
+            }
+            .environmentObject(contextEngine)
+            .environmentObject(favorites)
+            .environmentObject(notifications)
+            .task {
+                await notifications.removeFeatureNotificationsIfDisabled()
+            }
         }
     }
 }

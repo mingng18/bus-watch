@@ -1,4 +1,18 @@
+import MapKit
 import SwiftUI
+
+struct BusProgressMapModel: Equatable {
+    let routeShortName: String
+    let latitude: Double
+    let longitude: Double
+
+    init?(progress: BusProgressResponse) {
+        guard let position = progress.busPosition else { return nil }
+        routeShortName = progress.routeShortName
+        latitude = position.lat
+        longitude = position.lon
+    }
+}
 
 struct BusProgressView: View {
     let progress: BusProgressResponse
@@ -25,6 +39,11 @@ struct BusProgressView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
+                if let mapModel = BusProgressMapModel(progress: progress) {
+                    RealtimeBusLocationMap(model: mapModel)
+                        .padding(.vertical, 4)
+                }
+
                 Divider()
 
                 ForEach(progress.stops) { stop in
@@ -49,7 +68,7 @@ struct BusProgressView: View {
             await maybeFireApproachingAlert()
         }
         // Re-evaluate whenever the stop list changes (e.g. auto-refresh).
-        .onChange(of: progress.stops.map(\.id)) { _ in
+        .onChange(of: progress.stops.map(\.id)) { _, _ in
             Task { await maybeFireApproachingAlert() }
         }
     }
@@ -58,6 +77,7 @@ struct BusProgressView: View {
     /// when the bus is within `approachingThreshold` stops of it. Idempotent:
     /// the NotificationService de-duplicates by trip+stop identifier.
     private func maybeFireApproachingAlert() async {
+        guard AppFeatureFlags.arrivalNotifications else { return }
         guard let target = upcomingTargetStop() else { return }
         guard target.id != lastAlertedStopId else { return }
         lastAlertedStopId = target.id
@@ -80,6 +100,50 @@ struct BusProgressView: View {
             return position < approachingThreshold ? match : nil
         }
         return upcoming.first
+    }
+}
+
+private struct RealtimeBusLocationMap: View {
+    let model: BusProgressMapModel
+    @State private var cameraPosition: MapCameraPosition = .automatic
+
+    private var coordinate: CLLocationCoordinate2D {
+        CLLocationCoordinate2D(latitude: model.latitude, longitude: model.longitude)
+    }
+
+    private var region: MKCoordinateRegion {
+        MKCoordinateRegion(
+            center: coordinate,
+            span: MKCoordinateSpan(latitudeDelta: 0.008, longitudeDelta: 0.008)
+        )
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Label("Live location", systemImage: "location.fill")
+                .font(.caption2)
+                .foregroundStyle(.green)
+
+            Map(position: $cameraPosition, interactionModes: [.pan, .zoom]) {
+                Marker(
+                    model.routeShortName.isEmpty ? "Bus" : model.routeShortName,
+                    systemImage: "bus.fill",
+                    coordinate: coordinate
+                )
+                .tint(.orange)
+            }
+            .mapStyle(.standard)
+            .frame(height: 120)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .onAppear(perform: recenter)
+        .onChange(of: model) { _, _ in recenter() }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Live location of bus \(model.routeShortName)")
+    }
+
+    private func recenter() {
+        cameraPosition = .region(region)
     }
 }
 
