@@ -66,10 +66,6 @@ struct NearbyBusMapView: View {
 
     var body: some View {
         Map(position: $cameraPosition, interactionModes: [.pan, .zoom]) {
-            if presentation.showsCurrentLocation {
-                UserAnnotation()
-            }
-
             ForEach(stopsWithCoordinates) { stop in
                 if let lat = stop.lat, let lon = stop.lon {
                     Annotation(
@@ -91,6 +87,12 @@ struct NearbyBusMapView: View {
                     coordinate: CLLocationCoordinate2D(latitude: bus.lat, longitude: bus.lon)
                 )
                 .tint(.orange)
+            }
+
+            // Map annotations render in content order. Keep the rider last so
+            // the blue location dot remains visible when a bus overlaps it.
+            if presentation.showsCurrentLocation {
+                UserAnnotation()
             }
         }
         .onAppear {
