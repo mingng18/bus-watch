@@ -32,7 +32,7 @@ targets:
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         INFOPLIST_KEY_UIRequiresFullScreen: YES
         MARKETING_VERSION: "1.0"
-        CURRENT_PROJECT_VERSION: "2"
+        CURRENT_PROJECT_VERSION: "3"
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: 25B4MS36A6
     dependencies:
@@ -63,7 +63,7 @@ targets:
       properties:
         CFBundleDisplayName: BusWatch
         CFBundleShortVersionString: "1.0"
-        CFBundleVersion: "2"
+        CFBundleVersion: "3"
         CFBundleIconName: AppIcon
         ITSAppUsesNonExemptEncryption: false
         WKApplication: true
@@ -104,7 +104,7 @@ targets:
       properties:
         CFBundleDisplayName: BusWatch Complications
         CFBundleShortVersionString: "1.0"
-        CFBundleVersion: "2"
+        CFBundleVersion: "3"
         ITSAppUsesNonExemptEncryption: false
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
@@ -117,7 +117,6 @@ targets:
     platform: watchOS
     sources:
       - BusWatchTests
-      - path: BusWatchTests/APIClientTests.swift
     dependencies:
       - target: BusWatch
     settings:
