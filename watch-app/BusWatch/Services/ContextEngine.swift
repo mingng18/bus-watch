@@ -9,6 +9,15 @@ enum AppState {
     case nearby(NearbyResponse)
     case error(String)
     case noLocation
+
+    var showsBackNavigation: Bool {
+        switch self {
+        case .station, .onBus:
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 class ContextEngine: ObservableObject {

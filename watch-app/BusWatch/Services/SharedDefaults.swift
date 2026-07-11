@@ -16,7 +16,7 @@ import Foundation
 enum SharedDefaults {
     /// App Group shared by the watch app and the complications extension.
     /// Replace with a provisioned group identifier before release.
-    static let appGroup = "group.com.buswatch.watchapp"
+    static let appGroup = "group.com.nggihming.buswatch"
 
     /// The shared `UserDefaults`, falling back to `.standard` if the suite is
     /// unavailable so callers never receive `nil`.
