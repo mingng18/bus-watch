@@ -19,7 +19,10 @@
 **Learning:** Security fixes applied to one endpoint (like the DoS fix applied to `/alerts`) can easily be missed in other similar endpoints if the codebase isn't audited comprehensively. Unbounded resource queries are a common pattern in unvalidated inputs.
 **Prevention:** Always apply bounds checking and clamp parsed integer inputs (e.g., `parseInt(req.query('limit'), 10)`) to strict maximums. Validate input string lengths before passing them to expensive operations (like database queries). Whenever fixing a security issue in one location, proactively search the codebase for similar patterns.
 
-
+## 2024-05-18 - Fix Suboptimal Timing Attack Mitigation
+**Vulnerability:** Manual length checking and string padding used alongside `timingSafeEqual` introduces unnecessary complexity and potential side channels.
+**Learning:** `hono/utils/buffer`'s `timingSafeEqual` securely handles strings of differing lengths by internally hashing them before comparison.
+**Prevention:** Rely on the built-in properties of robust cryptographic comparison functions (like Hono's `timingSafeEqual`) instead of attempting manual length-matching workarounds, which can often inadvertently introduce new side channels or bugs.
 ## 2025-02-27 - Fix overly permissive CORS policy fallback (localhost)
 **Vulnerability:** The CORS policy in Hono used a hardcoded local development URL (`'http://localhost:8081'`) as a fallback when `c.env.FRONTEND_URL` was undefined. This meant attackers could run a malicious site on `localhost:8081` to bypass CORS protections.
 **Learning:** Hardcoding local development domains in production CORS middleware can expose the application to cross-origin attacks originating from users' own machines. A missing environment variable should degrade securely (i.e. to no access), rather than falling back to local development defaults.
@@ -28,8 +31,3 @@
 **Vulnerability:** Missing input validation leading to potential DoS (excessively long query/path strings consuming server resources). Default Hono `onError` handlers could also potentially leak internal stack traces or respond in text format when clients expect JSON.
 **Learning:** Cloudflare Workers and Hono do not inherently restrict URL path/query lengths to tiny sizes (Cloudflare restricts URLs to 16KB), and Hono's default error handler responds with plain text `500 Internal Server Error`, which breaks JSON API clients or might leak details.
 **Prevention:** Implement a global middleware (`app.use('*')`) at the top of the route definitions to enforce strict path and query parameter length limits (`c.req.path.length > 256` and `queries[key].length > 100`). Also, provide an explicit `app.onError` to intercept unhandled exceptions, log them securely, and return a consistent JSON 500 error response. This "defense in depth" reusable security pattern prevents DoS via large inputs and ensures safe, uniform API contracts on failures.
-
-## 2025-02-14 - Fix timing attack vulnerability in authorization header comparison
-**Vulnerability:** The codebase was directly passing user input to `timingSafeEqual` in authentication endpoints without first verifying the length against the expected token. While `timingSafeEqual` avoids early exit by internally hashing strings of differing lengths, its `constantTimeEqualString` loop still iterates `Math.max(a.length, b.length)` times on the original strings, which can leak the length of the expected token via a timing side-channel.
-**Learning:** Adding a manual early return (e.g., `a.length !== b.length`) before `timingSafeEqual` introduces a classic timing leak. Conversely, passing unpadded differing-length strings leaks the max length. The only secure way to handle differing string lengths with Hono's `timingSafeEqual` is to hash both strings *before* comparison to ensure they are the exact same length without introducing an early-exit timing leak.
-**Prevention:** Always ensure inputs to `timingSafeEqual` are hashed first using a secure digest (like `sha256`) to guarantee they are the exact same length (e.g. 64 characters) before the function is called. Do NOT use an early return length check, as it creates a side-channel.
