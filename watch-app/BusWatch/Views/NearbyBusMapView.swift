@@ -1,9 +1,22 @@
 import MapKit
 import SwiftUI
 
+struct NearbyMapPresentation: Equatable {
+    let busCount: Int
+    let showsCurrentLocation = true
+
+    var accessibilityLabel: String {
+        "Live bus map with \(busCount) buses and your current location"
+    }
+}
+
 struct NearbyBusMapView: View {
     let response: NearbyResponse
     @State private var cameraPosition: MapCameraPosition = .automatic
+
+    private var presentation: NearbyMapPresentation {
+        NearbyMapPresentation(busCount: response.busRoutes.count)
+    }
 
     private var stopsWithCoordinates: [NearbyStop] {
         Array(response.stops.lazy.filter { $0.lat != nil && $0.lon != nil }.prefix(4))
@@ -53,6 +66,10 @@ struct NearbyBusMapView: View {
 
     var body: some View {
         Map(position: $cameraPosition, interactionModes: [.pan, .zoom]) {
+            if presentation.showsCurrentLocation {
+                UserAnnotation()
+            }
+
             ForEach(stopsWithCoordinates) { stop in
                 if let lat = stop.lat, let lon = stop.lon {
                     Annotation(
@@ -84,6 +101,6 @@ struct NearbyBusMapView: View {
         }
         .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll, showsTraffic: false))
         .clipShape(RoundedRectangle(cornerRadius: 12))
-        .accessibilityLabel("Live bus map with \(response.busRoutes.count) buses")
+        .accessibilityLabel(presentation.accessibilityLabel)
     }
 }

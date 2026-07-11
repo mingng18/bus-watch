@@ -165,4 +165,14 @@ final class FeatureFlagsAndMapModelTests: XCTestCase {
         XCTAssertEqual(model.longitude, 101.69551)
         XCTAssertNil(BusProgressMapModel(progress: unavailableProgress))
     }
+
+    func testNearbyMapPresentationIncludesCurrentLocation() {
+        let presentation = NearbyMapPresentation(busCount: 2)
+
+        XCTAssertTrue(presentation.showsCurrentLocation)
+        XCTAssertEqual(
+            presentation.accessibilityLabel,
+            "Live bus map with 2 buses and your current location"
+        )
+    }
 }
