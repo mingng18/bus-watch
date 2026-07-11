@@ -4,7 +4,7 @@ import json
 import subprocess
 
 WATCH_APP = Path(__file__).resolve().parents[1]
-SOURCE = WATCH_APP / "Brand" / "BusWatchLogo.png"
+SOURCE = WATCH_APP / "Brand" / "BusWatchLogo.jpg"
 PNG = WATCH_APP / "BusWatch" / "Assets.xcassets" / "AppIcon.appiconset" / "AppIcon-1024.png"
 CONTENTS = PNG.parent / "Contents.json"
 
@@ -31,7 +31,7 @@ def main() -> None:
     assert PNG.exists(), f"Missing app icon: {PNG}"
 
     source_properties = sips_properties(SOURCE)
-    for required in ("pixelWidth: 1024", "pixelHeight: 1024"):
+    for required in ("pixelWidth: 1000", "pixelHeight: 1000", "hasAlpha: no"):
         assert required in source_properties, f"Logo master validation failed: {required}"
 
     properties = sips_properties(PNG)
