@@ -119,4 +119,15 @@ final class NotificationServiceTests: XCTestCase {
         XCTAssertNotEqual(NotificationService.Category.arrivalAlert,
                           NotificationService.Category.approachingStop)
     }
+
+    func testFeatureNotificationCategoryFiltering() {
+        XCTAssertTrue(NotificationService.isFeatureNotificationCategory(
+            NotificationService.Category.arrivalAlert
+        ))
+        XCTAssertTrue(NotificationService.isFeatureNotificationCategory(
+            NotificationService.Category.approachingStop
+        ))
+        XCTAssertFalse(NotificationService.isFeatureNotificationCategory("unrelated.notification"))
+        XCTAssertFalse(NotificationService.isFeatureNotificationCategory(""))
+    }
 }
