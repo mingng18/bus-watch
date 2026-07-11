@@ -5,7 +5,7 @@ class APIClient {
 
     let baseURL: String
 
-    private init(baseURL: String = "https://bus-watch.ming.workers.dev") {
+    private init(baseURL: String = "https://bus-watch.nggihming123.workers.dev") {
         self.baseURL = baseURL
     }
 
