@@ -21,8 +21,10 @@ struct StationArrivalsView: View {
                     .font(.headline)
                     .accessibilityAddTraits(.isHeader)
 
-                favoriteControls
-                    .padding(.top, 2)
+                if AppFeatureFlags.favoritesAndHome {
+                    favoriteControls
+                        .padding(.top, 2)
+                }
 
                 if isOffline {
                     offlineBanner
@@ -71,8 +73,10 @@ struct StationArrivalsView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                Divider()
-                arrivalReminderControls
+                if AppFeatureFlags.arrivalNotifications {
+                    Divider()
+                    arrivalReminderControls
+                }
 
                 HStack {
                     Spacer()
