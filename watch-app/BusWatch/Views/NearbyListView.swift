@@ -40,6 +40,8 @@ struct NearbyListView: View {
                                 Text("\(bus.minutes) min")
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
+                                    .contentTransition(.numericText())
+                                    .animation(.default, value: bus.minutes)
                                 Image(systemName: "chevron.right")
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
