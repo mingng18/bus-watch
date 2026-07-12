@@ -80,13 +80,7 @@ app.post('/refresh', async (c) => {
   if (!c.env.ADMIN_TOKEN || !authHeader) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
-
-  let isMatch = false;
-  if (authHeader.length === expectedToken.length) {
-    isMatch = await timingSafeEqual(authHeader, expectedToken);
-  } else {
-    await timingSafeEqual(expectedToken, expectedToken);
-  }
+  const isMatch = await timingSafeEqual(authHeader, expectedToken);
 
   if (!isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -400,13 +394,7 @@ app.post('/rail/ingest', async (c) => {
   if (!c.env.ADMIN_TOKEN || !authHeader) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
-
-  let isMatch = false;
-  if (authHeader.length === expectedToken.length) {
-    isMatch = await timingSafeEqual(authHeader, expectedToken);
-  } else {
-    await timingSafeEqual(expectedToken, expectedToken);
-  }
+  const isMatch = await timingSafeEqual(authHeader, expectedToken);
 
   if (!isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
