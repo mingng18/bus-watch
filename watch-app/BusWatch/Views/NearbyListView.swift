@@ -112,12 +112,16 @@ struct NearbyListView: View {
                     Text("\(stop.distanceM)m")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
+                        .contentTransition(.numericText())
+                        .animation(.default, value: stop.distanceM)
                 }
 
                 if let first = stop.arrivals.first {
                     Text("\(arrivalPrefix(first))\(first.line ?? first.route ?? "") → \(first.destination) — \(arrivalMinutesText(first))")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
+                        .contentTransition(.numericText())
+                        .animation(.default, value: first.minutes)
                 }
             }
         }
