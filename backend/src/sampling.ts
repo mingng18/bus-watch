@@ -394,7 +394,8 @@ export async function aggregateTravelTimes(
   }
 
   const allSamples: TravelTimeSample[] = [];
-  for (const [route, samples] of traces) {
+  for (const [traceKey, samples] of traces) {
+    const route = traceKey.split('|')[0];
     const stops = stopSequencesByRoute.get(route);
     if (!stops) continue; // route unknown to GTFS static — nothing to key off
     try {
