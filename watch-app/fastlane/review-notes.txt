@@ -1,0 +1,10 @@
+BusWatch KL is a standalone Apple Watch app. The included iOS app is a packaging container and has no user interface.
+
+To review the app:
+1. Install build 1.0 (3) on an Apple Watch or Apple Watch simulator.
+2. Grant location permission when prompted.
+3. Use a location in Kuala Lumpur, Malaysia; for simulator testing, 3.133649, 101.685557 at KL Sentral provides nearby bus-stop results. Live vehicles appear when the transit provider's realtime feed has active buses.
+4. The default screen shows nearby bus stops and, when the realtime feed has active vehicles, live bus positions. Orange map markers are buses, neutral markers are stops, and the blue marker is the authorized current location.
+5. Tap a supported live bus row with a disclosure chevron to view stop-by-stop trip progress and the current bus position when available.
+
+No account, demo credentials, purchases, subscriptions, or external hardware are required. Live data availability varies by transit provider.
