@@ -131,9 +131,13 @@ export async function sampleBusPositions(env: Env, vehicles: VehiclePosition[], 
   }
   
   // Batch insert in chunks of 100 to avoid D1 limits
+  const batchPromises = [];
   for (let i = 0; i < stmts.length; i += 100) {
-    await env.DB.batch(stmts.slice(i, i + 100));
+    batchPromises.push(env.DB.batch(stmts.slice(i, i + 100)).catch(err => {
+      console.error('sampleBusPositions: upsert batch failed:', err);
+    }));
   }
+  await Promise.all(batchPromises);
 }
 
 /**

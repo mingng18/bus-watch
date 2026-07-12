@@ -63,3 +63,6 @@
 ## 2024-05-18 - Fast String Parsing in Hot Loops
 **Learning:** In heavily repeated code paths (like GTFS time parsing in `parseGtfsTimeSeconds` and `gtfsTimeToMinutes`), using array allocations and higher-order functions like `.split(':').map(Number)` or chaining `indexOf` / `substring` creates unnecessary garbage collection overhead and CPU cycles.
 **Action:** Replace string-splitting array manipulations with optimized `while` loops that manually accumulate values using `.charCodeAt(i) - 48` for parsing digits. This skips intermediate array object creation, substring extraction, and `parseInt` overhead, improving parsing performance in hot paths (often by 3x-10x).
+## 2024-03-24 - Parallelize DB inserts
+**Learning:** Sequential DB batch inserts using `await env.DB.batch(...)` in a loop cause significant performance overhead.
+**Action:** Replaced sequential awaits with concurrent promises collected in an array and awaited via `Promise.all(batchPromises)`, preserving error-handling per promise.
