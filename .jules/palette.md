@@ -28,3 +28,6 @@
 ## 2024-05-24 - Dynamic Text Transitions and Irrelevant State Reduction
 **Learning:** Strikethroughs combined with color muting effectively reduce cognitive load for obsolete list items (like passed stops). SwiftUIs `.contentTransition(.numericText())` is a zero-effort way to make countdowns and remaining counts feel polished and delightful without custom animation logic.
 **Action:** Use `.strikethrough()` with muted colors for expired data, and default to `.contentTransition(.numericText())` for any dynamic countdowns or metric texts.
+## 2025-01-22 - Smooth full strings with dynamic numbers
+**Learning:** In SwiftUI, `.contentTransition(.numericText())` smoothly animates changes even when the `Text` contains full sentences or formatted strings where only a numeric component changes (like "Titiwangsa → 5 min" or "120m").
+**Action:** Apply `.contentTransition(.numericText())` along with `.animation` to any dynamic string displaying numeric counts or distances.

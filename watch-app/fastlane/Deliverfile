@@ -1,0 +1,18 @@
+app_identifier "com.nggihming.buswatch"
+app_version "1.0"
+platform "ios"
+
+metadata_path "./fastlane/metadata"
+screenshots_path "./fastlane/screenshots"
+
+primary_category "NAVIGATION"
+secondary_category "TRAVEL"
+app_rating_config_path "./fastlane/metadata/age_rating.json"
+
+skip_binary_upload true
+skip_metadata false
+skip_screenshots false
+submit_for_review false
+automatic_release false
+force true
+run_precheck_before_submit false
