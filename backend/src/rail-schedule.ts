@@ -1,5 +1,5 @@
 import { Env } from './types';
-import { toKlLocal } from './time-kl';
+import { toKlLocal, parseGtfsTimeParts } from './time-kl';
 
 interface RailArrival {
   trip_id: string;
@@ -29,7 +29,8 @@ interface RailStopResult {
  * total minutes since midnight.
  */
 function gtfsTimeToMinutes(t: string): number {
-  const [h, m] = t.split(':').map(Number);
+  // ⚡ Bolt Performance Optimization: Use shared zero-allocation parser
+  const [h, m] = parseGtfsTimeParts(t);
   return h * 60 + m;
 }
 
@@ -38,9 +39,10 @@ function gtfsTimeToMinutes(t: string): number {
  * wrapping times >= 24h back to the next-day equivalent.
  */
 function formatGtfsTime(t: string): string {
-  const [h, m] = t.split(':').map(Number);
+  // ⚡ Bolt Performance Optimization: Use shared zero-allocation parser
+  const [h, m] = parseGtfsTimeParts(t);
   const hWrapped = h % 24;
-  return `${String(hWrapped).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  return `${hWrapped.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
 }
 
 export async function getRailSchedule(
