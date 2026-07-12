@@ -110,7 +110,18 @@ app.get('/nearby', async (c) => {
   const allFrequencies = await getAllFrequencies(c.env.KV);
   const vehicles = await getRealtimeVehicles(c.env.KV);
 
-  const result = findNearbyStops(allStops, allRoutes, allTrips, allTripStops, allCalendar, allFrequencies, vehicles, lat, lon, radius);
+  const result = findNearbyStops({
+    stops: allStops,
+    routes: allRoutes,
+    trips: allTrips,
+    tripStops: allTripStops,
+    calendar: allCalendar,
+    frequencies: allFrequencies,
+    vehicles,
+    lat,
+    lon,
+    radiusM: radius
+  });
   const busRoutes = findNearbyBusRoutes(allRoutes, allTrips, vehicles, lat, lon, 1000);
 
   // Merge Prasarana Socket.IO bus data (covers routes not in GTFS like T816)
