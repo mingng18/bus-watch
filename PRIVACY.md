@@ -2,17 +2,17 @@
 
 **Effective date:** 12 July 2026
 
-BusWatch KL is a standalone Apple Watch app for viewing nearby public-transit information in Kuala Lumpur and the Klang Valley. This policy explains how the app handles information.
+BusWatch KL is a standalone Apple Watch app for viewing nearby bus information in Kuala Lumpur and the Klang Valley. This policy explains how the app handles information.
 
 ## Information BusWatch processes
 
 ### Location
 
-With your permission, BusWatch uses your Apple Watch's precise location to find nearby buses, bus stops, and rail stations. The coordinates are sent to the BusWatch service only to answer the current nearby-transit request.
+With your permission, BusWatch uses your Apple Watch's precise location to find nearby buses and bus stops. The coordinates are sent to the BusWatch service only to answer the current nearby-transit request.
 
 BusWatch does not intentionally retain rider location in its application databases, associate location with an account, build a location history, use location for advertising or analytics, or sell location information.
 
-You can deny or revoke location access in Apple Watch Settings. Manual station selection remains available, although nearby results require a location.
+You can deny or revoke location access in Apple Watch Settings. Nearby results require location access.
 
 ### Information stored on your device
 

@@ -47,7 +47,7 @@
 - Create: `watch-app/scripts/generate-app-store-screenshots.sh`
 - Create: `watch-app/fastlane/screenshots/en-US/*.png`
 
-- [ ] Capture current 416 × 496 Watch UI for the live nearby map and rail arrivals.
+- [ ] Capture current 416 × 496 Watch UI for the live nearby map and arrival list.
 - [ ] Generate cream/navy marketing compositions at exactly 416 × 496.
 - [ ] Verify dimensions, color profile, copy legibility, and truthful UI presentation.
 - [ ] Commit and push screenshot sources, generator, and outputs.

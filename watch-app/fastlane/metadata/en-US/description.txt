@@ -1,13 +1,11 @@
 BusWatch KL puts Klang Valley public transit on your wrist.
 
-Open the app for a quick view of nearby buses, bus stops and rail stations—without reaching for your phone.
+Open the app for a quick view of nearby buses and bus stops—without reaching for your phone.
 
 FEATURES
 • See live bus positions on a nearby map
-• Check nearby bus and rail stops with distance and arrival estimates
-• View upcoming rail departures at supported stations
+• Check nearby bus stops with distance and arrival estimates
 • Follow supported bus trips stop by stop, including live bus position when available
-• Choose nearby rail stations manually when location access is unavailable
 • Read clear live, scheduled and approximate arrival indicators
 
 BUILT FOR APPLE WATCH

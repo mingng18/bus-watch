@@ -13,7 +13,7 @@
 
 ## Positioning
 
-BusWatch KL provides quick Klang Valley public-transit information directly on Apple Watch. The listing will advertise only enabled release behavior: nearby bus and rail stops, live bus positions, arrival estimates, rail departures, manual station selection, and supported stop-by-stop bus progress.
+BusWatch KL provides quick Klang Valley bus information directly on Apple Watch. The listing will advertise only enabled and production-reachable release behavior: nearby bus stops, live bus positions, arrival estimates, and supported stop-by-stop bus progress.
 
 The listing will not advertise favorites/home setup, service alerts, arrival reminders, an external journey planner, or other feature-flagged functionality disabled in build 3.
 
