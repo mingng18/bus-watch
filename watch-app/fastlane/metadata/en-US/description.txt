@@ -1,0 +1,19 @@
+BusWatch KL puts Klang Valley public transit on your wrist.
+
+Open the app for a quick view of nearby buses, bus stops and rail stations—without reaching for your phone.
+
+FEATURES
+• See live bus positions on a nearby map
+• Check nearby bus and rail stops with distance and arrival estimates
+• View upcoming rail departures at supported stations
+• Follow supported bus trips stop by stop, including live bus position when available
+• Choose nearby rail stations manually when location access is unavailable
+• Read clear live, scheduled and approximate arrival indicators
+
+BUILT FOR APPLE WATCH
+BusWatch KL is a standalone Apple Watch experience designed for fast, glanceable transit checks around Kuala Lumpur and the Klang Valley.
+
+PRIVACY BY DESIGN
+No account, advertising or cross-app tracking. Your location is used only to answer real-time nearby-transit requests and is not retained in BusWatch application databases.
+
+An internet connection is required for current transit information. Real-time data and arrival accuracy depend on availability from participating public-transport data sources.
