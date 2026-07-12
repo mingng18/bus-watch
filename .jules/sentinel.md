@@ -31,3 +31,7 @@
 **Vulnerability:** Missing input validation leading to potential DoS (excessively long query/path strings consuming server resources). Default Hono `onError` handlers could also potentially leak internal stack traces or respond in text format when clients expect JSON.
 **Learning:** Cloudflare Workers and Hono do not inherently restrict URL path/query lengths to tiny sizes (Cloudflare restricts URLs to 16KB), and Hono's default error handler responds with plain text `500 Internal Server Error`, which breaks JSON API clients or might leak details.
 **Prevention:** Implement a global middleware (`app.use('*')`) at the top of the route definitions to enforce strict path and query parameter length limits (`c.req.path.length > 256` and `queries[key].length > 100`). Also, provide an explicit `app.onError` to intercept unhandled exceptions, log them securely, and return a consistent JSON 500 error response. This "defense in depth" reusable security pattern prevents DoS via large inputs and ensures safe, uniform API contracts on failures.
+## 2025-02-28 - Token Comparison Timing Attack
+**Vulnerability:** timingSafeEqual throws errors when comparing strings of different lengths, exposing the valid token length to an attacker via 500 status codes.
+**Learning:** Checking lengths and returning early re-introduces a timing leak.
+**Prevention:** Compare the input to the expected token if lengths match, or compare the expected token to itself if they don't, then return Unauthorized if either check failed.
