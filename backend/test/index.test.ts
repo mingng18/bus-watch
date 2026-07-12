@@ -1,7 +1,16 @@
 import { describe, it, expect, vi } from 'vitest';
+import * as railIngest from '../src/rail-ingest';
 import worker from '../src/index';
 import * as nearby from '../src/nearby';
 import * as alerts from '../src/alerts';
+
+vi.mock('../src/rail-ingest', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/rail-ingest')>();
+  return {
+    ...actual,
+    ingestRailTimetables: vi.fn(),
+  };
+});
 
 vi.mock('../src/nearby', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../src/nearby')>();
@@ -285,5 +294,21 @@ describe('Global Security middleware', () => {
     expect(res.status).toBe(404);
     const json = await res.json() as any;
     expect(json.error).toBe('Not Found');
+  });
+});
+
+describe('POST /rail/ingest', () => {
+  it('returns 500 on internal server error and hides error details', async () => {
+    vi.mocked(railIngest.ingestRailTimetables).mockRejectedValue(new Error('Sensitive DB Error'));
+    const req = new Request('http://localhost/rail/ingest', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer secret' }
+    });
+    const dummyEnv = { ADMIN_TOKEN: 'secret' };
+    const res = await worker.fetch(req, dummyEnv as any, {} as any);
+
+    expect(res.status).toBe(500);
+    const body = await res.json();
+    expect(body).toEqual({ status: 'error', message: 'Internal Server Error' });
   });
 });
