@@ -5,6 +5,7 @@ import {
   klSecondsSinceMidnight,
   klDayOfWeek,
   klDateYyyyMmDd,
+  parseGtfsTimeParts,
   parseGtfsTimeSeconds,
 } from '../src/time-kl';
 
@@ -102,6 +103,25 @@ describe('time-kl utilities', () => {
       // May 5th -> 0505
       const utcDate = new Date('2023-05-05T00:00:00.000Z');
       expect(klDateYyyyMmDd(utcDate)).toBe('20230505');
+    });
+  });
+
+
+  describe('parseGtfsTimeParts', () => {
+    it('parses typical HH:MM:SS format correctly', () => {
+      expect(parseGtfsTimeParts('08:15:30')).toEqual([8, 15, 30]);
+      expect(parseGtfsTimeParts('14:00:00')).toEqual([14, 0, 0]);
+      expect(parseGtfsTimeParts('00:00:00')).toEqual([0, 0, 0]);
+    });
+
+    it('handles GTFS times crossing midnight (e.g., > 24 hours)', () => {
+      expect(parseGtfsTimeParts('25:30:15')).toEqual([25, 30, 15]);
+      expect(parseGtfsTimeParts('28:00:00')).toEqual([28, 0, 0]);
+    });
+
+    it('handles missing seconds or non-standard formats gracefully', () => {
+      expect(parseGtfsTimeParts('10:15')).toEqual([10, 15, 0]);
+      expect(parseGtfsTimeParts('2:5')).toEqual([2, 5, 0]);
     });
   });
 
