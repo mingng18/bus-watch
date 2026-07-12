@@ -14,7 +14,7 @@
 | Build status | Valid; internal TestFlight testing active |
 | Price | Free |
 | Release option | Manually release after App Review approval |
-| Availability | **Decision required. Recommended: Malaysia only for 1.0.** |
+| Availability | Malaysia only |
 
 ## Product page — English (U.S.)
 
@@ -65,8 +65,8 @@
 |---|---|
 | Primary category | Navigation |
 | Secondary category | Travel |
-| Copyright | `2026 Ng Gih Ming` — **confirm exact rights-holder wording** |
-| Content rights | **Yes**, the app accesses public third-party transit data and Apple MapKit; account holder must confirm applicable rights/terms before attesting |
+| Copyright | `2026 Ng Gih Ming` — confirmed |
+| Content rights | **Yes** — third-party content rights confirmed by the account holder |
 
 ## Screenshots
 
@@ -147,10 +147,10 @@ These values must remain private and should be entered directly in App Store Con
 
 | Field | Status |
 |---|---|
-| First name | **Required — confirm** |
-| Last name | **Required — confirm** |
-| Email | **Required — confirm** |
-| Phone | Supplied as `+601****0771`; full value required privately |
+| First name | Confirmed privately |
+| Last name | Confirmed privately |
+| Email | Confirmed privately |
+| Phone | Confirmed privately |
 
 ## App Review notes
 
@@ -182,8 +182,4 @@ These values must remain private and should be entered directly in App Store Con
 
 ## Remaining approvals before any live entry or submission
 
-1. Confirm launch availability: Malaysia only, worldwide, or selected countries.
-2. Confirm App Review first name, last name, email, and full phone privately.
-3. Confirm the legal copyright/rights-holder wording.
-4. Confirm the third-party content-rights attestation.
-5. Approve this package for live App Store Connect entry.
+1. Approve this package for live App Store Connect entry.
