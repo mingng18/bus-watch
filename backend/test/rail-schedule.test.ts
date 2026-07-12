@@ -169,3 +169,26 @@ describe('getRailSchedule', () => {
     expect(result).toBeNull();
   });
 });
+
+
+describe('searchRailStops', () => {
+  it('escapes special characters in stop search query', async () => {
+    let boundValue = '';
+    const mockEnv = {
+      DB: {
+        prepare: vi.fn().mockImplementation((query) => {
+          return {
+            bind: (...args: any[]) => {
+              boundValue = args[0];
+              return { all: vi.fn().mockResolvedValue({ results: [] }) };
+            }
+          };
+        })
+      }
+    } as unknown as Env;
+
+    const { searchRailStops } = await import('../src/rail-schedule');
+    await searchRailStops(mockEnv, '100% _real_ \\ test');
+    expect(boundValue).toBe('%100\\% \\_real\\_ \\\\ test%');
+  });
+});

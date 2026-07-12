@@ -31,3 +31,8 @@
 **Vulnerability:** Missing input validation leading to potential DoS (excessively long query/path strings consuming server resources). Default Hono `onError` handlers could also potentially leak internal stack traces or respond in text format when clients expect JSON.
 **Learning:** Cloudflare Workers and Hono do not inherently restrict URL path/query lengths to tiny sizes (Cloudflare restricts URLs to 16KB), and Hono's default error handler responds with plain text `500 Internal Server Error`, which breaks JSON API clients or might leak details.
 **Prevention:** Implement a global middleware (`app.use('*')`) at the top of the route definitions to enforce strict path and query parameter length limits (`c.req.path.length > 256` and `queries[key].length > 100`). Also, provide an explicit `app.onError` to intercept unhandled exceptions, log them securely, and return a consistent JSON 500 error response. This "defense in depth" reusable security pattern prevents DoS via large inputs and ensures safe, uniform API contracts on failures.
+
+## 2024-05-24 - Unsanitized LIKE Query
+**Vulnerability:** SQL Injection / Wildcard DOS via unsanitized LIKE query parameters.
+**Learning:** Wrapping user input in `%` for a `LIKE` clause without escaping special characters (`%`, `_`, `\`) allows attackers to inject wildcards, leading to potentially expensive queries or unintended matches.
+**Prevention:** Always escape `%`, `_`, and `\` characters in user input before using it in a `LIKE` query, and append the `ESCAPE '\'` clause to the SQL statement to ensure the database treats them as literals.
