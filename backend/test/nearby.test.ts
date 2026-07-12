@@ -9,13 +9,14 @@ vi.mock("../src/frequency", () => ({
   ],
 }));
 import { describe, it, expect } from "vitest";
-import { findNearbyStops, findNearbyPrasaranaBuses } from "../src/nearby";
+import { findNearbyStops, findNearbyPrasaranaBuses, nearestFromStopOnRoute } from "../src/nearby";
 import {
   Stop,
   Route,
   Trip,
   VehiclePosition,
   ScheduleEntry,
+  TripStopEntry,
 } from "../src/types";
 
 const stops: Stop[] = [
@@ -403,5 +404,60 @@ describe("findNearbyPrasaranaBuses", () => {
     // Even with 0 or negative speed, it should return a valid minutes estimation > 0
     expect(result[0].minutes).toBeGreaterThan(0);
     expect(result[1].minutes).toBeGreaterThan(0);
+  });
+});
+
+describe("nearestFromStopOnRoute", () => {
+  it("returns null if stops array is empty", () => {
+    expect(nearestFromStopOnRoute(3.1, 101.6, [])).toBeNull();
+  });
+
+  it("returns the only stop if there is only one", () => {
+    const stops: TripStopEntry[] = [
+      {
+        stopId: "1",
+        stopName: "Stop 1",
+        lat: 3.2,
+        lon: 101.7,
+        arrivalTime: "",
+        departureTime: "",
+        sequence: 1,
+      },
+    ];
+    expect(nearestFromStopOnRoute(3.1, 101.6, stops)).toEqual(stops[0]);
+  });
+
+  it("returns the closest stop among multiple stops", () => {
+    const stops: TripStopEntry[] = [
+      {
+        stopId: "1",
+        stopName: "Stop 1",
+        lat: 3.2,
+        lon: 101.7,
+        arrivalTime: "",
+        departureTime: "",
+        sequence: 1,
+      }, // Far
+      {
+        stopId: "2",
+        stopName: "Stop 2",
+        lat: 3.101,
+        lon: 101.601,
+        arrivalTime: "",
+        departureTime: "",
+        sequence: 2,
+      }, // Closest
+      {
+        stopId: "3",
+        stopName: "Stop 3",
+        lat: 3.15,
+        lon: 101.65,
+        arrivalTime: "",
+        departureTime: "",
+        sequence: 3,
+      }, // Mid
+    ];
+    // 3.1, 101.6 is closest to 3.101, 101.601 (stopId 2)
+    expect(nearestFromStopOnRoute(3.1, 101.6, stops)).toEqual(stops[1]);
   });
 });
