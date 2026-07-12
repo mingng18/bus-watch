@@ -1,1 +1,1 @@
-Kuala Lumpur,bus,transit,train,rail,arrival,nearby,KL,Malaysia,watchOS,public transport
+Kuala Lumpur,bus,transit,arrival,nearby,KL,Malaysia,watchOS,commute,stop,route
