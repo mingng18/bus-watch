@@ -37,10 +37,12 @@
 **Learning:** Returning `null` or avoiding empty strings is safer for dynamic CORS configurations in Hono when the target origin environment variable is missing. Hono handles `null` securely by blocking invalid origins.
 **Prevention:** Use the nullish coalescing operator `?? null` instead of logical OR with an empty string (`|| ''`) when reading environment variables for CORS origin properties, to ensure explicit and secure fallback states.
 
-
+## 2024-07-13 - [Timing Side-Channel Vulnerability]
+**Vulnerability:** timingSafeEqual string length mismatch
+**Learning:** Comparing strings of different lengths can throw an error or exit early, leaking timing information and failing securely.
+**Prevention:** Compare the expected token against itself when the lengths differ to maintain constant-time execution.
 
 ## 2024-05-24 - Unsanitized LIKE Query
 **Vulnerability:** SQL Injection / Wildcard DOS via unsanitized LIKE query parameters.
 **Learning:** Wrapping user input in `%` for a `LIKE` clause without escaping special characters (`%`, `_`, `\`) allows attackers to inject wildcards, leading to potentially expensive queries or unintended matches.
 **Prevention:** Always escape `%`, `_`, and `\` characters in user input before using it in a `LIKE` query, and append the `ESCAPE '\'` clause to the SQL statement to ensure the database treats them as literals.
- (🔒 [security fix] Fix SQL injection in LIKE query)
