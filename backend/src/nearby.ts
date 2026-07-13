@@ -29,6 +29,8 @@ export interface FindNearbyStopsContext {
   lat: number;
   lon: number;
   radiusM: number;
+  routeMap?: Map<string, Route>;
+  tripMap?: Map<string, Trip>;
 }
 
 export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
@@ -59,13 +61,17 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
 
   // Performance optimization: Precompute map to avoid O(N^2) lookups in loop
   // and use standard loops instead of array mapping to avoid intermediate allocations
-  const tripMap = new Map<string, Trip>();
-  for (let i = 0; i < trips.length; i++) {
-    tripMap.set(trips[i].id, trips[i]);
+  const tripMap = ctx.tripMap || new Map<string, Trip>();
+  if (!ctx.tripMap) {
+    for (let i = 0; i < trips.length; i++) {
+      tripMap.set(trips[i].id, trips[i]);
+    }
   }
-  const routeMap = new Map<string, Route>();
-  for (let i = 0; i < routes.length; i++) {
-    routeMap.set(routes[i].id, routes[i]);
+  const routeMap = ctx.routeMap || new Map<string, Route>();
+  if (!ctx.routeMap) {
+    for (let i = 0; i < routes.length; i++) {
+      routeMap.set(routes[i].id, routes[i]);
+    }
   }
 
   return nearby.map(({ stop, distance }) => {
@@ -135,16 +141,22 @@ export function findNearbyBusRoutes(
   lat: number,
   lon: number,
   radiusM: number = 1000,
+  pRouteMap?: Map<string, Route>,
+  pTripMap?: Map<string, Trip>,
 ): BusRouteEntry[] {
-  const routeMap = new Map<string, Route>();
-  for (let i = 0; i < routes.length; i++) {
-    routeMap.set(routes[i].id, routes[i]);
+  const routeMap = pRouteMap || new Map<string, Route>();
+  if (!pRouteMap) {
+    for (let i = 0; i < routes.length; i++) {
+      routeMap.set(routes[i].id, routes[i]);
+    }
   }
   // Performance optimization: Precompute map to avoid O(N^2) lookups in loop
   // and use standard loops instead of array mapping to avoid intermediate allocations
-  const tripMap = new Map<string, Trip>();
-  for (let i = 0; i < trips.length; i++) {
-    tripMap.set(trips[i].id, trips[i]);
+  const tripMap = pTripMap || new Map<string, Trip>();
+  if (!pTripMap) {
+    for (let i = 0; i < trips.length; i++) {
+      tripMap.set(trips[i].id, trips[i]);
+    }
   }
   const results: BusRouteEntry[] = [];
   const seen = new Set<string>();
@@ -181,12 +193,15 @@ export function findNearbyPrasaranaBuses(
   lat: number,
   lon: number,
   radiusM: number = 1000,
+  pRouteTripMap?: Map<string, Trip>,
 ): BusRouteEntry[] {
   // Performance optimization: Precompute map to avoid O(N^2) lookups in loop
-  const routeTripMap = new Map<string, Trip>();
-  for (const t of trips) {
-    if (!routeTripMap.has(t.routeId)) {
-      routeTripMap.set(t.routeId, t);
+  const routeTripMap = pRouteTripMap || new Map<string, Trip>();
+  if (!pRouteTripMap) {
+    for (const t of trips) {
+      if (!routeTripMap.has(t.routeId)) {
+        routeTripMap.set(t.routeId, t);
+      }
     }
   }
 
