@@ -47,6 +47,8 @@ struct NearbyListView: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(trackedTripLabel(bus))
                         .accessibilityHint("Shows live trip progress.")
                     }
                 }
@@ -150,6 +152,11 @@ struct NearbyListView: View {
                 .tint(.yellow)
             }
         }
+    }
+
+    private func trackedTripLabel(_ bus: BusRouteEntry) -> String {
+        let name = bus.routeShortName.isEmpty ? "Live bus" : "Bus \(bus.routeShortName)"
+        return "\(name), \(bus.minutes) minutes"
     }
 
     /// Rider-facing VoiceOver label for a nearby stop row — one element that
