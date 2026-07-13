@@ -24,7 +24,7 @@ class ContextEngine: ObservableObject {
     @Published var state: AppState = .loading
     @Published var nearbyStops: NearbyResponse?
 
-    private let api: APIClient
+    private let api = APIClient.shared
     private let locationManager = LocationManager()
     /// On-device timetable cache so favorite stops still show scheduled times
     /// when the network is unavailable or a fetch is stale. Backed by the
@@ -44,8 +44,7 @@ class ContextEngine: ObservableObject {
     /// other state stops the timer.
     var isAutoRefreshing: Bool { refreshTimer != nil }
 
-    init(api: APIClient = .shared) {
-        self.api = api
+    init() {
         locationManager.$location
             .compactMap { $0 }
             .removeDuplicates { $0.distance(from: $1) < 30 }

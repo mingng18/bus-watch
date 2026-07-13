@@ -5,11 +5,8 @@ class APIClient {
 
     let baseURL: String
 
-    let session: URLSession
-
-    init(baseURL: String = "https://bus-watch.nggihming123.workers.dev", session: URLSession = .shared) {
+    private init(baseURL: String = "https://bus-watch.nggihming123.workers.dev") {
         self.baseURL = baseURL
-        self.session = session
     }
 
     func fetchNearby(lat: Double, lon: Double, radius: Int = 500) async throws -> NearbyResponse {
@@ -57,7 +54,7 @@ class APIClient {
     }
 
     private func fetch<T: Decodable>(_ url: URL) async throws -> T {
-        let (data, response) = try await session.data(from: url)
+        let (data, response) = try await URLSession.shared.data(from: url)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
             throw APIError.badResponse
         }

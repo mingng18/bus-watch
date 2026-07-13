@@ -25,5 +25,3 @@
 ## 2024-07-06 - Update ContextEngine tests
 
 **Action:** Renamed `MockURLProtocol` to `ContextEngineMockURLProtocol` to avoid namespace collisions. Updated both `project.yml` and `project.pbxproj` to add `GENERATE_INFOPLIST_FILE: YES` to the `BusWatchTests` target to fix the watchOS simulator code signing failure.
-## 2026-07-06 - Improve ContextEngine test determinism
-**Action:** Refactored `ContextEngineTests.swift` to use Combine's `$state.sink` for deterministic async expectations instead of hardcoded `Task.sleep` delays. Isolated `MockURLProtocol` by injecting a local `URLSession` into `APIClient` and `ContextEngine`, removing global URLProtocol registration.
