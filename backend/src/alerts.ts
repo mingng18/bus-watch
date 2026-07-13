@@ -1,3 +1,4 @@
+import { XMLParser } from "fast-xml-parser";
 import type { Env } from "./types";
 
 // --- Source note ---------------------------------------------------------
@@ -136,23 +137,27 @@ interface SitemapEntry {
 /** Extract <url> blocks' <loc> + <lastmod>. Tolerant of malformed XML. */
 function extractUrlEntries(xml: string): SitemapEntry[] {
   const entries: SitemapEntry[] = [];
-  const startRe = /<url\b[^>]*>/gi;
-  const endRe = /<\/url>/gi;
+  const parser = new XMLParser({
+    ignoreAttributes: true,
+    isArray: (name) => name === "url",
+  });
 
-  let m: RegExpExecArray | null;
-  while ((m = startRe.exec(xml)) !== null) {
-    endRe.lastIndex = startRe.lastIndex;
-    const endMatch = endRe.exec(xml);
-    if (!endMatch) {
-      break; // Stop parsing if there's no closing tag
-    }
-    const block = xml.slice(startRe.lastIndex, endMatch.index);
-    startRe.lastIndex = endRe.lastIndex; // Advance start search beyond the closing tag
+  let parsedData: any;
+  try {
+    parsedData = parser.parse(xml);
+  } catch (err) {
+    return entries;
+  }
 
-    const loc = block.match(/<loc>\s*([^<]*?)\s*<\/loc>/i)?.[1]?.trim();
+  const urls = parsedData?.urlset?.url;
+  if (!Array.isArray(urls)) return entries;
+
+  for (const u of urls) {
+    if (!u || typeof u.loc !== "string") continue;
+    const loc = u.loc.trim();
     if (!loc) continue;
-    const lastmod =
-      block.match(/<lastmod>\s*([^<]*?)\s*<\/lastmod>/i)?.[1]?.trim() ?? null;
+
+    const lastmod = typeof u.lastmod === "string" ? u.lastmod.trim() : null;
     entries.push({ loc, lastmod });
   }
   return entries;
