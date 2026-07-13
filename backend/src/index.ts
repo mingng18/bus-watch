@@ -10,7 +10,7 @@ import { findNearbyStops, findNearbyBusRoutes, findNearbyPrasaranaBuses, getHist
 import { getBusTripProgress } from './bus-tracker';
 import { getStationSchedule } from './station';
 import { findNearbyRoutes } from './routes';
-import { VehiclePosition, PrasaranaBus, BusRouteEntry, Env, Route } from './types';
+import { VehiclePosition, PrasaranaBus, BusRouteEntry, Env, Route, Trip } from './types';
 import { haversineDistance } from './haversine';
 import { sampleBusPositions, aggregateTravelTimes, cleanupOldPositions, canonicalStopSequencesByRoute } from './sampling';
 import { ingestRailTimetables } from './rail-ingest';
@@ -24,7 +24,7 @@ const AGENCIES = [...REALTIME_AGENCIES, ...SELANGOR_AGENCIES];
 
 const app = new Hono<{ Bindings: Env }>();
 app.use('*', secureHeaders());
-app.use('*', cors({ origin: (origin, c) => c.env.FRONTEND_URL || '' }));
+app.use('*', cors({ origin: (origin, c) => c.env.FRONTEND_URL ?? null }));
 
 // Security: Global input length validation to prevent DoS via excessively large payloads
 app.use('*', async (c, next) => {
@@ -80,7 +80,8 @@ app.post('/refresh', async (c) => {
   if (!c.env.ADMIN_TOKEN || !authHeader) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
-  const isMatch = await timingSafeEqual(authHeader, expectedToken);
+  const compareStr = authHeader.length === expectedToken.length ? authHeader : expectedToken;
+  const isMatch = await timingSafeEqual(compareStr, expectedToken) && authHeader.length === expectedToken.length;
 
   if (!isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -105,17 +106,32 @@ app.get('/nearby', async (c) => {
   const allStops = await getAllStops(c.env.KV);
   const allRoutes = await getAllRoutes(c.env.KV);
   const allTrips = await getAllTrips(c.env.KV);
+  const { map: routeMap } = await getRoutesMaps(c.env.KV);
+  const { tripMap, routeTripMap } = await getTripsMaps(c.env.KV);
   const allTripStops = await getAllTripStops(c.env.KV);
   const allCalendar = await getAllCalendar(c.env.KV);
   const allFrequencies = await getAllFrequencies(c.env.KV);
   const vehicles = await getRealtimeVehicles(c.env.KV);
 
-  const result = findNearbyStops(allStops, allRoutes, allTrips, allTripStops, allCalendar, allFrequencies, vehicles, lat, lon, radius);
-  const busRoutes = findNearbyBusRoutes(allRoutes, allTrips, vehicles, lat, lon, 1000);
+  const result = findNearbyStops({
+    stops: allStops,
+    routes: allRoutes,
+    trips: allTrips,
+    tripStops: allTripStops,
+    calendar: allCalendar,
+    frequencies: allFrequencies,
+    vehicles,
+    lat,
+    lon,
+    radiusM: radius,
+    routeMap,
+    tripMap
+  });
+  const busRoutes = findNearbyBusRoutes(allRoutes, allTrips, vehicles, lat, lon, 1000, routeMap, tripMap);
 
   // Merge Prasarana Socket.IO bus data (covers routes not in GTFS like T816)
   const { buses: prasaranaBuses } = await getPrasaranaBuses(c.env.KV);
-  const prasaranaNearby = findNearbyPrasaranaBuses(prasaranaBuses, allRoutes, allTrips, lat, lon, Math.max(radius, 1000));
+  const prasaranaNearby = findNearbyPrasaranaBuses(prasaranaBuses, allRoutes, allTrips, lat, lon, Math.max(radius, 1000), routeTripMap);
   const mergedBusRoutes = mergeBusRoutes(busRoutes, prasaranaNearby);
 
   // Enrich bus arrivals with historical ETA when available
@@ -394,7 +410,8 @@ app.post('/rail/ingest', async (c) => {
   if (!c.env.ADMIN_TOKEN || !authHeader) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
-  const isMatch = await timingSafeEqual(authHeader, expectedToken);
+  const compareStr = authHeader.length === expectedToken.length ? authHeader : expectedToken;
+  const isMatch = await timingSafeEqual(compareStr, expectedToken) && authHeader.length === expectedToken.length;
 
   if (!isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -604,6 +621,24 @@ async function getRoutesMaps(kv: KVNamespace): Promise<{ map: Map<string, Route>
   }
   cachedRoutesMap = { map, shortNameMap, expires: now + CACHE_TTL_MS };
   return cachedRoutesMap;
+}
+
+let cachedTripsMap: { tripMap: Map<string, Trip>, routeTripMap: Map<string, Trip>, expires: number } | null = null;
+async function getTripsMaps(kv: KVNamespace): Promise<{ tripMap: Map<string, Trip>, routeTripMap: Map<string, Trip> }> {
+  const now = Date.now();
+  if (cachedTripsMap && cachedTripsMap.expires > now) return cachedTripsMap;
+  const allTrips = await getAllTrips(kv);
+  const tripMap = new Map<string, Trip>();
+  const routeTripMap = new Map<string, Trip>();
+  for (let i = 0; i < allTrips.length; i++) {
+    const t = allTrips[i];
+    tripMap.set(t.id, t);
+    if (!routeTripMap.has(t.routeId)) {
+      routeTripMap.set(t.routeId, t);
+    }
+  }
+  cachedTripsMap = { tripMap, routeTripMap, expires: now + CACHE_TTL_MS };
+  return cachedTripsMap;
 }
 
 let cachedTripsPromise: { promise: Promise<any[]>, expires: number } | null = null;
