@@ -154,9 +154,10 @@ struct NearbyListView: View {
         }
     }
 
-    private func trackedTripLabel(_ bus: BusRouteEntry) -> String {
+    func trackedTripLabel(_ bus: BusRouteEntry) -> String {
         let name = bus.routeShortName.isEmpty ? "Live bus" : "Bus \(bus.routeShortName)"
-        return "\(name), \(bus.minutes) minutes"
+        let minText = bus.minutes == 1 ? "1 minute" : "\(bus.minutes) minutes"
+        return "\(name), \(minText)"
     }
 
     /// Rider-facing VoiceOver label for a nearby stop row — one element that
