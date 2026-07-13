@@ -35,6 +35,7 @@
 **Vulnerability:** Falling back to an empty string (`|| ''`) in CORS middleware origin configuration when `FRONTEND_URL` is undefined. This can have unintended behavior depending on the CORS implementation and might bypass strict origin checks or result in wildcard matching.
 **Learning:** Returning `null` or avoiding empty strings is safer for dynamic CORS configurations in Hono when the target origin environment variable is missing. Hono handles `null` securely by blocking invalid origins.
 **Prevention:** Use the nullish coalescing operator `?? null` instead of logical OR with an empty string (`|| ''`) when reading environment variables for CORS origin properties, to ensure explicit and secure fallback states.
-## 2026-07-06 - Remove redundant length check before timingSafeEqual
-**Learning:** `hono/utils/buffer`'s `timingSafeEqual` securely handles strings of differing lengths natively by internally hashing them before comparison.
-**Action:** Relied on `timingSafeEqual` without manual length checks, as it correctly handles length mismatch avoiding conflicting notes or regressions.
+## 2024-07-13 - [Timing Side-Channel Vulnerability]
+**Vulnerability:** timingSafeEqual string length mismatch
+**Learning:** Comparing strings of different lengths can throw an error or exit early, leaking timing information and failing securely.
+**Prevention:** Compare the expected token against itself when the lengths differ to maintain constant-time execution.
