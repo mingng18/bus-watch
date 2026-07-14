@@ -21,13 +21,16 @@ export function getDeparturesTowardDestination(
   tripStops: Record<string, TripStopEntry[]>,
   calendar: CalendarEntry[],
   limit = 5,
+  pRouteMap?: Map<string, Route>
 ): StationScheduleResponse {
   const stop = stops.find(s => s.id === stopId);
   if (!stop) throw new Error(`Stop not found: ${stopId}`);
 
-  const routeMap = new Map<string, Route>();
-  for (let i = 0; i < routes.length; i++) {
-    routeMap.set(routes[i].id, routes[i]);
+  const routeMap = pRouteMap || new Map<string, Route>();
+  if (!pRouteMap) {
+    for (let i = 0; i < routes.length; i++) {
+      routeMap.set(routes[i].id, routes[i]);
+    }
   }
   const activeServiceIds = getActiveServiceIds(calendar, new Date());
 
