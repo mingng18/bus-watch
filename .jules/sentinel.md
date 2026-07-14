@@ -42,6 +42,10 @@
 **Learning:** Checking lengths and returning early re-introduces a timing leak.
 **Prevention:** Compare the input to the expected token if lengths match, or compare the expected token to itself if they don't, then return Unauthorized if either check failed.
 
+## 2025-02-14 - Audit timing attack vulnerability in authorization header comparison
+**Vulnerability:** A vulnerability report claimed that the `timingSafeEqual` call in authentication endpoints was susceptible to a timing attack because it lacked a length verification check.
+**Learning:** The `timingSafeEqual` function provided by `hono/utils/buffer` securely handles strings of differing lengths by internally hashing them before comparison. Adding a manual early return based on length creates a real timing side-channel, and layering an extra SHA-256 step is redundant.
+**Prevention:** Rely on the built-in properties of robust cryptographic comparison functions (like Hono's `timingSafeEqual`) without attempting manual length-matching workarounds or redundant hashing.
 
 ## 2024-07-13 - [Timing Side-Channel Vulnerability]
 **Vulnerability:** timingSafeEqual string length mismatch
