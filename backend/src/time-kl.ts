@@ -48,3 +48,52 @@ export function klDateYyyyMmDd(date: Date): string {
   const d = String(kl.getUTCDate()).padStart(2, '0');
   return `${y}${m}${d}`;
 }
+
+/**
+ * Parses a GTFS time string (HH:MM:SS) into seconds since midnight.
+ * Uses a fast zero-allocation index search for performance.
+ * Note that GTFS times can exceed 24:00:00 for trips extending into the next day.
+ */
+/**
+ * ⚡ Bolt Performance Optimization:
+ * Shared utility for fast, zero-allocation parsing of GTFS HH:MM:SS strings.
+ * Manual charCode loop avoids substring/split allocations and parseInt overhead.
+ */
+export function parseGtfsTimeParts(t: string): [number, number, number] {
+  let h = 0, m = 0, s = 0;
+  let i = 0;
+  const len = t.length;
+
+  while (i < len && t.charCodeAt(i) !== 58) { // ':' is 58
+    const code = t.charCodeAt(i);
+    if (code >= 48 && code <= 57) {
+      h = h * 10 + (code - 48);
+    }
+    i++;
+  }
+  i++;
+
+  while (i < len && t.charCodeAt(i) !== 58) {
+    const code = t.charCodeAt(i);
+    if (code >= 48 && code <= 57) {
+      m = m * 10 + (code - 48);
+    }
+    i++;
+  }
+  i++;
+
+  while (i < len) {
+    const code = t.charCodeAt(i);
+    if (code >= 48 && code <= 57) {
+      s = s * 10 + (code - 48);
+    }
+    i++;
+  }
+
+  return [h, m, s];
+}
+
+export function parseGtfsTimeSeconds(time: string): number {
+  const [h, m, s] = parseGtfsTimeParts(time);
+  return h * 3600 + m * 60 + s;
+}

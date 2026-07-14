@@ -18,18 +18,32 @@ import { toKlLocal } from "./time-kl";
 // @ts-ignore
 import { expandTripsForStop } from "./frequency";
 
-export function findNearbyStops(
-  stops: Stop[],
-  routes: Route[],
-  trips: Trip[],
-  tripStops: Record<string, TripStopEntry[]>,
-  calendar: CalendarEntry[],
-  frequencies: Frequency[],
-  vehicles: VehiclePosition[],
-  lat: number,
-  lon: number,
-  radiusM: number,
-): NearbyStop[] {
+export interface FindNearbyStopsContext {
+  stops: Stop[];
+  routes: Route[];
+  trips: Trip[];
+  tripStops: Record<string, TripStopEntry[]>;
+  calendar: CalendarEntry[];
+  frequencies: Frequency[];
+  vehicles: VehiclePosition[];
+  lat: number;
+  lon: number;
+  radiusM: number;
+}
+
+export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
+  const {
+    stops,
+    routes,
+    trips,
+    tripStops,
+    calendar,
+    frequencies,
+    vehicles,
+    lat,
+    lon,
+    radiusM,
+  } = ctx;
   const now = new Date();
   // Performance optimization: Replaced chained array methods (.map().filter())
   // with a standard loop to eliminate intermediate object allocations.

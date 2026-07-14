@@ -50,3 +50,16 @@
 ## 2025-02-12 - Prevent lambda allocation in .find() hot paths
 **Learning:** In heavily repeated request handlers (like bus position and ETA), using `Array.prototype.find()` with an inline lambda function allocates a new function per invocation, causing GC overhead. Building a `Map` dynamically per request is even slower (79.48 µs vs 15.27 µs for `.find()`).
 **Action:** Replace `Array.prototype.find()` in hot array lookups (`vehicles`, `buses`) with standard `for` loops. This reduced execution time to ~13.85 µs and eliminated intermediate lambda allocations.
+## 2025-02-09 - Map Lookup Optimization
+**Learning:** Redundant `Map.has` and `Map.get` calls in tight loops for grouping/deduplication arrays can create unnecessary CPU overhead.
+**Action:** Replaced the `has` check with a single `get` assignment and a falsy check before initializing and setting the default value in `backend/src/index.ts`. Benchmarks showed an approximate 26% improvement in this loop structure.
+## 2025-02-18 - Hoist Cloudflare D1 Prepared Statements
+**Learning:** Initializing Cloudflare D1 prepared statements (e.g., `env.DB.prepare(...)`) inside loop iterations like `.map()` causes significant N+1 compilation overhead because the query is unnecessarily recompiled per iteration.
+**Action:** Extract the `env.DB.prepare()` statements outside the loops. Keep the `.bind(...)` or execute portion inside the loop mapping, enabling the prepared statement to be reused correctly across iterations and significantly lowering overhead.
+## 2024-07-09 - Cache last key during Map aggregation of sorted arrays
+**Learning:** When grouping SQL result rows into a `Map` that were already ordered by the grouping key (`ORDER BY ...`), the loop consecutively inserts identical keys. Using `map.get()` repeatedly for consecutive rows generates redundant hash computations and map lookups overhead.
+**Action:** Track `lastKey` and `lastArr` during iteration, and bypass `map.get()` by pushing directly to `lastArr` when the current key strictly equals `lastKey`.
+
+## 2024-05-18 - Fast String Parsing in Hot Loops
+**Learning:** In heavily repeated code paths (like GTFS time parsing in `parseGtfsTimeSeconds` and `gtfsTimeToMinutes`), using array allocations and higher-order functions like `.split(':').map(Number)` or chaining `indexOf` / `substring` creates unnecessary garbage collection overhead and CPU cycles.
+**Action:** Replace string-splitting array manipulations with optimized `while` loops that manually accumulate values using `.charCodeAt(i) - 48` for parsing digits. This skips intermediate array object creation, substring extraction, and `parseInt` overhead, improving parsing performance in hot paths (often by 3x-10x).

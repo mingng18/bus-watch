@@ -92,6 +92,10 @@ export async function sampleBusPositions(env: Env, vehicles: VehiclePosition[], 
   }
   
   // Insert GTFS vehicles
+  const gtfsInsertStmt = env.DB.prepare(
+    `INSERT INTO bus_positions (bus_no, route, source, lat, lon, speed, timestamp)
+     VALUES (?, ?, ?, ?, ?, NULL, ?)`
+  );
   for (const v of vehicles) {
     if (!v.tripId || !v.routeId) continue;
     
@@ -100,14 +104,15 @@ export async function sampleBusPositions(env: Env, vehicles: VehiclePosition[], 
     const timedOut = last ? (now - last.ts) >= 300 : true;
     
     if (moved || timedOut) {
-      stmts.push(env.DB.prepare(
-        `INSERT INTO bus_positions (bus_no, route, source, lat, lon, speed, timestamp) 
-         VALUES (?, ?, ?, ?, ?, NULL, ?)`
-      ).bind(v.tripId, v.routeId, 'gtfs', v.lat, v.lon, v.timestamp));
+      stmts.push(gtfsInsertStmt.bind(v.tripId, v.routeId, 'gtfs', v.lat, v.lon, v.timestamp));
     }
   }
   
   // Insert Prasarana vehicles
+  const prasaInsertStmt = env.DB.prepare(
+    `INSERT INTO bus_positions (bus_no, route, source, lat, lon, speed, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`
+  );
   for (const b of prasaranaBuses) {
     const last = lastPositions.get(b.bus_no);
     
@@ -121,10 +126,7 @@ export async function sampleBusPositions(env: Env, vehicles: VehiclePosition[], 
     const timedOut = last ? (ts - last.ts) >= 300 : true;
     
     if (moved || timedOut) {
-      stmts.push(env.DB.prepare(
-        `INSERT INTO bus_positions (bus_no, route, source, lat, lon, speed, timestamp)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`
-      ).bind(b.bus_no, b.route, 'prasarana', b.latitude, b.longitude, b.speed, ts));
+      stmts.push(prasaInsertStmt.bind(b.bus_no, b.route, 'prasarana', b.latitude, b.longitude, b.speed, ts));
     }
   }
   
@@ -370,11 +372,22 @@ export async function aggregateTravelTimes(
 
   // Group positions by (route, bus_no) so each trace is one bus's path.
   const traces = new Map<string, PositionSample[]>();
+  // Performance optimization: Data is already sorted by route and bus_no.
+  // Cache lastKey and lastArr to prevent redundant map lookups.
+  let lastKey: string | null = null;
+  let lastArr: PositionSample[] = [];
+
   for (const r of rows) {
     const key = `${r.route}|${r.bus_no}`;
-    let arr = traces.get(key);
-    if (!arr) traces.set(key, arr = []);
-    arr.push(r);
+    if (key === lastKey) {
+      lastArr.push(r);
+    } else {
+      let arr = traces.get(key);
+      if (!arr) traces.set(key, arr = []);
+      arr.push(r);
+      lastKey = key;
+      lastArr = arr;
+    }
   }
 
   const allSamples: TravelTimeSample[] = [];
@@ -400,9 +413,8 @@ export async function aggregateTravelTimes(
   // than being overwritten by the latest 6h window. A single D1 batch keeps
   // this atomic and bounded.
   const now = Math.floor(Date.now() / 1000);
-  const upsertStmts = aggregated.map(a =>
-    env.DB.prepare(
-      `INSERT INTO travel_times
+  const travelTimesPrepStmt = env.DB.prepare(
+    `INSERT INTO travel_times
          (route, from_stop_id, to_stop_id, from_lat, from_lon, to_lat, to_lon,
           avg_seconds, sample_count, updated_at, day_of_week, time_bucket, spread_seconds)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -414,8 +426,10 @@ export async function aggregateTravelTimes(
                                  + travel_times.spread_seconds * travel_times.sample_count)
                                 / (excluded.sample_count + travel_times.sample_count)),
          sample_count = travel_times.sample_count + excluded.sample_count,
-         updated_at = excluded.updated_at`,
-    ).bind(
+         updated_at = excluded.updated_at`
+  );
+  const upsertStmts = aggregated.map(a =>
+    travelTimesPrepStmt.bind(
       a.route, a.from_stop_id, a.to_stop_id, a.from_lat, a.from_lon, a.to_lat, a.to_lon,
       a.avg_seconds, a.sample_count, now, a.day_of_week, a.time_bucket, a.spread_seconds,
     ),
@@ -433,7 +447,7 @@ export async function aggregateTravelTimes(
         env.DB.batch(upsertStmts.slice(start, start + BATCH_SIZE)).catch(err => {
           console.error('aggregateTravelTimes: upsert batch failed:', err);
         })
-      );
+  );
     }
     await Promise.all(batchPromises);
   }

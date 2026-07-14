@@ -23,3 +23,20 @@
 **Vulnerability:** Manual length checking and string padding used alongside `timingSafeEqual` introduces unnecessary complexity and potential side channels.
 **Learning:** `hono/utils/buffer`'s `timingSafeEqual` securely handles strings of differing lengths by internally hashing them before comparison.
 **Prevention:** Rely on the built-in properties of robust cryptographic comparison functions (like Hono's `timingSafeEqual`) instead of attempting manual length-matching workarounds, which can often inadvertently introduce new side channels or bugs.
+## 2025-02-27 - Fix overly permissive CORS policy fallback (localhost)
+**Vulnerability:** The CORS policy in Hono used a hardcoded local development URL (`'http://localhost:8081'`) as a fallback when `c.env.FRONTEND_URL` was undefined. This meant attackers could run a malicious site on `localhost:8081` to bypass CORS protections.
+**Learning:** Hardcoding local development domains in production CORS middleware can expose the application to cross-origin attacks originating from users' own machines. A missing environment variable should degrade securely (i.e. to no access), rather than falling back to local development defaults.
+**Prevention:** Always use securely restrictive fallbacks (like an empty string `''` or a specifically crafted blocked state) instead of development defaults when configuring dynamic CORS policies.
+## 2025-01-29 - Global Input Validation & Secure Error Handling
+**Vulnerability:** Missing input validation leading to potential DoS (excessively long query/path strings consuming server resources). Default Hono `onError` handlers could also potentially leak internal stack traces or respond in text format when clients expect JSON.
+**Learning:** Cloudflare Workers and Hono do not inherently restrict URL path/query lengths to tiny sizes (Cloudflare restricts URLs to 16KB), and Hono's default error handler responds with plain text `500 Internal Server Error`, which breaks JSON API clients or might leak details.
+**Prevention:** Implement a global middleware (`app.use('*')`) at the top of the route definitions to enforce strict path and query parameter length limits (`c.req.path.length > 256` and `queries[key].length > 100`). Also, provide an explicit `app.onError` to intercept unhandled exceptions, log them securely, and return a consistent JSON 500 error response. This "defense in depth" reusable security pattern prevents DoS via large inputs and ensures safe, uniform API contracts on failures.
+## 2024-05-18 - Fix insecure CORS fallback policy
+**Vulnerability:** Falling back to an empty string (`|| ''`) in CORS middleware origin configuration when `FRONTEND_URL` is undefined. This can have unintended behavior depending on the CORS implementation and might bypass strict origin checks or result in wildcard matching.
+**Learning:** Returning `null` or avoiding empty strings is safer for dynamic CORS configurations in Hono when the target origin environment variable is missing. Hono handles `null` securely by blocking invalid origins.
+**Prevention:** Use the nullish coalescing operator `?? null` instead of logical OR with an empty string (`|| ''`) when reading environment variables for CORS origin properties, to ensure explicit and secure fallback states.
+
+## 2025-02-14 - Audit timing attack vulnerability in authorization header comparison
+**Vulnerability:** A vulnerability report claimed that the `timingSafeEqual` call in authentication endpoints was susceptible to a timing attack because it lacked a length verification check.
+**Learning:** The `timingSafeEqual` function provided by `hono/utils/buffer` securely handles strings of differing lengths by internally hashing them before comparison. Adding a manual early return based on length creates a real timing side-channel, and layering an extra SHA-256 step is redundant.
+**Prevention:** Rely on the built-in properties of robust cryptographic comparison functions (like Hono's `timingSafeEqual`) without attempting manual length-matching workarounds or redundant hashing.
