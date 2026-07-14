@@ -380,7 +380,11 @@ export async function aggregateTravelTimes(
   if (rows.length === 0) return;
 
   // Group positions by (route, bus_no) so each trace is one bus's path.
+  // The query orders by route, bus_no, so consecutive rows usually share the same key.
+  // We cache the last key and array to skip expensive Map lookups in the hot loop.
   const traces = new Map<string, PositionSample[]>();
+  let lastKey = '';
+  let lastArr: PositionSample[] | null = null;
   // Performance optimization: Data is already sorted by route and bus_no.
   // Cache lastKey and lastArr to prevent redundant map lookups.
   let lastKey: string | null = null;
@@ -389,6 +393,13 @@ export async function aggregateTravelTimes(
   for (const r of rows) {
     const key = `${r.route}|${r.bus_no}`;
     if (key === lastKey) {
+      lastArr!.push(r);
+    } else {
+      let arr = traces.get(key);
+      if (!arr) {
+        arr = [];
+        traces.set(key, arr);
+      }
       lastArr.push(r);
     } else {
       let arr = traces.get(key);
@@ -400,7 +411,8 @@ export async function aggregateTravelTimes(
   }
 
   const allSamples: TravelTimeSample[] = [];
-  for (const [route, samples] of traces) {
+  for (const [traceKey, samples] of traces) {
+    const route = traceKey.split('|')[0];
     const stops = stopSequencesByRoute.get(route);
     if (!stops) continue; // route unknown to GTFS static — nothing to key off
     try {
