@@ -172,6 +172,7 @@ describe('getRailSchedule', () => {
 
 
 
+
 describe('searchRailStops', () => {
   it('returns matching stops for a query', async () => {
     let boundArgs: any[] = [];
@@ -240,4 +241,5 @@ describe('searchRailStops', () => {
     await searchRailStops(mockEnv, '100% _real_ \\ test');
     expect(boundValue).toBe('%100\\% \\_real\\_ \\\\ test%');
   });
+
 });
