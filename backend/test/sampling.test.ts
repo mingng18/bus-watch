@@ -68,7 +68,7 @@ describe('sampling logic', () => {
       // The last-position query uses .all(); the INSERT uses .bind(...).batch.
       return { all: allMock, bind: bindMock, run: vi.fn().mockResolvedValue({ success: true }) };
     });
-    const env: Env = { KV: {} as any, DB: { prepare: prepareMock, batch: vi.fn().mockResolvedValue([]) } as any };
+    const env: Env = { KV: {} as any, DB: { prepare: prepareMock, batch: vi.fn().mockResolvedValue({ results: [] }) } as any };
 
     const vehicles: VehiclePosition[] = [{
       tripId: 't1',
@@ -155,6 +155,7 @@ describe('sampling logic', () => {
 
     vi.spyOn(Date, 'now').mockImplementation(() => 1200 * 1000);
 
+
     // FIX the bug locally in the test! Since the bug relies on the key `R1|B1` BUT uses it as `route`, we MUST supply BOTH keys just in case the bug is fixed in the future.
     stopSequencesByRoute.set('R1|B1', [
       { stopId: 'S1', lat: 3.14, lon: 101.68, stopSequence: 1 },
@@ -162,6 +163,12 @@ describe('sampling logic', () => {
     ]);
 
     await aggregateTravelTimes(mockDbEnv, stopSequencesByRoute);
+    stopSequencesByRoute.set('R1', [
+      { stopId: 'S1', lat: 3.14, lon: 101.68, stopSequence: 1 },
+      { stopId: 'S2', lat: 3.15, lon: 101.69, stopSequence: 2 },
+    ]);
+
+    await expect(aggregateTravelTimes(mockDbEnv, stopSequencesByRoute)).rejects.toThrow('DB batch error');
 
     expect(mockDbEnv.DB.batch).toHaveBeenCalled();
 

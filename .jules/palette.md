@@ -31,3 +31,13 @@
 ## 2025-01-22 - Smooth full strings with dynamic numbers
 **Learning:** In SwiftUI, `.contentTransition(.numericText())` smoothly animates changes even when the `Text` contains full sentences or formatted strings where only a numeric component changes (like "Titiwangsa → 5 min" or "120m").
 **Action:** Apply `.contentTransition(.numericText())` along with `.animation` to any dynamic string displaying numeric counts or distances.
+## 2025-01-22 - Replace typographical symbols for VoiceOver
+**Learning:** VoiceOver interprets typographical symbols literally (e.g. reading "→" as "Right arrow"), which can break the natural flow of spoken destination text.
+**Action:** Always provide an explicit `.accessibilityLabel` (e.g. "Towards Destination") for views containing typographical symbols meant to convey direction or intent.
+
+## 2025-01-22 - Collapse icon-heavy button labels for VoiceOver
+**Learning:** In SwiftUI, VoiceOver will read the individual components of complex `Button` labels containing multiple elements like icons, text, and chevrons as disconnected fragments, significantly degrading the screen reader experience.
+**Action:** Use `.accessibilityElement(children: .ignore)` on the `Button` and provide a single cohesive phrase as an `.accessibilityLabel` to describe the button's purpose and state accurately.
+## 2025-01-22 - Add semantic meaning to typographical symbols
+**Learning:** VoiceOver interprets typographical symbols literally (e.g. reading '→' as 'Right arrow').
+**Action:** In SwiftUI, apply an explicit `.accessibilityLabel` to provide the semantic meaning (e.g., 'Towards [Destination]') when using these symbols for direction or intent.

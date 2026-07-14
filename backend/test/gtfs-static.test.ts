@@ -1,6 +1,60 @@
-import { describe, it, expect } from "vitest";
-import { getActiveServiceIds } from "../src/gtfs-static";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { getActiveServiceIds, fetchAndParseAgency } from "../src/gtfs-static";
 import { CalendarEntry } from "../src/types";
+import * as fflate from "fflate";
+
+vi.mock("fflate", () => ({
+  unzipSync: vi.fn(),
+}));
+
+describe("fetchAndParseAgency", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    global.fetch = vi.fn();
+  });
+
+  it("throws on unknown agency", async () => {
+    await expect(fetchAndParseAgency("unknown")).rejects.toThrow("Unknown agency: unknown");
+  });
+
+  it("throws when fetch response is not ok", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+    });
+    await expect(fetchAndParseAgency("rapid-bus-kl")).rejects.toThrow("Failed to fetch rapid-bus-kl: 404");
+  });
+
+  it("throws when fetch throws an error", async () => {
+    global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
+    await expect(fetchAndParseAgency("rapid-bus-kl")).rejects.toThrow("Failed to fetch rapid-bus-kl: Network error");
+  });
+
+  it("successfully parses agency data", async () => {
+    const mockArrayBuffer = new ArrayBuffer(0);
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      arrayBuffer: () => Promise.resolve(mockArrayBuffer),
+    });
+
+    const enc = new TextEncoder();
+    vi.mocked(fflate.unzipSync).mockReturnValue({
+      "stops.txt": enc.encode("stop_id,stop_name,stop_lat,stop_lon,parent_station\nS1,Stop 1,3.14,101.69,\nS2,Stop 2,3.15,101.70,S1"),
+      "routes.txt": enc.encode("route_id,route_short_name,route_long_name,route_type\nR1,Short,Long Route,3"),
+      "trips.txt": enc.encode("trip_id,route_id,service_id,trip_headsign,direction_id\nT1,R1,SRV1,Headsign,0"),
+      "stop_times.txt": enc.encode("trip_id,arrival_time,departure_time,stop_id,stop_sequence\nT1,10:00:00,10:01:00,S1,1\nT1,10:05:00,10:06:00,S2,2"),
+      "calendar.txt": enc.encode("service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date\nSRV1,1,1,1,1,1,0,0,20230101,20231231"),
+    });
+
+    const data = await fetchAndParseAgency("rapid-bus-kl");
+
+    expect(data.stops).toHaveLength(2);
+    expect(data.routes).toHaveLength(1);
+    expect(data.trips).toHaveLength(1);
+    expect(data.calendar).toHaveLength(1);
+    expect(Object.keys(data.tripStops)).toHaveLength(1);
+  });
+});
 
 describe("getActiveServiceIds", () => {
   const baseCalendarEntry: CalendarEntry = {
