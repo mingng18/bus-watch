@@ -132,13 +132,16 @@ export async function searchRailStops(
   env: Env,
   query: string
 ): Promise<RailStopResult[]> {
+  // Escape special LIKE characters to prevent SQL injection/wildcard abuse
+  const sanitizedQuery = query.replace(/[\\%_]/g, '\\$&');
+
   const { results } = await env.DB.prepare(
     `SELECT stop_id, stop_name, lat, lon
      FROM rail_stops
-     WHERE LOWER(stop_name) LIKE LOWER(?)
+     WHERE LOWER(stop_name) LIKE LOWER(?) ESCAPE '\\'
      ORDER BY stop_name ASC
      LIMIT 20`
-  ).bind(`%${query}%`).all<RailStopResult>();
+  ).bind(`%${sanitizedQuery}%`).all<RailStopResult>();
 
   return results;
 }
