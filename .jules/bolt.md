@@ -69,3 +69,7 @@
 ## 2024-07-06 - Map of Sets string allocation optimization
 **Learning:** Using a nested `Map<K1, Set<K2>>` avoids constructing string interpolations (`${k1}-${k2}`) just to test membership in a single `Set<string>`. This cuts down on temporary string allocations in hot loops, reducing garbage collection pressure and improving raw loop throughput.
 **Action:** Replaced `Set<string>` seen-lists with `Map<string, Set<string>>` inside nested loop tracking of routes per stop, yielding a ~40% latency reduction in benchmarking tests.
+## 2025-02-18 - Pre-compute and reuse route maps
+**Learning:** Re-instantiating `Map` objects and iterating over large arrays on every HTTP request in Cloudflare Workers endpoints causes significant allocation and garbage collection overhead.
+**Action:** Always pre-compute and cache map lookups outside the request handler, and pass them down as optional parameters to reuse the prebuilt Maps.
+
