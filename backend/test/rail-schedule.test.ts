@@ -170,6 +170,9 @@ describe('getRailSchedule', () => {
   });
 });
 
+
+
+
 describe('searchRailStops', () => {
   it('returns matching stops for a query', async () => {
     let boundArgs: any[] = [];
@@ -218,4 +221,25 @@ describe('searchRailStops', () => {
     expect(results).toHaveLength(0);
     expect(results).toEqual([]);
   });
+
+  it('escapes special characters in stop search query', async () => {
+    let boundValue = '';
+    const mockEnv = {
+      DB: {
+        prepare: vi.fn().mockImplementation((query) => {
+          return {
+            bind: (...args: any[]) => {
+              boundValue = args[0];
+              return { all: vi.fn().mockResolvedValue({ results: [] }) };
+            }
+          };
+        })
+      }
+    } as unknown as Env;
+
+    const { searchRailStops } = await import('../src/rail-schedule');
+    await searchRailStops(mockEnv, '100% _real_ \\ test');
+    expect(boundValue).toBe('%100\\% \\_real\\_ \\\\ test%');
+  });
+
 });
