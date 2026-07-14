@@ -175,4 +175,17 @@ final class FeatureFlagsAndMapModelTests: XCTestCase {
             "Live bus map with 2 buses and your current location"
         )
     }
+
+    func testTrackedTripLabelPluralization() {
+        let view = NearbyListView(response: NearbyResponse(stops: [], busRoutes: []), onSelectStop: { _ in })
+
+        let singleMinuteBus = BusRouteEntry(routeId: "1", routeShortName: "U82", destination: "", minutes: 1, tripId: "t1", lat: 0, lon: 0, busNo: nil)
+        XCTAssertEqual(view.trackedTripLabel(singleMinuteBus), "Bus U82, 1 minute")
+
+        let multipleMinuteBus = BusRouteEntry(routeId: "2", routeShortName: "U82", destination: "", minutes: 5, tripId: "t2", lat: 0, lon: 0, busNo: nil)
+        XCTAssertEqual(view.trackedTripLabel(multipleMinuteBus), "Bus U82, 5 minutes")
+
+        let emptyNameBus = BusRouteEntry(routeId: "3", routeShortName: "", destination: "", minutes: 1, tripId: "t3", lat: 0, lon: 0, busNo: nil)
+        XCTAssertEqual(view.trackedTripLabel(emptyNameBus), "Live bus, 1 minute")
+    }
 }

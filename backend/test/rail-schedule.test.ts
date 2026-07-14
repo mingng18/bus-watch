@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getRailSchedule } from '../src/rail-schedule';
+import { getRailSchedule, searchRailStops } from '../src/rail-schedule';
 import { Env } from '../src/types';
 
 describe('getRailSchedule', () => {
@@ -168,4 +168,78 @@ describe('getRailSchedule', () => {
     const result = await getRailSchedule(mockEnv, 'unknown', 120);
     expect(result).toBeNull();
   });
+});
+
+
+
+
+describe('searchRailStops', () => {
+  it('returns matching stops for a query', async () => {
+    let boundArgs: any[] = [];
+    const mockEnv = {
+      DB: {
+        prepare: vi.fn().mockImplementation((query) => {
+          return {
+            bind: (...args: any[]) => {
+              boundArgs = args;
+              return {
+                all: vi.fn().mockResolvedValue({
+                  results: [
+                    { stop_id: 's1', stop_name: 'KL Sentral', lat: 3.134, lon: 101.686 },
+                    { stop_id: 's2', stop_name: 'Sentral Market', lat: 3.145, lon: 101.695 }
+                  ]
+                })
+              };
+            }
+          };
+        })
+      }
+    } as unknown as Env;
+
+    const results = await searchRailStops(mockEnv, 'sentral');
+
+    expect(boundArgs[0]).toBe('%sentral%');
+    expect(results).toHaveLength(2);
+    expect(results[0].stop_name).toBe('KL Sentral');
+    expect(results[1].stop_id).toBe('s2');
+  });
+
+  it('handles empty results', async () => {
+    const mockEnv = {
+      DB: {
+        prepare: vi.fn().mockImplementation(() => {
+          return {
+            bind: () => ({
+              all: vi.fn().mockResolvedValue({ results: [] })
+            })
+          };
+        })
+      }
+    } as unknown as Env;
+
+    const results = await searchRailStops(mockEnv, 'unknown');
+    expect(results).toHaveLength(0);
+    expect(results).toEqual([]);
+  });
+
+  it('escapes special characters in stop search query', async () => {
+    let boundValue = '';
+    const mockEnv = {
+      DB: {
+        prepare: vi.fn().mockImplementation((query) => {
+          return {
+            bind: (...args: any[]) => {
+              boundValue = args[0];
+              return { all: vi.fn().mockResolvedValue({ results: [] }) };
+            }
+          };
+        })
+      }
+    } as unknown as Env;
+
+    const { searchRailStops } = await import('../src/rail-schedule');
+    await searchRailStops(mockEnv, '100% _real_ \\ test');
+    expect(boundValue).toBe('%100\\% \\_real\\_ \\\\ test%');
+  });
+
 });
