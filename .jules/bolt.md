@@ -66,3 +66,6 @@
 ## 2025-02-18 - Hoist and Cache Map Instantiation globally across Worker Requests
 **Learning:** Instantiating `Map` objects (like `tripMap`, `routeMap`, `routeTripMap`) per HTTP request in hot endpoints (like `/nearby`) incurs significant allocation overhead (~12ms per 100 reqs). Passing them downwards internally is good, but caching them across request invocations using memory scope (like Cloudflare KV promises cache) drastically cuts CPU time on worker invocations.
 **Action:** Cache large static data map transformations in module scope with an expiration TTL, and pass these prebuilt maps down through handler functions via optional arguments to avoid redundant O(N) array traversals per request.
+## 2025-02-18 - Pre-compute and reuse route maps
+**Learning:** Re-instantiating `Map` objects and iterating over large arrays on every HTTP request in Cloudflare Workers endpoints causes significant allocation and garbage collection overhead.
+**Action:** Always pre-compute and cache map lookups outside the request handler, and pass them down as optional parameters to reuse the prebuilt Maps.
