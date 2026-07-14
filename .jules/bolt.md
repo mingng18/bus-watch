@@ -69,3 +69,7 @@
 ## 2025-02-18 - Optimize redundant map lookups by caching last key
 **Learning:** In loops processing sorted data (e.g. data fetched from DB with ORDER BY), consecutive rows often share the same grouping key. Calling `Map.prototype.get` and potentially `Map.prototype.set` for every single row incurs unnecessary hashing and lookup overhead.
 **Action:** Replaced the direct map lookup for every row with a lightweight cache storing the `lastKey` and `lastArr`. Since the query uses `ORDER BY route, bus_no`, consecutive samples for the same bus hit the cache and push to the existing array immediately, saving O(1) map overhead per row and resulting in ~40% faster trace grouping.
+## 2025-02-18 - Pre-compute and reuse route maps
+**Learning:** Re-instantiating `Map` objects and iterating over large arrays on every HTTP request in Cloudflare Workers endpoints causes significant allocation and garbage collection overhead.
+**Action:** Always pre-compute and cache map lookups outside the request handler, and pass them down as optional parameters to reuse the prebuilt Maps.
+
