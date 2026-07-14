@@ -43,6 +43,10 @@
 **Vulnerability:** timingSafeEqual string length mismatch
 **Learning:** Comparing strings of different lengths can throw an error or exit early, leaking timing information and failing securely.
 **Prevention:** Compare the expected token against itself when the lengths differ to maintain constant-time execution.
+## 2025-02-19 - Fix ReDoS in XML Parsing
+**Vulnerability:** Regular Expression Denial of Service (ReDoS) vulnerability in `extractUrlEntries` due to the use of `[\s\S]*?` within a capture group for `<url>` tags in potentially large XML documents.
+**Learning:** Unbounded capture groups like `[\s\S]*?` between delimiters can cause catastrophic backtracking when processing large payloads where the closing delimiter is missing or malformed.
+**Prevention:** Use sequential regular expression matches (start token, then end token from the start index) and string slicing instead of a single regex with a wildcard capture group when parsing blocks of text.
 
 ## 2024-05-24 - Unsanitized LIKE Query
 **Vulnerability:** SQL Injection / Wildcard DOS via unsanitized LIKE query parameters.
