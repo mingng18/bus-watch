@@ -131,8 +131,17 @@ export async function sampleBusPositions(env: Env, vehicles: VehiclePosition[], 
   }
   
   // Batch insert in chunks of 100 to avoid D1 limits
-  for (let i = 0; i < stmts.length; i += 100) {
-    await env.DB.batch(stmts.slice(i, i + 100));
+  // We use bounded concurrency (e.g. 5 concurrent batches) to avoid overwhelming D1 limits
+  // while propagating any failures to the caller.
+  const BATCH_SIZE = 100;
+  const CONCURRENCY = 5;
+  for (let i = 0; i < stmts.length; i += BATCH_SIZE * CONCURRENCY) {
+    const batchPromises = [];
+    for (let j = 0; j < CONCURRENCY && i + j * BATCH_SIZE < stmts.length; j++) {
+      const start = i + j * BATCH_SIZE;
+      batchPromises.push(env.DB.batch(stmts.slice(start, start + BATCH_SIZE)));
+    }
+    await Promise.all(batchPromises);
   }
 }
 
@@ -436,9 +445,12 @@ export async function aggregateTravelTimes(
   );
 
   // Chunk to stay under D1's per-batch limit.
-  // We use bounded concurrency (e.g. 5 concurrent batches) to avoid overwhelming D1 limits.
+  // We use bounded concurrency (e.g. 5 concurrent batches) to avoid overwhelming D1 limits
+  // while propagating any failures to the caller.
   const BATCH_SIZE = 100;
   const CONCURRENCY = 5;
+  const errors: any[] = [];
+
   for (let i = 0; i < upsertStmts.length; i += BATCH_SIZE * CONCURRENCY) {
     const batchPromises = [];
     for (let j = 0; j < CONCURRENCY && i + j * BATCH_SIZE < upsertStmts.length; j++) {
@@ -446,10 +458,15 @@ export async function aggregateTravelTimes(
       batchPromises.push(
         env.DB.batch(upsertStmts.slice(start, start + BATCH_SIZE)).catch(err => {
           console.error('aggregateTravelTimes: upsert batch failed:', err);
+          errors.push(err);
         })
   );
     }
     await Promise.all(batchPromises);
+  }
+
+  if (errors.length > 0) {
+    throw errors[0]; // Propagate the first error encountered
   }
 }
 

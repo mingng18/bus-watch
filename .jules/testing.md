@@ -22,3 +22,15 @@
 
 ## 2025-07-06 - Extract GTFS time parsing logic
 **Action:** Refactored duplicated zero-allocation GTFS time parsing logic from multiple files into a shared, testable utility function in `time-kl.ts` to improve maintainability and readability.
+## 2025-07-06 - Extract GTFS time parsing logic
+**Action:** Refactored duplicated zero-allocation GTFS time parsing logic from multiple files into a shared, testable utility function in `time-kl.ts` to improve maintainability and readability.
+
+## 2024-07-06 - Update ContextEngine tests
+
+**Action:** Renamed `MockURLProtocol` to `ContextEngineMockURLProtocol` to avoid namespace collisions. Updated both `project.yml` and `project.pbxproj` to add `GENERATE_INFOPLIST_FILE: YES` to the `BusWatchTests` target to fix the watchOS simulator code signing failure.
+
+## 2025-07-06 - Extract GTFS time parsing logic
+**Action:** Refactored duplicated zero-allocation GTFS time parsing logic from multiple files into a shared, testable utility function in `time-kl.ts` to improve maintainability and readability.
+## 2024-07-06 - Mocking URLSession for Swift testing
+**Learning:** When needing to mock `URLSession` for XCTest in Swift, modifying the client to allow dependency injection of `URLSession` and using a custom `URLProtocol` (like `MockURLProtocol`) provides an effective mechanism to intercept and mock network responses. Always use uniquely named mocks (like `APIClientMockURLProtocol`) to avoid global namespace collisions in the test target. When wiring a test in a project relying on `project.yml` as the source of truth, ensure the file or folder is mapped appropriately and ignore ephemeral files like `.pbxproj`.
+**Action:** Modified `APIClient` private initializer to internal with a `session: URLSession` parameter defaulting to `.shared`, created `APIClientMockURLProtocol` to assert requests and provide stubbed JSON responses.

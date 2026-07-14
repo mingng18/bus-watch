@@ -5,6 +5,10 @@ class APIClient {
 
     let baseURL: String
 
+    private let session: URLSession
+
+    init(baseURL: String = "https://bus-watch.nggihming123.workers.dev", session: URLSession = .shared) {
+        self.session = session
     private init(baseURL: String = "https://bus-watch.nggihming123.workers.dev") {
         self.baseURL = baseURL
     }
@@ -54,7 +58,7 @@ class APIClient {
     }
 
     private func fetch<T: Decodable>(_ url: URL) async throws -> T {
-        let (data, response) = try await URLSession.shared.data(from: url)
+        let (data, response) = try await session.data(from: url)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
             throw APIError.badResponse
         }

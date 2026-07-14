@@ -1,6 +1,7 @@
 # Current Location on Nearby Map
 
 **Date:** 2026-07-11
+**Date:** 2026-07-11  
 **Status:** Approved default design; pending implementation
 
 ## Goal
