@@ -19,9 +19,12 @@ struct StationArrivalsView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text(stop.name)
                     .font(.headline)
+                    .accessibilityAddTraits(.isHeader)
 
-                favoriteControls
-                    .padding(.top, 2)
+                if AppFeatureFlags.favoritesAndHome {
+                    favoriteControls
+                        .padding(.top, 2)
+                }
 
                 if isOffline {
                     offlineBanner
@@ -53,6 +56,8 @@ struct StationArrivalsView: View {
                             .font(.caption)
                             .bold()
                             .foregroundStyle(dep.minutesUntil <= 3 ? Color.green : .white)
+                            .contentTransition(.numericText())
+                            .animation(.default, value: dep.minutesUntil)
                     }
                     // Combine the row into one VoiceOver element so the rider
                     // hears "U82 to Sentul, 5 minutes, arriving soon" rather
@@ -68,8 +73,10 @@ struct StationArrivalsView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                Divider()
-                arrivalReminderControls
+                if AppFeatureFlags.arrivalNotifications {
+                    Divider()
+                    arrivalReminderControls
+                }
 
                 HStack {
                     Spacer()

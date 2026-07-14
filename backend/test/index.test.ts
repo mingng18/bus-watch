@@ -1,7 +1,16 @@
 import { describe, it, expect, vi } from 'vitest';
+import * as railIngest from '../src/rail-ingest';
 import worker from '../src/index';
 import * as nearby from '../src/nearby';
 import * as alerts from '../src/alerts';
+
+vi.mock('../src/rail-ingest', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/rail-ingest')>();
+  return {
+    ...actual,
+    ingestRailTimetables: vi.fn(),
+  };
+});
 
 vi.mock('../src/nearby', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../src/nearby')>();
@@ -251,5 +260,55 @@ describe('Input-validation hardening (issue #131)', () => {
       } as any, {} as any);
       expect(res.status).toBe(401);
     });
+  });
+});
+
+
+describe('Global Security middleware', () => {
+  const dummyEnv = {
+    KV: { get: vi.fn(), put: vi.fn() },
+    DB: { prepare: vi.fn(), batch: vi.fn() },
+  };
+
+  it('rejects overly long paths (414 URI Too Long)', async () => {
+    const longPath = 'a'.repeat(300);
+    const req = new Request(`http://localhost/${longPath}`);
+    const res = await worker.fetch(req, dummyEnv as any);
+    expect(res.status).toBe(414);
+    const json = await res.json() as any;
+    expect(json.error).toBe('URI path too long');
+  });
+
+  it('rejects overly long query parameters (400 Bad Request)', async () => {
+    const longQuery = 'a'.repeat(150);
+    const req = new Request(`http://localhost/nearby?lat=3&lon=101&foo=${longQuery}`);
+    const res = await worker.fetch(req, dummyEnv as any);
+    expect(res.status).toBe(400);
+    const json = await res.json() as any;
+    expect(json.error).toBe('Parameter foo is too long');
+  });
+
+  it('handles 404 cleanly in JSON', async () => {
+    const req = new Request('http://localhost/does-not-exist');
+    const res = await worker.fetch(req, dummyEnv as any);
+    expect(res.status).toBe(404);
+    const json = await res.json() as any;
+    expect(json.error).toBe('Not Found');
+  });
+});
+
+describe('POST /rail/ingest', () => {
+  it('returns 500 on internal server error and hides error details', async () => {
+    vi.mocked(railIngest.ingestRailTimetables).mockRejectedValue(new Error('Sensitive DB Error'));
+    const req = new Request('http://localhost/rail/ingest', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer secret' }
+    });
+    const dummyEnv = { ADMIN_TOKEN: 'secret' };
+    const res = await worker.fetch(req, dummyEnv as any, {} as any);
+
+    expect(res.status).toBe(500);
+    const body = await res.json();
+    expect(body).toEqual({ status: 'error', message: 'Internal Server Error' });
   });
 });

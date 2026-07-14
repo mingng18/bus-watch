@@ -3,8 +3,10 @@ import SwiftUI
 struct ManualPickerView: View {
     @ObservedObject var engine: ContextEngine
     var favorites: FavoriteStore? = nil
+    let onSelectStop: (NearbyStop) -> Void
 
     private var favoriteStops: [NearbyStop] {
+        guard AppFeatureFlags.favoritesAndHome else { return [] }
         guard let favorites, let nearby = engine.nearbyStops else { return [] }
         let byId = Dictionary(uniqueKeysWithValues: nearby.stops.map { ($0.id, $0) })
         return favorites.sortedFavorites.compactMap { byId[$0] }
@@ -52,7 +54,7 @@ struct ManualPickerView: View {
     private func stopRow(_ stop: NearbyStop) -> some View {
         Button {
             if stop.type == "rail" {
-                engine.selectStation(stop)
+                onSelectStop(stop)
             }
         } label: {
             HStack {
@@ -62,12 +64,15 @@ struct ManualPickerView: View {
                 Text(stop.name)
                     .font(.caption)
                 Spacer()
-                if let favorites, favorites.isHome(stop.id) {
+                if AppFeatureFlags.favoritesAndHome,
+                   let favorites,
+                   favorites.isHome(stop.id) {
                     Image(systemName: "house.fill")
                         .foregroundStyle(.yellow)
                         .accessibilityHidden(true)
                 }
-                if favorites?.contains(stop.id) == true {
+                if AppFeatureFlags.favoritesAndHome,
+                   favorites?.contains(stop.id) == true {
                     Image(systemName: "star.fill")
                         .foregroundStyle(.yellow)
                         .accessibilityHidden(true)
@@ -80,7 +85,7 @@ struct ManualPickerView: View {
                            ? "Shows arrivals for this station."
                            : "Bus stop. No live arrivals.")
         .swipeActions(edge: .leading, allowsFullSwipe: true) {
-            if let favorites {
+            if AppFeatureFlags.favoritesAndHome, let favorites {
                 Button {
                     favorites.toggleHome(stop.id)
                 } label: {
@@ -91,7 +96,7 @@ struct ManualPickerView: View {
             }
         }
         .swipeActions(edge: .trailing) {
-            if let favorites {
+            if AppFeatureFlags.favoritesAndHome, let favorites {
                 Button(role: favorites.contains(stop.id) ? .destructive : nil) {
                     favorites.toggle(stop.id)
                 } label: {
@@ -108,7 +113,7 @@ struct ManualPickerView: View {
     /// color alone; matches `NearbyListView.stopRowLabel`.
     private func stopRowLabel(_ stop: NearbyStop) -> String {
         var parts = [stop.name]
-        if let favorites {
+        if AppFeatureFlags.favoritesAndHome, let favorites {
             if favorites.isHome(stop.id) { parts.append("home stop") }
             if favorites.contains(stop.id) { parts.append("favorited") }
         }
