@@ -142,6 +142,20 @@ interface SitemapEntry {
 /** Extract <url> blocks' <loc> + <lastmod>. Tolerant of malformed XML. */
 function extractUrlEntries(xml: string): SitemapEntry[] {
   const entries: SitemapEntry[] = [];
+  const startRe = /<url\b[^>]*>/gi;
+  const endRe = /<\/url>/gi;
+
+  let m: RegExpExecArray | null;
+  while ((m = startRe.exec(xml)) !== null) {
+    endRe.lastIndex = startRe.lastIndex;
+    const endMatch = endRe.exec(xml);
+    if (!endMatch) {
+      break; // Stop parsing if there's no closing tag
+    }
+    const block = xml.slice(startRe.lastIndex, endMatch.index);
+    startRe.lastIndex = endRe.lastIndex; // Advance start search beyond the closing tag
+
+    const loc = block.match(/<loc>\s*([^<]*?)\s*<\/loc>/i)?.[1]?.trim();
   const parser = new XMLParser({
     ignoreAttributes: true,
     isArray: (name) => name === "url",
