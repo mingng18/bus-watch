@@ -36,3 +36,20 @@
 **Vulnerability:** Hardcoded local development fallback (http://localhost:8081) in CORS origin configuration allowed potential bypass of CORS protections if the FRONTEND_URL environment variable was absent.
 **Learning:** Hardcoding local ports as default CORS origins in a production environment exposes the application to risks where attackers could exploit local networking setups or host a malicious site on the matching local port to perform unauthorized cross-origin requests.
 **Prevention:** Avoid fallback local ports in CORS configurations; if an environment variable is expected for CORS origin, provide a secure default such as an empty string or strict validation if not provided.
+
+## 2024-05-18 - Fix insecure CORS fallback policy
+**Vulnerability:** Falling back to an empty string (`|| ''`) in CORS middleware origin configuration when `FRONTEND_URL` is undefined. This can have unintended behavior depending on the CORS implementation and might bypass strict origin checks or result in wildcard matching.
+**Learning:** Returning `null` or avoiding empty strings is safer for dynamic CORS configurations in Hono when the target origin environment variable is missing. Hono handles `null` securely by blocking invalid origins.
+**Prevention:** Use the nullish coalescing operator `?? null` instead of logical OR with an empty string (`|| ''`) when reading environment variables for CORS origin properties, to ensure explicit and secure fallback states.
+
+
+## 2024-07-13 - [Timing Side-Channel Vulnerability]
+**Vulnerability:** timingSafeEqual string length mismatch
+**Learning:** Comparing strings of different lengths can throw an error or exit early, leaking timing information and failing securely.
+**Prevention:** Compare the expected token against itself when the lengths differ to maintain constant-time execution.
+
+## 2024-05-24 - Unsanitized LIKE Query
+**Vulnerability:** SQL Injection / Wildcard DOS via unsanitized LIKE query parameters.
+**Learning:** Wrapping user input in `%` for a `LIKE` clause without escaping special characters (`%`, `_`, `\`) allows attackers to inject wildcards, leading to potentially expensive queries or unintended matches.
+**Prevention:** Always escape `%`, `_`, and `\` characters in user input before using it in a `LIKE` query, and append the `ESCAPE '\'` clause to the SQL statement to ensure the database treats them as literals.
+
