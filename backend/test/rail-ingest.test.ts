@@ -76,13 +76,14 @@ describe('ingestRailTimetables', () => {
     expect(mockStmt.bind).toHaveBeenCalledWith('T1', 'S2', 2, '10:05:00', '10:06:00');
   });
 
-  it('should throw if fetch fails', async () => {
+  it('should return error object if fetch fails', async () => {
     vi.mocked(global.fetch).mockResolvedValue({
       ok: false,
       status: 404
     } as any);
 
-    await expect(ingestRailTimetables(mockEnv)).rejects.toThrow('GTFS fetch failed: 404');
+    const result = await ingestRailTimetables(mockEnv);
+    expect(result).toEqual({ inserted: 0, error: 'GTFS fetch failed: 404' });
   });
 
   it('should handle optional fields and fallback values', async () => {

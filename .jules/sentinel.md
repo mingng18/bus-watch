@@ -37,12 +37,24 @@
 **Vulnerability:** Falling back to an empty string (`|| ''`) in CORS middleware origin configuration when `FRONTEND_URL` is undefined. This can have unintended behavior depending on the CORS implementation and might bypass strict origin checks or result in wildcard matching.
 **Learning:** Returning `null` or avoiding empty strings is safer for dynamic CORS configurations in Hono when the target origin environment variable is missing. Hono handles `null` securely by blocking invalid origins.
 **Prevention:** Use the nullish coalescing operator `?? null` instead of logical OR with an empty string (`|| ''`) when reading environment variables for CORS origin properties, to ensure explicit and secure fallback states.
+## 2025-02-28 - Token Comparison Timing Attack
+**Vulnerability:** timingSafeEqual throws errors when comparing strings of different lengths, exposing the valid token length to an attacker via 500 status codes.
+**Learning:** Checking lengths and returning early re-introduces a timing leak.
+**Prevention:** Compare the input to the expected token if lengths match, or compare the expected token to itself if they don't, then return Unauthorized if either check failed.
 
+## 2025-02-14 - Audit timing attack vulnerability in authorization header comparison
+**Vulnerability:** A vulnerability report claimed that the `timingSafeEqual` call in authentication endpoints was susceptible to a timing attack because it lacked a length verification check.
+**Learning:** The `timingSafeEqual` function provided by `hono/utils/buffer` securely handles strings of differing lengths by internally hashing them before comparison. Adding a manual early return based on length creates a real timing side-channel, and layering an extra SHA-256 step is redundant.
+**Prevention:** Rely on the built-in properties of robust cryptographic comparison functions (like Hono's `timingSafeEqual`) without attempting manual length-matching workarounds or redundant hashing.
 
 ## 2024-07-13 - [Timing Side-Channel Vulnerability]
 **Vulnerability:** timingSafeEqual string length mismatch
 **Learning:** Comparing strings of different lengths can throw an error or exit early, leaking timing information and failing securely.
 **Prevention:** Compare the expected token against itself when the lengths differ to maintain constant-time execution.
+## 2025-02-19 - Fix ReDoS in XML Parsing
+**Vulnerability:** Regular Expression Denial of Service (ReDoS) vulnerability in `extractUrlEntries` due to the use of `[\s\S]*?` within a capture group for `<url>` tags in potentially large XML documents.
+**Learning:** Unbounded capture groups like `[\s\S]*?` between delimiters can cause catastrophic backtracking when processing large payloads where the closing delimiter is missing or malformed.
+**Prevention:** Use sequential regular expression matches (start token, then end token from the start index) and string slicing instead of a single regex with a wildcard capture group when parsing blocks of text.
 
 ## 2024-05-24 - Unsanitized LIKE Query
 **Vulnerability:** SQL Injection / Wildcard DOS via unsanitized LIKE query parameters.
