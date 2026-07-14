@@ -39,6 +39,7 @@ struct DeparturesTowardView: View {
                                     .foregroundStyle(.secondary)
                                 Text("→ \(dep.destination)")
                                     .font(.caption)
+                                    .accessibilityLabel("Towards \(dep.destination)")
                             }
                             Spacer()
                             Text("\(dep.minutesUntil) min")

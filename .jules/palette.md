@@ -38,3 +38,6 @@
 ## 2025-01-22 - Collapse icon-heavy button labels for VoiceOver
 **Learning:** In SwiftUI, VoiceOver will read the individual components of complex `Button` labels containing multiple elements like icons, text, and chevrons as disconnected fragments, significantly degrading the screen reader experience.
 **Action:** Use `.accessibilityElement(children: .ignore)` on the `Button` and provide a single cohesive phrase as an `.accessibilityLabel` to describe the button's purpose and state accurately.
+## 2025-01-22 - Add semantic meaning to typographical symbols
+**Learning:** VoiceOver interprets typographical symbols literally (e.g. reading '→' as 'Right arrow').
+**Action:** In SwiftUI, apply an explicit `.accessibilityLabel` to provide the semantic meaning (e.g., 'Towards [Destination]') when using these symbols for direction or intent.
