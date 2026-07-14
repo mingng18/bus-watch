@@ -1,3 +1,4 @@
+import { XMLParser } from "fast-xml-parser";
 import type { Env } from "./types";
 
 // --- Source note ---------------------------------------------------------
@@ -78,12 +79,17 @@ export async function fetchAlerts(): Promise<Alert[]> {
  * cached list (if any) so a transient source outage never blanks the UI.
  */
 export async function getCachedAlerts(env: Env): Promise<Alert[]> {
-  const cached = (await env.KV.get(ALERTS_KV_KEY, "json")) as {
-    ts: number;
-    alerts: Alert[];
-  } | null;
-  if (cached && Date.now() - cached.ts < ALERTS_CACHE_TTL_MS) {
-    return cached.alerts;
+  let cached: { ts: number; alerts: Alert[] } | null = null;
+  try {
+    cached = (await env.KV.get(ALERTS_KV_KEY, "json")) as {
+      ts: number;
+      alerts: Alert[];
+    } | null;
+    if (cached && Date.now() - cached.ts < ALERTS_CACHE_TTL_MS) {
+      return cached.alerts;
+    }
+  } catch (err: any) {
+    // Ignore cache error, fetch fresh.
   }
 
   const alerts = await fetchAlerts();
@@ -136,14 +142,41 @@ interface SitemapEntry {
 /** Extract <url> blocks' <loc> + <lastmod>. Tolerant of malformed XML. */
 function extractUrlEntries(xml: string): SitemapEntry[] {
   const entries: SitemapEntry[] = [];
-  const urlRe = /<url\b[^>]*>([\s\S]*?)<\/url>/gi;
+  const startRe = /<url\b[^>]*>/gi;
+  const endRe = /<\/url>/gi;
+
   let m: RegExpExecArray | null;
-  while ((m = urlRe.exec(xml)) !== null) {
-    const block = m[1];
+  while ((m = startRe.exec(xml)) !== null) {
+    endRe.lastIndex = startRe.lastIndex;
+    const endMatch = endRe.exec(xml);
+    if (!endMatch) {
+      break; // Stop parsing if there's no closing tag
+    }
+    const block = xml.slice(startRe.lastIndex, endMatch.index);
+    startRe.lastIndex = endRe.lastIndex; // Advance start search beyond the closing tag
+
     const loc = block.match(/<loc>\s*([^<]*?)\s*<\/loc>/i)?.[1]?.trim();
+  const parser = new XMLParser({
+    ignoreAttributes: true,
+    isArray: (name) => name === "url",
+  });
+
+  let parsedData: any;
+  try {
+    parsedData = parser.parse(xml);
+  } catch (err) {
+    return entries;
+  }
+
+  const urls = parsedData?.urlset?.url;
+  if (!Array.isArray(urls)) return entries;
+
+  for (const u of urls) {
+    if (!u || typeof u.loc !== "string") continue;
+    const loc = u.loc.trim();
     if (!loc) continue;
-    const lastmod =
-      block.match(/<lastmod>\s*([^<]*?)\s*<\/lastmod>/i)?.[1]?.trim() ?? null;
+
+    const lastmod = typeof u.lastmod === "string" ? u.lastmod.trim() : null;
     entries.push({ loc, lastmod });
   }
   return entries;

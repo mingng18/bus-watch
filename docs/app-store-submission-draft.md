@@ -1,6 +1,7 @@
 # BusWatch KL — App Store Connect Submission Draft
 
 **Prepared:** 12 July 2026
+**Prepared:** 12 July 2026  
 **Workflow:** Draft for review only; nothing in this document authorizes submission to App Review.
 
 ## Release
@@ -42,6 +43,16 @@
 > BusWatch KL is a standalone watchOS experience designed for quick, glanceable checks while you are moving around the city. No account or sign-in is required.
 >
 > PRIVACY
+> FEATURES  
+> • See live bus positions on a nearby map  
+> • Check nearby bus stops with distance and arrival estimates  
+> • Follow supported bus trips stop by stop, including live bus position when available  
+> • Read clear live, scheduled and approximate arrival indicators
+>
+> BUILT FOR APPLE WATCH  
+> BusWatch KL is a standalone watchOS experience designed for quick, glanceable checks while you are moving around the city. No account or sign-in is required.
+>
+> PRIVACY  
 > BusWatch KL has no advertising or tracking. Your location is used only to provide nearby results and is not associated with an account.
 >
 > An internet connection and location permission are required for nearby results. Live information depends on participating transit data providers and may not be available for every route or vehicle. BusWatch KL is an independent app and is not affiliated with Prasarana Malaysia Berhad or any transit operator.

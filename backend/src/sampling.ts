@@ -131,8 +131,17 @@ export async function sampleBusPositions(env: Env, vehicles: VehiclePosition[], 
   }
   
   // Batch insert in chunks of 100 to avoid D1 limits
-  for (let i = 0; i < stmts.length; i += 100) {
-    await env.DB.batch(stmts.slice(i, i + 100));
+  // We use bounded concurrency (e.g. 5 concurrent batches) to avoid overwhelming D1 limits
+  // while propagating any failures to the caller.
+  const BATCH_SIZE = 100;
+  const CONCURRENCY = 5;
+  for (let i = 0; i < stmts.length; i += BATCH_SIZE * CONCURRENCY) {
+    const batchPromises = [];
+    for (let j = 0; j < CONCURRENCY && i + j * BATCH_SIZE < stmts.length; j++) {
+      const start = i + j * BATCH_SIZE;
+      batchPromises.push(env.DB.batch(stmts.slice(start, start + BATCH_SIZE)));
+    }
+    await Promise.all(batchPromises);
   }
 }
 
@@ -371,7 +380,11 @@ export async function aggregateTravelTimes(
   if (rows.length === 0) return;
 
   // Group positions by (route, bus_no) so each trace is one bus's path.
+  // The query orders by route, bus_no, so consecutive rows usually share the same key.
+  // We cache the last key and array to skip expensive Map lookups in the hot loop.
   const traces = new Map<string, PositionSample[]>();
+  let lastKey = '';
+  let lastArr: PositionSample[] | null = null;
   // Performance optimization: Data is already sorted by route and bus_no.
   // Cache lastKey and lastArr to prevent redundant map lookups.
   let lastKey: string | null = null;
@@ -380,6 +393,13 @@ export async function aggregateTravelTimes(
   for (const r of rows) {
     const key = `${r.route}|${r.bus_no}`;
     if (key === lastKey) {
+      lastArr!.push(r);
+    } else {
+      let arr = traces.get(key);
+      if (!arr) {
+        arr = [];
+        traces.set(key, arr);
+      }
       lastArr.push(r);
     } else {
       let arr = traces.get(key);
@@ -391,7 +411,8 @@ export async function aggregateTravelTimes(
   }
 
   const allSamples: TravelTimeSample[] = [];
-  for (const [route, samples] of traces) {
+  for (const [traceKey, samples] of traces) {
+    const route = traceKey.split('|')[0];
     const stops = stopSequencesByRoute.get(route);
     if (!stops) continue; // route unknown to GTFS static — nothing to key off
     try {
@@ -436,9 +457,12 @@ export async function aggregateTravelTimes(
   );
 
   // Chunk to stay under D1's per-batch limit.
-  // We use bounded concurrency (e.g. 5 concurrent batches) to avoid overwhelming D1 limits.
+  // We use bounded concurrency (e.g. 5 concurrent batches) to avoid overwhelming D1 limits
+  // while propagating any failures to the caller.
   const BATCH_SIZE = 100;
   const CONCURRENCY = 5;
+  const errors: any[] = [];
+
   for (let i = 0; i < upsertStmts.length; i += BATCH_SIZE * CONCURRENCY) {
     const batchPromises = [];
     for (let j = 0; j < CONCURRENCY && i + j * BATCH_SIZE < upsertStmts.length; j++) {
@@ -446,10 +470,15 @@ export async function aggregateTravelTimes(
       batchPromises.push(
         env.DB.batch(upsertStmts.slice(start, start + BATCH_SIZE)).catch(err => {
           console.error('aggregateTravelTimes: upsert batch failed:', err);
+          errors.push(err);
         })
   );
     }
     await Promise.all(batchPromises);
+  }
+
+  if (errors.length > 0) {
+    throw errors[0]; // Propagate the first error encountered
   }
 }
 

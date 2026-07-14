@@ -38,6 +38,17 @@ struct BusProgressView: View {
                 Text("→ \(progress.destination)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .accessibilityLabel("Towards \(progress.destination)")
+
+                if let mapModel = BusProgressMapModel(progress: progress) {
+                    RealtimeBusLocationMap(model: mapModel)
+                        .padding(.vertical, 4)
+                }
+
+                if let mapModel = BusProgressMapModel(progress: progress) {
+                    RealtimeBusLocationMap(model: mapModel)
+                        .padding(.vertical, 4)
+                }
 
                 if let mapModel = BusProgressMapModel(progress: progress) {
                     RealtimeBusLocationMap(model: mapModel)
