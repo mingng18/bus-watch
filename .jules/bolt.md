@@ -69,3 +69,7 @@
 ## 2024-03-24 - Parallelize DB inserts
 **Learning:** Sequential DB batch inserts using `await env.DB.batch(...)` in a loop cause significant performance overhead.
 **Action:** Replaced sequential awaits with concurrent promises collected in an array and awaited via `Promise.all(batchPromises)`, preserving error-handling per promise.
+## 2025-02-18 - Pre-compute and reuse route maps
+**Learning:** Re-instantiating `Map` objects and iterating over large arrays on every HTTP request in Cloudflare Workers endpoints causes significant allocation and garbage collection overhead.
+**Action:** Always pre-compute and cache map lookups outside the request handler, and pass them down as optional parameters to reuse the prebuilt Maps.
+
