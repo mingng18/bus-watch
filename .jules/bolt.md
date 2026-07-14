@@ -69,3 +69,4 @@
 ## 2025-02-18 - Pre-compute and reuse route maps
 **Learning:** Re-instantiating `Map` objects and iterating over large arrays on every HTTP request in Cloudflare Workers endpoints causes significant allocation and garbage collection overhead.
 **Action:** Always pre-compute and cache map lookups outside the request handler, and pass them down as optional parameters to reuse the prebuilt Maps.
+
