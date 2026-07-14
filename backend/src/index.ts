@@ -338,12 +338,13 @@ app.get('/station/:stopId/schedule', async (c) => {
   try {
     const allStops = await getAllStops(c.env.KV);
     const allRoutes = await getAllRoutes(c.env.KV);
+    const routesMaps = await getRoutesMaps(c.env.KV);
     const allTrips = await getAllTrips(c.env.KV);
     const allTripStops = await getAllTripStops(c.env.KV);
     const allCalendar = await getAllCalendar(c.env.KV);
     const allFrequencies = await getAllFrequencies(c.env.KV);
 
-    const result = getStationSchedule(stopId, allStops, allRoutes, allTrips, allTripStops, allCalendar);
+    const result = getStationSchedule(stopId, allStops, allRoutes, allTrips, allTripStops, allCalendar, routesMaps.map);
     return c.json(result);
   } catch (err) {
     // getStationSchedule throws on unknown stopId (e.g. a stale saved
@@ -365,12 +366,13 @@ app.get('/station/:stopId/schedule/toward', async (c) => {
   try {
     const allStops = await getAllStops(c.env.KV);
     const allRoutes = await getAllRoutes(c.env.KV);
+    const routesMaps = await getRoutesMaps(c.env.KV);
     const allTrips = await getAllTrips(c.env.KV);
     const allTripStops = await getAllTripStops(c.env.KV);
     const allCalendar = await getAllCalendar(c.env.KV);
 
     const result = getDeparturesTowardDestination(
-      stopId, destinationStopId, allStops, allRoutes, allTrips, allTripStops, allCalendar, limit,
+      stopId, destinationStopId, allStops, allRoutes, allTrips, allTripStops, allCalendar, limit, routesMaps.map
     );
     return c.json(result);
   } catch (err) {
