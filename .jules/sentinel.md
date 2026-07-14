@@ -32,6 +32,10 @@
 **Learning:** Cloudflare Workers and Hono do not inherently restrict URL path/query lengths to tiny sizes (Cloudflare restricts URLs to 16KB), and Hono's default error handler responds with plain text `500 Internal Server Error`, which breaks JSON API clients or might leak details.
 **Prevention:** Implement a global middleware (`app.use('*')`) at the top of the route definitions to enforce strict path and query parameter length limits (`c.req.path.length > 256` and `queries[key].length > 100`). Also, provide an explicit `app.onError` to intercept unhandled exceptions, log them securely, and return a consistent JSON 500 error response. This "defense in depth" reusable security pattern prevents DoS via large inputs and ensures safe, uniform API contracts on failures.
 
+## 2026-07-07 - Insecure CORS Fallback Configuration
+**Vulnerability:** Hardcoded local development fallback (http://localhost:8081) in CORS origin configuration allowed potential bypass of CORS protections if the FRONTEND_URL environment variable was absent.
+**Learning:** Hardcoding local ports as default CORS origins in a production environment exposes the application to risks where attackers could exploit local networking setups or host a malicious site on the matching local port to perform unauthorized cross-origin requests.
+**Prevention:** Avoid fallback local ports in CORS configurations; if an environment variable is expected for CORS origin, provide a secure default such as an empty string or strict validation if not provided.
 
 ## 2024-05-18 - Fix insecure CORS fallback policy
 **Vulnerability:** Falling back to an empty string (`|| ''`) in CORS middleware origin configuration when `FRONTEND_URL` is undefined. This can have unintended behavior depending on the CORS implementation and might bypass strict origin checks or result in wildcard matching.

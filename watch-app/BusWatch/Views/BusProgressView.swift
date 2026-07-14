@@ -50,6 +50,11 @@ struct BusProgressView: View {
                         .padding(.vertical, 4)
                 }
 
+                if let mapModel = BusProgressMapModel(progress: progress) {
+                    RealtimeBusLocationMap(model: mapModel)
+                        .padding(.vertical, 4)
+                }
+
                 Divider()
 
                 ForEach(progress.stops) { stop in

@@ -472,7 +472,7 @@ export async function aggregateTravelTimes(
           console.error('aggregateTravelTimes: upsert batch failed:', err);
           errors.push(err);
         })
-      );
+  );
     }
     await Promise.all(batchPromises);
   }
