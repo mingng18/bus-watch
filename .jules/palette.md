@@ -31,3 +31,6 @@
 ## 2025-01-22 - Smooth full strings with dynamic numbers
 **Learning:** In SwiftUI, `.contentTransition(.numericText())` smoothly animates changes even when the `Text` contains full sentences or formatted strings where only a numeric component changes (like "Titiwangsa → 5 min" or "120m").
 **Action:** Apply `.contentTransition(.numericText())` along with `.animation` to any dynamic string displaying numeric counts or distances.
+## 2025-01-22 - Add semantic meaning to typographical symbols
+**Learning:** VoiceOver interprets typographical symbols literally (e.g. reading '→' as 'Right arrow').
+**Action:** In SwiftUI, apply an explicit `.accessibilityLabel` to provide the semantic meaning (e.g., 'Towards [Destination]') when using these symbols for direction or intent.
