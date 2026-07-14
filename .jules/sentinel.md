@@ -37,6 +37,10 @@
 **Vulnerability:** Falling back to an empty string (`|| ''`) in CORS middleware origin configuration when `FRONTEND_URL` is undefined. This can have unintended behavior depending on the CORS implementation and might bypass strict origin checks or result in wildcard matching.
 **Learning:** Returning `null` or avoiding empty strings is safer for dynamic CORS configurations in Hono when the target origin environment variable is missing. Hono handles `null` securely by blocking invalid origins.
 **Prevention:** Use the nullish coalescing operator `?? null` instead of logical OR with an empty string (`|| ''`) when reading environment variables for CORS origin properties, to ensure explicit and secure fallback states.
+## 2025-02-28 - Token Comparison Timing Attack
+**Vulnerability:** timingSafeEqual throws errors when comparing strings of different lengths, exposing the valid token length to an attacker via 500 status codes.
+**Learning:** Checking lengths and returning early re-introduces a timing leak.
+**Prevention:** Compare the input to the expected token if lengths match, or compare the expected token to itself if they don't, then return Unauthorized if either check failed.
 
 
 ## 2024-07-13 - [Timing Side-Channel Vulnerability]
