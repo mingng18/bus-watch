@@ -168,7 +168,36 @@ describe("parseAlerts — robustness", () => {
   });
 });
 
-describe("fetchAlerts", () => {
+
+  it("extractUrlEntries gracefully handles malformed XML missing closing tags", async () => {
+    // Malformed XML with a missing </url> tag on the second entry
+    const malformedXml = `
+      <urlset>
+        <url><loc>https://myrapid.com.my/info-penutupan-jalan-laluan-t201-22/</loc></url>
+        <url><loc>https://myrapid.com.my/info-penutupan-jalan-laluan-t201-23/</loc>
+      </urlset>
+    `;
+
+    // We mock fetch so getCachedAlerts uses our malformed xml
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      text: async () => malformedXml,
+    } as any);
+
+    const mockEnv = { KV: { get: vi.fn(), put: vi.fn() } } as any;
+    const alerts = await getCachedAlerts(mockEnv);
+
+    // We expect the first valid <url> to be extracted and correctly classified,
+    // and the malformed one to be skipped without throwing.
+    // We expect the first valid <url> to be extracted and correctly classified,
+    // and the malformed one to be skipped without throwing.
+    // 'info-penutupan-jalan-laluan-t201' is a valid alert slug that will be parsed.
+    expect(alerts).toBeInstanceOf(Array);
+    expect(alerts.length).toBeGreaterThan(0);
+    expect(alerts[0].title).toContain("Road closure");
+  });
+
+  describe("fetchAlerts", () => {
   beforeEach(() => {
     vi.unstubAllGlobals();
   });
