@@ -1,5 +1,6 @@
 # BusWatch KL — App Store Connect Submission Draft
 
+**Prepared:** 12 July 2026
 **Prepared:** 12 July 2026  
 **Workflow:** Draft for review only; nothing in this document authorizes submission to App Review.
 
@@ -32,6 +33,16 @@
 >
 > Open the app for a quick view of nearby buses and bus stops—without reaching for your phone.
 >
+> FEATURES
+> • See live bus positions on a nearby map
+> • Check nearby bus stops with distance and arrival estimates
+> • Follow supported bus trips stop by stop, including live bus position when available
+> • Read clear live, scheduled and approximate arrival indicators
+>
+> BUILT FOR APPLE WATCH
+> BusWatch KL is a standalone watchOS experience designed for quick, glanceable checks while you are moving around the city. No account or sign-in is required.
+>
+> PRIVACY
 > FEATURES  
 > • See live bus positions on a nearby map  
 > • Check nearby bus stops with distance and arrival estimates  
