@@ -345,4 +345,20 @@ describe("getCachedAlerts", () => {
 
     consoleErrorSpy.mockRestore();
   });
+
+  it("ignores KV.get errors and proceeds to fetch fresh alerts", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(FIXTURE, { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const kv = makeKV();
+    kv.get = vi.fn().mockRejectedValue(new Error("KV read failed"));
+
+    const env = makeEnv(kv);
+    const result = await getCachedAlerts(env);
+
+    expect(kv.get).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(result.length).toBe(7);
+  });
 });
