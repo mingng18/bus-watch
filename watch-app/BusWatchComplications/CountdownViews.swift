@@ -15,14 +15,18 @@ struct CountdownCircularView: View {
                 Text("\(snapshot.minutesUntil)")
                     .font(.system(size: 28, weight: .bold))
                     .widgetAccentable()
+                    .contentTransition(.numericText())
                 Text("MIN")
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(.secondary)
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("\(snapshot.minutesUntil) minutes")
         } else {
             Image(systemName: "bus")
                 .font(.title3)
                 .foregroundStyle(.secondary)
+                .accessibilityLabel("No bus selected")
         }
     }
 }
@@ -47,11 +51,14 @@ struct CountdownRectangularView: View {
                 HStack(alignment: .firstTextBaseline, spacing: 2) {
                     Text("\(snapshot.minutesUntil)")
                         .font(.system(.body, design: .rounded).weight(.bold))
+                        .contentTransition(.numericText())
                     Text("min")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("\(snapshot.line) to \(snapshot.destination), \(snapshot.minutesUntil) minutes, from \(snapshot.stopName)")
         } else {
             VStack(alignment: .leading, spacing: 2) {
                 Image(systemName: "star")
@@ -61,6 +68,8 @@ struct CountdownRectangularView: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Set a home stop")
         }
     }
 }
@@ -72,6 +81,8 @@ struct CountdownInlineView: View {
     var body: some View {
         if let snapshot {
             Text("\(snapshot.line) · \(snapshot.minutesUntil) min · \(snapshot.stopName)")
+                .contentTransition(.numericText())
+                .accessibilityLabel("\(snapshot.line), \(snapshot.minutesUntil) minutes, from \(snapshot.stopName)")
         } else {
             Text("BusWatch")
         }
@@ -86,10 +97,13 @@ struct CountdownCornerView: View {
         if let snapshot {
             Text("\(snapshot.minutesUntil)m")
                 .font(.caption2.weight(.bold))
+                .contentTransition(.numericText())
+                .accessibilityLabel("\(snapshot.minutesUntil) minutes")
         } else {
             Image(systemName: "bus")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
+                .accessibilityLabel("No bus selected")
         }
     }
 }
