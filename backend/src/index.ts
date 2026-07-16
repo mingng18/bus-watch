@@ -84,8 +84,6 @@ app.post('/refresh', async (c) => {
   const isLengthMatch = authHeader.length === expectedToken.length;
   const compareStr = isLengthMatch ? authHeader : expectedToken;
   const isMatch = await timingSafeEqual(compareStr, expectedToken);
-  const compareStr = authHeader.length === expectedToken.length ? authHeader : expectedToken;
-  const isMatch = await timingSafeEqual(compareStr, expectedToken) && authHeader.length === expectedToken.length;
 
   if (!isMatch || !isLengthMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -130,11 +128,6 @@ app.get('/nearby', async (c) => {
     radiusM: radius
   });
   const busRoutes = findNearbyBusRoutes(allRoutes, allTrips, vehicles, lat, lon, 1000);
-    radiusM: radius,
-    routeMap,
-    tripMap
-  });
-  const busRoutes = findNearbyBusRoutes(allRoutes, allTrips, vehicles, lat, lon, 1000, routeMap, tripMap);
 
   // Merge Prasarana Socket.IO bus data (covers routes not in GTFS like T816)
   const { buses: prasaranaBuses } = await getPrasaranaBuses(c.env.KV);
@@ -427,8 +420,6 @@ app.post('/rail/ingest', async (c) => {
   const isLengthMatch = authHeader.length === expectedToken.length;
   const compareStr = isLengthMatch ? authHeader : expectedToken;
   const isMatch = await timingSafeEqual(compareStr, expectedToken);
-  const compareStr = authHeader.length === expectedToken.length ? authHeader : expectedToken;
-  const isMatch = await timingSafeEqual(compareStr, expectedToken) && authHeader.length === expectedToken.length;
 
   if (!isMatch || !isLengthMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
