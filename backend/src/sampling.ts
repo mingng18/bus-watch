@@ -383,8 +383,10 @@ export async function aggregateTravelTimes(
   // The query orders by route, bus_no, so consecutive rows usually share the same key.
   // We cache the last key and array to skip expensive Map lookups in the hot loop.
   const traces = new Map<string, PositionSample[]>();
-  let lastKey = '';
-  let lastArr: PositionSample[] | null = null;
+  // Performance optimization: Data is already sorted by route and bus_no.
+  // Cache lastKey and lastArr to prevent redundant map lookups.
+  let lastKey: string | null = null;
+  let lastArr: PositionSample[] = [];
 
   for (const r of rows) {
     const key = `${r.route}|${r.bus_no}`;
@@ -392,10 +394,13 @@ export async function aggregateTravelTimes(
       lastArr!.push(r);
     } else {
       let arr = traces.get(key);
-      if (!arr) traces.set(key, arr = []);
-      arr.push(r);
-      lastKey = key;
+      if (!arr) {
+        arr = [];
+        traces.set(key, arr);
+      }
       lastArr = arr;
+      lastKey = key;
+      lastArr!.push(r);
     }
   }
 
@@ -466,7 +471,9 @@ export async function aggregateTravelTimes(
     await Promise.all(batchPromises);
   }
 
-
+  if (errors.length > 0) {
+    throw errors[0]; // Propagate the first error encountered
+  }
 }
 
 
