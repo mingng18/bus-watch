@@ -162,6 +162,7 @@ describe('sampling logic', () => {
       { stopId: 'S2', lat: 3.15, lon: 101.69, stopSequence: 2 },
     ]);
 
+    await aggregateTravelTimes(mockDbEnv, stopSequencesByRoute);
     stopSequencesByRoute.set('R1', [
       { stopId: 'S1', lat: 3.14, lon: 101.68, stopSequence: 1 },
       { stopId: 'S2', lat: 3.15, lon: 101.69, stopSequence: 2 },
