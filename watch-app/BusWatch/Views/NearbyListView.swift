@@ -71,10 +71,18 @@ struct NearbyListView: View {
 
             Section {
                 if response.stops.isEmpty {
-                    Text("No stops nearby")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .listRowBackground(Color.clear)
+                    VStack(spacing: 8) {
+                        Image(systemName: "mappin.slash")
+                            .font(.title2)
+                            .foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
+                        Text("No stops nearby")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 16)
+                    .listRowBackground(Color.clear)
                 } else {
                     ForEach(response.stops) { stop in
                         stopRow(stop)

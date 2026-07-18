@@ -24,9 +24,17 @@ struct DeparturesTowardView: View {
                 Divider()
 
                 if schedule.departures.isEmpty {
-                    Text("No departures toward \(destinationName)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    VStack(spacing: 8) {
+                        Image(systemName: "bus.slash")
+                            .font(.title2)
+                            .foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
+                        Text("No departures toward \(destinationName)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 16)
                 } else {
                     ForEach(schedule.departures) { dep in
                         HStack {
