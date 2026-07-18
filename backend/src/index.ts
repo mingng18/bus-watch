@@ -83,9 +83,7 @@ app.post('/refresh', async (c) => {
   }
   const isLengthMatch = authHeader.length === expectedToken.length;
   const compareStr = isLengthMatch ? authHeader : expectedToken;
-  const isMatch = await timingSafeEqual(compareStr, expectedToken);
-  const compareStr = authHeader.length === expectedToken.length ? authHeader : expectedToken;
-  const isMatch = await timingSafeEqual(compareStr, expectedToken) && authHeader.length === expectedToken.length;
+  const isMatch = await timingSafeEqual(compareStr, expectedToken) && isLengthMatch;
 
   if (!isMatch || !isLengthMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -127,9 +125,6 @@ app.get('/nearby', async (c) => {
     vehicles,
     lat,
     lon,
-    radiusM: radius
-  });
-  const busRoutes = findNearbyBusRoutes(allRoutes, allTrips, vehicles, lat, lon, 1000);
     radiusM: radius,
     routeMap,
     tripMap
@@ -426,9 +421,7 @@ app.post('/rail/ingest', async (c) => {
   }
   const isLengthMatch = authHeader.length === expectedToken.length;
   const compareStr = isLengthMatch ? authHeader : expectedToken;
-  const isMatch = await timingSafeEqual(compareStr, expectedToken);
-  const compareStr = authHeader.length === expectedToken.length ? authHeader : expectedToken;
-  const isMatch = await timingSafeEqual(compareStr, expectedToken) && authHeader.length === expectedToken.length;
+  const isMatch = await timingSafeEqual(compareStr, expectedToken) && isLengthMatch;
 
   if (!isMatch || !isLengthMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
