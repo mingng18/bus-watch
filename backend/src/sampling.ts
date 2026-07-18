@@ -385,12 +385,22 @@ export async function aggregateTravelTimes(
   const traces = new Map<string, PositionSample[]>();
   let lastKey = '';
   let lastArr: PositionSample[] | null = null;
-
+  // Performance optimization: Data is already sorted by route and bus_no.
+  // Cache lastKey and lastArr to prevent redundant map lookups.
+  let lastKey: string | null = null;
+  let lastArr: PositionSample[] = [];
 
   for (const r of rows) {
     const key = `${r.route}|${r.bus_no}`;
     if (key === lastKey) {
       lastArr!.push(r);
+    } else {
+      let arr = traces.get(key);
+      if (!arr) {
+        arr = [];
+        traces.set(key, arr);
+      }
+      lastArr.push(r);
     } else {
       let arr = traces.get(key);
       if (!arr) traces.set(key, arr = []);
