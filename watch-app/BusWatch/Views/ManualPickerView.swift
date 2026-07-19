@@ -32,10 +32,18 @@ struct ManualPickerView: View {
             Section("Nearby Stops") {
                 if let nearby = engine.nearbyStops {
                     if nearby.stops.isEmpty {
-                        Text("No stops nearby")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .listRowBackground(Color.clear)
+                        VStack(spacing: 4) {
+                            Image(systemName: "location.slash")
+                                .font(.title2)
+                                .foregroundStyle(.secondary)
+                                .accessibilityHidden(true)
+                            Text("No stops nearby")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .listRowBackground(Color.clear)
                     } else {
                         ForEach(nearby.stops) { stop in
                             stopRow(stop)

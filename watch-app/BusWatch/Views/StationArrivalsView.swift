@@ -33,10 +33,17 @@ struct StationArrivalsView: View {
                 Divider()
 
                 if schedule.departures.isEmpty {
-                    Text("No upcoming departures")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .padding(.vertical, 4)
+                    VStack(spacing: 4) {
+                        Image(systemName: "clock")
+                            .font(.title2)
+                            .foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
+                        Text("No upcoming departures")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
                 }
 
                 ForEach(schedule.departures) { dep in

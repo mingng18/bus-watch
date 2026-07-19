@@ -41,3 +41,6 @@
 ## 2025-01-22 - Add semantic meaning to typographical symbols
 **Learning:** VoiceOver interprets typographical symbols literally (e.g. reading '→' as 'Right arrow').
 **Action:** In SwiftUI, apply an explicit `.accessibilityLabel` to provide the semantic meaning (e.g., 'Towards [Destination]') when using these symbols for direction or intent.
+## 2025-01-20 - Visual Polish for Empty States
+**Learning:** Text-only empty states in lists can feel broken or unpolished on watchOS. Pairing the text with a context-appropriate, secondary-styled SF Symbol (with accessibilityHidden) provides visual polish without cluttering VoiceOver.
+**Action:** Use a centered VStack with a relevant SF symbol (like location.slash or clock) and secondary foreground styling for empty states in lists.
