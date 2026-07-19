@@ -149,7 +149,7 @@ private struct RealtimeBusLocationMap: View {
         }
         .onAppear(perform: recenter)
         .onChange(of: model) { _, _ in recenter() }
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel("Live location of bus \(model.routeShortName)")
     }
 
