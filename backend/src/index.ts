@@ -81,13 +81,10 @@ app.post('/refresh', async (c) => {
   if (!c.env.ADMIN_TOKEN || !authHeader) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
-  const isLengthMatch = authHeader.length === expectedToken.length;
-  const compareStr = isLengthMatch ? authHeader : expectedToken;
-  const isMatch = await timingSafeEqual(compareStr, expectedToken);
   const compareStr = authHeader.length === expectedToken.length ? authHeader : expectedToken;
   const isMatch = await timingSafeEqual(compareStr, expectedToken) && authHeader.length === expectedToken.length;
 
-  if (!isMatch || !isLengthMatch) {
+  if (!isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
   await refreshStaticData(c.env.KV);
@@ -127,9 +124,6 @@ app.get('/nearby', async (c) => {
     vehicles,
     lat,
     lon,
-    radiusM: radius
-  });
-  const busRoutes = findNearbyBusRoutes(allRoutes, allTrips, vehicles, lat, lon, 1000);
     radiusM: radius,
     routeMap,
     tripMap
@@ -424,13 +418,10 @@ app.post('/rail/ingest', async (c) => {
   if (!c.env.ADMIN_TOKEN || !authHeader) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
-  const isLengthMatch = authHeader.length === expectedToken.length;
-  const compareStr = isLengthMatch ? authHeader : expectedToken;
-  const isMatch = await timingSafeEqual(compareStr, expectedToken);
   const compareStr = authHeader.length === expectedToken.length ? authHeader : expectedToken;
   const isMatch = await timingSafeEqual(compareStr, expectedToken) && authHeader.length === expectedToken.length;
 
-  if (!isMatch || !isLengthMatch) {
+  if (!isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
   try {

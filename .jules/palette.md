@@ -41,3 +41,6 @@
 ## 2025-01-22 - Add semantic meaning to typographical symbols
 **Learning:** VoiceOver interprets typographical symbols literally (e.g. reading '→' as 'Right arrow').
 **Action:** In SwiftUI, apply an explicit `.accessibilityLabel` to provide the semantic meaning (e.g., 'Towards [Destination]') when using these symbols for direction or intent.
+## 2024-06-25 - Friendly Empty States
+**Learning:** Text-only empty states in lists (e.g. "No stops nearby") can feel like loading errors or unfinished screens to users.
+**Action:** Always pair empty state text with a context-appropriate, secondary-styled SF Symbol (like `mappin.slash` or `bus.slash`) and mark the icon as `accessibilityHidden(true)` to make the state feel intentional and visually polished without cluttering VoiceOver.
