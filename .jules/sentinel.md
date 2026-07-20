@@ -65,3 +65,7 @@
 **Learning:** Wrapping user input in `%` for a `LIKE` clause without escaping special characters (`%`, `_`, `\`) allows attackers to inject wildcards, leading to potentially expensive queries or unintended matches.
 **Prevention:** Always escape `%`, `_`, and `\` characters in user input before using it in a `LIKE` query, and append the `ESCAPE '\'` clause to the SQL statement to ensure the database treats them as literals.
 
+## 2025-02-28 - Insecure CORS Fallback Configuration
+**Vulnerability:** The CORS configuration in `backend/src/index.ts` had a redundant line using `c.env.FRONTEND_URL || ''` alongside the correct `?? null` fallback.
+**Learning:** Using an empty string as a fallback for CORS origin configurations in Hono's `cors` middleware can lead to overly permissive policies (e.g., wildcard mapping `*`) when the `FRONTEND_URL` is undefined. The empty string is not a safe default.
+**Prevention:** Always use a specific, safe fallback (such as `null` via `?? null`) when dynamically assigning the CORS origin based on environment variables to prevent unintended fallback matching.
