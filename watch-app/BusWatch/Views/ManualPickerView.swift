@@ -84,6 +84,7 @@ struct ManualPickerView: View {
                 }
             }
         }
+        .disabled(stop.type != "rail")
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(stopRowLabel(stop))
         .accessibilityHint(stop.type == "rail"

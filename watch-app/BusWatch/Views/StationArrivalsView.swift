@@ -172,7 +172,8 @@ struct StationArrivalsView: View {
     /// 1.4.1), and reads as one phrase: "U82 to Sentul, 5 minutes".
     private func departureLabel(_ dep: Departure) -> String {
         let urgency = dep.minutesUntil <= 3 ? ", arriving soon" : ""
-        return "\(dep.line) to \(dep.destination), \(dep.minutesUntil) minutes\(urgency)"
+        let minText = dep.minutesUntil == 1 ? "1 minute" : "\(dep.minutesUntil) minutes"
+        return "\(dep.line) to \(dep.destination), \(minText)\(urgency)"
     }
 
     @ViewBuilder

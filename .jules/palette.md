@@ -44,3 +44,10 @@
 ## 2024-06-25 - Friendly Empty States
 **Learning:** Text-only empty states in lists (e.g. "No stops nearby") can feel like loading errors or unfinished screens to users.
 **Action:** Always pair empty state text with a context-appropriate, secondary-styled SF Symbol (like `mappin.slash` or `bus.slash`) and mark the icon as `accessibilityHidden(true)` to make the state feel intentional and visually polished without cluttering VoiceOver.
+## 2025-01-22 - Visual Disabled States
+**Learning:** Tappable buttons that silently ignore inputs when not meeting certain conditions are confusing and feel broken.
+**Action:** Always add the `.disabled()` modifier to buttons that are conditionally inactive to provide built-in visual dimming and correct accessibility traits.
+
+## 2025-01-22 - Grammatical VoiceOver Pluralization
+**Learning:** Hardcoding plural strings like "\(minutes) minutes" causes VoiceOver to read ungrammatical phrases like "1 minutes".
+**Action:** Use ternary conditions (`count == 1 ? "1 minute" : "\(count) minutes"`) when generating VoiceOver labels to ensure grammatical correctness.
