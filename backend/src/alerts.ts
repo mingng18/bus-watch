@@ -155,10 +155,10 @@ function extractUrlEntries(xml: string): SitemapEntry[] {
     const block = xml.slice(startRe.lastIndex, endMatch.index);
     startRe.lastIndex = endRe.lastIndex; // Advance start search beyond the closing tag
 
-    const loc = block.match(/<loc>\s*([^<]*?)\s*<\/loc>/i)?.[1]?.trim();
+    const loc = extractTagContent(block, "loc");
     if (!loc) continue;
 
-    const lastmod = block.match(/<lastmod>\s*([^<]*?)\s*<\/lastmod>/i)?.[1]?.trim();
+    const lastmod = extractTagContent(block, "lastmod");
     entries.push({ loc, lastmod: lastmod || null });
   }
   return entries;
@@ -324,4 +324,17 @@ function normalizeDate(lastmod: string): string | null {
   const d = new Date(lastmod);
   if (isNaN(d.getTime())) return null;
   return d.toISOString();
+}
+
+/** Extract content from an XML tag without regex to prevent ReDoS. */
+function extractTagContent(block: string, tag: string): string | null {
+  const lower = block.toLowerCase();
+  const startTag = `<${tag}>`;
+  const endTag = `</${tag}>`;
+  const startIdx = lower.indexOf(startTag);
+  if (startIdx === -1) return null;
+  const contentStart = startIdx + startTag.length;
+  const endIdx = lower.indexOf(endTag, contentStart);
+  if (endIdx === -1) return null;
+  return block.slice(contentStart, endIdx).trim();
 }
