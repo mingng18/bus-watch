@@ -524,14 +524,29 @@ app.get('/route/:routeId', async (c) => {
   const mergedBuses = mergeBusRoutes(gtfsBuses, pBuses);
 
   const allTrips = await getAllTrips(c.env.KV);
-  const routeTrips = allTrips.filter(t => t.routeId === route!.id && t.shapeId);
-
   const allShapes = await getAllShapes(c.env.KV);
-  const shapeIds = Array.from(new Set(routeTrips.map(t => t.shapeId)));
-  let shapes = shapeIds.filter(id => allShapes[id]).map(id => ({
-    id,
-    points: allShapes[id]
-  }));
+
+  // Performance optimization: Avoid intermediate array allocations from .filter().map()
+  // and Array.from(new Set()) by using standard loops to collect unique shape IDs
+  // and construct the shapes array.
+  const shapeIds = new Set<string>();
+  const tgtRouteIdForShapes = route!.id;
+  for (let i = 0, len = allTrips.length; i < len; i++) {
+    const t = allTrips[i];
+    if (t.routeId === tgtRouteIdForShapes && t.shapeId) {
+      shapeIds.add(t.shapeId);
+    }
+  }
+
+  let shapes: Array<{ id: string; points: [number, number][] }> = [];
+  for (const id of shapeIds) {
+    if (allShapes[id]) {
+      shapes.push({
+        id,
+        points: allShapes[id]
+      });
+    }
+  }
 
   // Fallback: reconstruct route shape from D1 historical bus positions
   let isReconstructed = false;
@@ -571,9 +586,14 @@ app.get('/route/:routeId', async (c) => {
             pts.push([row.lat, row.lon]);
           }
         }
-        shapes = Array.from(groups.entries())
-          .filter(([, pts]) => pts.length >= 2)
-          .map(([busNo, pts]) => ({ id: `trail_${busNo}`, points: pts }));
+        // Performance optimization: Replace Array.from(groups.entries()).filter().map()
+        // with a standard loop to avoid array allocations in this hot path.
+        shapes = [];
+        for (const [busNo, pts] of groups) {
+          if (pts.length >= 2) {
+            shapes.push({ id: `trail_${busNo}`, points: pts });
+          }
+        }
         if (shapes.length > 0) isReconstructed = true;
       }
     } catch (err) {
