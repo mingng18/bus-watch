@@ -69,3 +69,7 @@
 **Vulnerability:** The CORS configuration in `backend/src/index.ts` had a redundant line using `c.env.FRONTEND_URL || ''` alongside the correct `?? null` fallback.
 **Learning:** Using an empty string as a fallback for CORS origin configurations in Hono's `cors` middleware can lead to overly permissive policies (e.g., wildcard mapping `*`) when the `FRONTEND_URL` is undefined. The empty string is not a safe default.
 **Prevention:** Always use a specific, safe fallback (such as `null` via `?? null`) when dynamically assigning the CORS origin based on environment variables to prevent unintended fallback matching.
+## 2024-07-21 - Fix ReDoS vulnerability in XML parser
+**Vulnerability:** Regular Expression Denial of Service (ReDoS) was possible in the sitemap XML parser via the unbounded wildcard capture group `[\s\S]*?` (or `[^<]*?`) in the `<loc>` and `<lastmod>` extraction regex.
+**Learning:** Parsing large blocks of untrusted XML text with greedy/wildcard regex groups is dangerous.
+**Prevention:** Use robust sequential token matching (e.g., `indexOf` combined with `slice`) rather than regex when extracting substrings bounded by tags to guarantee constant-time execution, avoiding ReDoS entirely.
