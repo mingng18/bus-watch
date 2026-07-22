@@ -117,7 +117,7 @@ struct StationArrivalsView: View {
                     }
                     .labelsHidden()
                     .accessibilityLabel("Reminder lead time")
-                    .accessibilityValue("\(reminderMinutes) minutes before")
+                    .accessibilityValue(reminderMinutes == 1 ? "1 minute before" : "\(reminderMinutes) minutes before")
                     .accessibilityHint("How many minutes before arrival to notify you.")
                 }
                 Button {
@@ -130,7 +130,7 @@ struct StationArrivalsView: View {
                 .buttonStyle(.bordered)
                 .accessibilityLabel(scheduledReminderId == nil ? "Set alert" : "Alert set")
                 .accessibilityValue(scheduledReminderId == nil ? "Off" : "On")
-                .accessibilityHint("Schedules a notification \(reminderMinutes) minutes before arrival.")
+                .accessibilityHint(reminderMinutes == 1 ? "Schedules a notification 1 minute before arrival." : "Schedules a notification \(reminderMinutes) minutes before arrival.")
             }
         }
     }
