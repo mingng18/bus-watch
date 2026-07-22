@@ -524,14 +524,24 @@ app.get('/route/:routeId', async (c) => {
   const mergedBuses = mergeBusRoutes(gtfsBuses, pBuses);
 
   const allTrips = await getAllTrips(c.env.KV);
-  const routeTrips = allTrips.filter(t => t.routeId === route!.id && t.shapeId);
-
   const allShapes = await getAllShapes(c.env.KV);
-  const shapeIds = Array.from(new Set(routeTrips.map(t => t.shapeId)));
-  let shapes = shapeIds.filter(id => allShapes[id]).map(id => ({
-    id,
-    points: allShapes[id]
-  }));
+
+  // Performance optimization: Avoid intermediate array allocations and garbage collection
+  // overhead in Cloudflare Workers by using a single pass with a Set and standard loops
+  // instead of chained .filter().map() and Array.from(new Set(arr.map(...)))
+  const seenShapeIds = new Set<string>();
+  let shapes: { id: string; points: [number, number][] }[] = [];
+
+  for (let i = 0; i < allTrips.length; i++) {
+    const t = allTrips[i];
+    if (t.routeId === route!.id && t.shapeId && !seenShapeIds.has(t.shapeId)) {
+      seenShapeIds.add(t.shapeId);
+      const points = allShapes[t.shapeId];
+      if (points) {
+        shapes.push({ id: t.shapeId, points });
+      }
+    }
+  }
 
   // Fallback: reconstruct route shape from D1 historical bus positions
   let isReconstructed = false;
