@@ -155,13 +155,28 @@ function extractUrlEntries(xml: string): SitemapEntry[] {
     const block = xml.slice(startRe.lastIndex, endMatch.index);
     startRe.lastIndex = endRe.lastIndex; // Advance start search beyond the closing tag
 
-    const loc = block.match(/<loc>\s*([^<]*?)\s*<\/loc>/i)?.[1]?.trim();
+    const loc = extractTagContent(block, 'loc');
     if (!loc) continue;
 
-    const lastmod = block.match(/<lastmod>\s*([^<]*?)\s*<\/lastmod>/i)?.[1]?.trim();
+    const lastmod = extractTagContent(block, 'lastmod');
     entries.push({ loc, lastmod: lastmod || null });
   }
   return entries;
+}
+
+/** Extract tag contents robustly. */
+function extractTagContent(block: string, tag: string): string | undefined {
+  const lowerBlock = block.toLowerCase();
+  const startTag = `<${tag}>`;
+  const endTag = `</${tag}>`;
+
+  const startIdx = lowerBlock.indexOf(startTag);
+  if (startIdx === -1) return undefined;
+
+  const endIdx = lowerBlock.indexOf(endTag, startIdx + startTag.length);
+  if (endIdx === -1) return undefined;
+
+  return block.slice(startIdx + startTag.length, endIdx).trim();
 }
 
 /** Slugs that do NOT represent service disruptions and must be excluded. */
