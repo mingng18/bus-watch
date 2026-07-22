@@ -79,3 +79,6 @@
 **Learning:** Re-instantiating `Map` objects and iterating over large arrays on every HTTP request in Cloudflare Workers endpoints causes significant allocation and garbage collection overhead.
 **Action:** Always pre-compute and cache map lookups outside the request handler, and pass them down as optional parameters to reuse the prebuilt Maps.
 
+## 2024-07-22 - Optimized route trips and shape ids array map
+**Learning:** Found array allocations and chained operations inside backend routes filtering loop `.filter(t => t.routeId === route!.id && t.shapeId)` then `Array.from(new Set(routeTrips.map(t => t.shapeId)))` which cause GC overhead per request in Cloudflare Workers.
+**Action:** Replaced chained array methods and intermediate Sets with a single `for` loop pass over allTrips and a Set to track seen shape IDs to avoid allocations.
