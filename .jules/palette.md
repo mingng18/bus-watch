@@ -51,3 +51,7 @@
 ## 2025-01-22 - Grammatical VoiceOver Pluralization
 **Learning:** Hardcoding plural strings like "\(minutes) minutes" causes VoiceOver to read ungrammatical phrases like "1 minutes".
 **Action:** Use ternary conditions (`count == 1 ? "1 minute" : "\(count) minutes"`) when generating VoiceOver labels to ensure grammatical correctness.
+
+## 2024-05-18 - BusProgressView Map Redundancy
+**Learning:** `BusProgressView` renders `RealtimeBusLocationMap` three times in a row consecutively.
+**Action:** Remove the duplicate map renderings to keep the layout clean and accessible.
