@@ -79,3 +79,6 @@
 **Learning:** Re-instantiating `Map` objects and iterating over large arrays on every HTTP request in Cloudflare Workers endpoints causes significant allocation and garbage collection overhead.
 **Action:** Always pre-compute and cache map lookups outside the request handler, and pass them down as optional parameters to reuse the prebuilt Maps.
 
+## 2025-02-18 - Optimize nested .filter().map() and Array.from(new Set()) in hot paths
+**Learning:** Chaining array methods like `.filter().map()` followed by `Array.from(new Set())` inside hot paths (e.g. mapping routes to shape data) allocates numerous intermediate array and Set objects, causing avoidable garbage collection pressure.
+**Action:** Replace `Array.from(new Set(array.map(...)))` and subsequent `filter/map` chains with manual iteration using a `for` loop and a single `Set` lookup. This completely bypasses the creation of intermediate arrays and performs significantly faster under high concurrency.
