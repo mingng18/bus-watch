@@ -79,3 +79,7 @@
 **Learning:** Re-instantiating `Map` objects and iterating over large arrays on every HTTP request in Cloudflare Workers endpoints causes significant allocation and garbage collection overhead.
 **Action:** Always pre-compute and cache map lookups outside the request handler, and pass them down as optional parameters to reuse the prebuilt Maps.
 
+
+## 2025-05-18 - Avoid chained array methods in hot paths
+**Learning:** Cloudflare Workers can experience significant memory pressure and garbage collection overhead from intermediate array allocations created by chained `.filter().map()` operations. Using `Array.from(new Set(arr.map(...)))` also creates unnecessary array and Set allocations.
+**Action:** Replace `.filter().map()` and Set conversions in hot paths with standard `for` loops and `Set` instances.
