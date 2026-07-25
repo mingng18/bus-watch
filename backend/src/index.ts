@@ -193,7 +193,6 @@ app.get('/nearby', async (c) => {
 app.get('/bus/trip/:tripId/progress', async (c) => {
   const tripId = c.req.param('tripId');
   try {
-    const allRoutes = await getAllRoutes(c.env.KV);
     const vehicles = await getRealtimeVehicles(c.env.KV);
     // Optimization: Prevent lambda allocation in hot path
     let vehicle = null;
@@ -204,8 +203,7 @@ app.get('/bus/trip/:tripId/progress', async (c) => {
       }
     }
     const allTripStops = await getAllTripStops(c.env.KV);
-    const routeMap = new Map<string, Route>();
-    for (const r of allRoutes) routeMap.set(r.id, r);
+    const { map: routeMap } = await getRoutesMaps(c.env.KV);
     const result = getBusTripProgress(tripId, routeMap, allTripStops, vehicle);
     return c.json(result);
   } catch (err) {
