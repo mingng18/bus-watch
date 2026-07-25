@@ -172,8 +172,8 @@ struct NearbyListView: View {
     /// confidence qualifier so VoiceOver riders get the same honesty about
     /// estimate quality as sighted riders (issue #133, layered on #143).
     private func stopRowLabel(_ stop: NearbyStop) -> String {
-        let distanceText = stop.distanceM == 1 ? "1 meter away" : "\(stop.distanceM) meters away"
-        var parts = [stop.name, distanceText]
+        let distText = stop.distanceM == 1 ? "1 meter" : "\(stop.distanceM) meters"
+        var parts = [stop.name, "\(distText) away"]
         if let first = stop.arrivals.first {
             let route = first.line ?? first.route ?? ""
             // VoiceOver reads the full qualifier: "scheduled" / "live", plus
