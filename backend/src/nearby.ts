@@ -33,6 +33,79 @@ export interface FindNearbyStopsContext {
   tripMap?: Map<string, Trip>;
 }
 
+function filterAndSortStops(stops: Stop[], lat: number, lon: number, radiusM: number) {
+  const nearby: { stop: Stop; distance: number }[] = [];
+  for (let i = 0; i < stops.length; i++) {
+    const stop = stops[i];
+    const distance = haversineDistance(lat, lon, stop.lat, stop.lon);
+    if (distance <= radiusM) {
+      nearby.push({ stop, distance });
+    }
+  }
+  nearby.sort((a, b) => a.distance - b.distance);
+  return nearby;
+}
+
+function getBusArrivalsForStop(
+  stop: Stop,
+  vehicles: VehiclePosition[],
+  tripMap: Map<string, Trip>,
+  routeMap: Map<string, Route>
+): Arrival[] {
+  const arrivals: Arrival[] = [];
+  const seen = new Set<string>();
+  for (const v of vehicles) {
+    const d = haversineDistance(stop.lat, stop.lon, v.lat, v.lon);
+    if (d > 500) continue;
+
+    const trip = tripMap.get(v.tripId);
+    const route = trip ? routeMap.get(trip.routeId) : null;
+    const key = route?.id || v.tripId;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    arrivals.push({
+      route: route?.shortName || "",
+      destination: trip?.headsign || "",
+      minutes: Math.max(1, Math.round(d / 300)),
+      isRealtime: true,
+      tripId: v.tripId,
+      eta_source: "live",
+    });
+  }
+  return arrivals;
+}
+
+function getScheduledArrivalsForStop(
+  stop: Stop,
+  trips: Trip[],
+  tripStops: Record<string, TripStopEntry[]>,
+  routes: Route[],
+  calendar: CalendarEntry[],
+  frequencies: Frequency[],
+  now: Date
+): Arrival[] {
+  const arrivals: Arrival[] = [];
+  const expanded = expandTripsForStop(
+    stop.id,
+    trips,
+    tripStops,
+    routes,
+    calendar,
+    frequencies,
+    now,
+    120,
+  );
+  for (const dep of expanded.slice(0, 3)) {
+    arrivals.push({
+      line: dep.line,
+      destination: dep.destination,
+      minutes: dep.minutesUntil,
+      isRealtime: false,
+    });
+  }
+  return arrivals;
+}
+
 export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
   const {
     stops,
@@ -47,20 +120,9 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
     radiusM,
   } = ctx;
   const now = new Date();
-  // Performance optimization: Replaced chained array methods (.map().filter())
-  // with a standard loop to eliminate intermediate object allocations.
-  const nearby: { stop: Stop; distance: number }[] = [];
-  for (let i = 0; i < stops.length; i++) {
-    const stop = stops[i];
-    const distance = haversineDistance(lat, lon, stop.lat, stop.lon);
-    if (distance <= radiusM) {
-      nearby.push({ stop, distance });
-    }
-  }
-  nearby.sort((a, b) => a.distance - b.distance);
 
-  // Performance optimization: Precompute map to avoid O(N^2) lookups in loop
-  // and use standard loops instead of array mapping to avoid intermediate allocations
+  const nearby = filterAndSortStops(stops, lat, lon, radiusM);
+
   const tripMap = ctx.tripMap || new Map<string, Trip>();
   if (!ctx.tripMap) {
     for (let i = 0; i < trips.length; i++) {
@@ -75,51 +137,12 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
   }
 
   return nearby.map(({ stop, distance }) => {
-    const arrivals: Arrival[] = [];
+    let arrivals: Arrival[] = [];
 
     if (stop.type === "bus") {
-      const seen = new Set<string>();
-      // Performance optimization: Avoid intermediate array allocation from .filter()
-      // and redundant haversineDistance calculations by merging into a single loop.
-      for (const v of vehicles) {
-        const d = haversineDistance(stop.lat, stop.lon, v.lat, v.lon);
-        if (d > 500) continue;
-
-        const trip = tripMap.get(v.tripId);
-        const route = trip ? routeMap.get(trip.routeId) : null;
-        const key = route?.id || v.tripId;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        arrivals.push({
-          route: route?.shortName || "",
-          destination: trip?.headsign || "",
-          minutes: Math.max(1, Math.round(d / 300)),
-          isRealtime: true,
-          tripId: v.tripId,
-          // Mark as a live GTFS-realtime position so the client can show the
-          // scheduled-vs-live qualifier (issue #133).
-          eta_source: "live",
-        });
-      }
+      arrivals = getBusArrivalsForStop(stop, vehicles, tripMap, routeMap);
     } else {
-      const expanded = expandTripsForStop(
-        stop.id,
-        trips,
-        tripStops,
-        routes,
-        calendar,
-        frequencies,
-        now,
-        120,
-      );
-      for (const dep of expanded.slice(0, 3)) {
-        arrivals.push({
-          line: dep.line,
-          destination: dep.destination,
-          minutes: dep.minutesUntil,
-          isRealtime: false,
-        });
-      }
+      arrivals = getScheduledArrivalsForStop(stop, trips, tripStops, routes, calendar, frequencies, now);
     }
 
     return {

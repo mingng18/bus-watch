@@ -82,3 +82,7 @@
 ## 2025-02-18 - Optimize array allocations when processing shapes
 **Learning:** Reconstructing GTFS shapes using chained methods like `Array.from(new Set(arr.map(...)))` and `Array.from(groups.entries()).filter().map()` inside heavily accessed endpoints causes severe CPU and memory allocation overhead. Benchmarking showed standard loops can perform the same filtering and mapping roughly 3-4x faster by bypassing intermediate arrays and Set-to-Array instantiation.
 **Action:** Replace functional array chaining with standard `for` loops inside endpoints rendering complex GTFS relationships (like `shapes` extraction). Pre-instantiate target result arrays and push directly to them.
+
+## 2024-07-25 - Extract helper functions for complex code health
+**Learning:** Large functions with multiple responsibilities can often be split into smaller, more focused helper functions, improving readability and testability.
+**Action:** Extracted `filterAndSortStops`, `getBusArrivalsForStop`, and `getScheduledArrivalsForStop` from the overly complex `findNearbyStops` function to improve maintainability.
