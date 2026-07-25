@@ -524,14 +524,25 @@ app.get('/route/:routeId', async (c) => {
   const mergedBuses = mergeBusRoutes(gtfsBuses, pBuses);
 
   const allTrips = await getAllTrips(c.env.KV);
-  const routeTrips = allTrips.filter(t => t.routeId === route!.id && t.shapeId);
-
+  // Performance optimization: Avoid chained array allocations (.filter, .map, new Set)
+  // by extracting shapes manually in a single pass.
   const allShapes = await getAllShapes(c.env.KV);
-  const shapeIds = Array.from(new Set(routeTrips.map(t => t.shapeId)));
-  let shapes = shapeIds.filter(id => allShapes[id]).map(id => ({
-    id,
-    points: allShapes[id]
-  }));
+  let shapes: { id: string, points: [number, number][] }[] = [];
+  const seenShapes = new Set<string>();
+
+  for (let i = 0, len = allTrips.length; i < len; i++) {
+    const t = allTrips[i];
+    if (t.routeId === route!.id && t.shapeId) {
+      const sId = t.shapeId;
+      if (!seenShapes.has(sId)) {
+        seenShapes.add(sId);
+        const points = allShapes[sId];
+        if (points) {
+          shapes.push({ id: sId, points });
+        }
+      }
+    }
+  }
 
   // Fallback: reconstruct route shape from D1 historical bus positions
   let isReconstructed = false;
