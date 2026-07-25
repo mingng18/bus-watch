@@ -82,3 +82,7 @@
 ## 2025-02-18 - Optimize array allocations when processing shapes
 **Learning:** Reconstructing GTFS shapes using chained methods like `Array.from(new Set(arr.map(...)))` and `Array.from(groups.entries()).filter().map()` inside heavily accessed endpoints causes severe CPU and memory allocation overhead. Benchmarking showed standard loops can perform the same filtering and mapping roughly 3-4x faster by bypassing intermediate arrays and Set-to-Array instantiation.
 **Action:** Replace functional array chaining with standard `for` loops inside endpoints rendering complex GTFS relationships (like `shapes` extraction). Pre-instantiate target result arrays and push directly to them.
+
+## 2023-11-20 - Ensure DB Insert Failure Is Tested in Rail Timetable Ingestion
+**Learning:** Adding test coverage for failure modes in `batch` operations ensures the ingestion pipeline correctly identifies partial updates and sets the proper error state without swallowing errors or reporting incorrect success counts.
+**Action:** Wrote an `it` block in `rail-ingest.test.ts` mocking `mockDb.batch` to throw an error on the 3rd invocation, asserting `{ inserted: 2, error: 'D1 error on trips' }` was returned.
