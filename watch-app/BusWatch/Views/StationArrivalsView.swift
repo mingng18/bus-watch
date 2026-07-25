@@ -77,6 +77,7 @@ struct StationArrivalsView: View {
                     Text("sched")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
+                        .accessibilityLabel("Scheduled arrivals")
                 }
 
                 if AppFeatureFlags.arrivalNotifications {
