@@ -27,6 +27,7 @@ struct AlertsView: View {
                         .accessibilityHidden(true)
                     Text("No active disruptions")
                         .font(.caption)
+                        .multilineTextAlignment(.center)
                 }
             case .error(let message):
                 VStack(spacing: 12) {
@@ -36,8 +37,11 @@ struct AlertsView: View {
                         .accessibilityHidden(true)
                     Text(message)
                         .font(.caption2)
-                    Button("Retry") {
+                        .multilineTextAlignment(.center)
+                    Button {
                         Task { await load() }
+                    } label: {
+                        Label("Retry", systemImage: "arrow.clockwise")
                     }
                     .buttonStyle(.bordered)
                 }
