@@ -82,3 +82,7 @@
 ## 2025-02-18 - Optimize array allocations when processing shapes
 **Learning:** Reconstructing GTFS shapes using chained methods like `Array.from(new Set(arr.map(...)))` and `Array.from(groups.entries()).filter().map()` inside heavily accessed endpoints causes severe CPU and memory allocation overhead. Benchmarking showed standard loops can perform the same filtering and mapping roughly 3-4x faster by bypassing intermediate arrays and Set-to-Array instantiation.
 **Action:** Replace functional array chaining with standard `for` loops inside endpoints rendering complex GTFS relationships (like `shapes` extraction). Pre-instantiate target result arrays and push directly to them.
+
+## 2024-07-25 - [Testing] 🧪 Add unit tests for detectStopPassages
+**Learning:** Pure functions like `detectStopPassages` that perform complex data transformations (like spatial bounds checking and time thresholding) on raw array inputs are highly susceptible to edge case bugs but are simultaneously the easiest code to test thoroughly without mocks.
+**Action:** Wrote deterministic unit tests that comprehensively exercise all logical branches of `detectStopPassages`, ensuring regressions are prevented for stop sequencing, outlier distance drops, and maximum inter-stop elapsed time validation.
