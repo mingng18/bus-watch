@@ -82,3 +82,7 @@
 ## 2025-02-18 - Optimize array allocations when processing shapes
 **Learning:** Reconstructing GTFS shapes using chained methods like `Array.from(new Set(arr.map(...)))` and `Array.from(groups.entries()).filter().map()` inside heavily accessed endpoints causes severe CPU and memory allocation overhead. Benchmarking showed standard loops can perform the same filtering and mapping roughly 3-4x faster by bypassing intermediate arrays and Set-to-Array instantiation.
 **Action:** Replace functional array chaining with standard `for` loops inside endpoints rendering complex GTFS relationships (like `shapes` extraction). Pre-instantiate target result arrays and push directly to them.
+
+## 2024-11-20 - Concurrent Data Fetching
+**Learning:** Fetching independent datasets sequentially adds significant latency due to round-trip and execution delays.
+**Action:** Combined multiple sequential `await` calls for independent datasets into a single `Promise.all` call in the `/station/:stopId/schedule` endpoint, which significantly reduces total execution time.

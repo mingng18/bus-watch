@@ -341,13 +341,23 @@ app.get('/bus/position/:busId', async (c) => {
 app.get('/station/:stopId/schedule', async (c) => {
   const stopId = c.req.param('stopId');
   try {
-    const allStops = await getAllStops(c.env.KV);
-    const allRoutes = await getAllRoutes(c.env.KV);
-    const routesMaps = await getRoutesMaps(c.env.KV);
-    const allTrips = await getAllTrips(c.env.KV);
-    const allTripStops = await getAllTripStops(c.env.KV);
-    const allCalendar = await getAllCalendar(c.env.KV);
-    const allFrequencies = await getAllFrequencies(c.env.KV);
+    const [
+      allStops,
+      allRoutes,
+      routesMaps,
+      allTrips,
+      allTripStops,
+      allCalendar,
+      allFrequencies
+    ] = await Promise.all([
+      getAllStops(c.env.KV),
+      getAllRoutes(c.env.KV),
+      getRoutesMaps(c.env.KV),
+      getAllTrips(c.env.KV),
+      getAllTripStops(c.env.KV),
+      getAllCalendar(c.env.KV),
+      getAllFrequencies(c.env.KV)
+    ]);
 
     const result = getStationSchedule(stopId, allStops, allRoutes, allTrips, allTripStops, allCalendar, routesMaps.map);
     return c.json(result);
