@@ -82,3 +82,7 @@
 ## 2025-02-18 - Optimize array allocations when processing shapes
 **Learning:** Reconstructing GTFS shapes using chained methods like `Array.from(new Set(arr.map(...)))` and `Array.from(groups.entries()).filter().map()` inside heavily accessed endpoints causes severe CPU and memory allocation overhead. Benchmarking showed standard loops can perform the same filtering and mapping roughly 3-4x faster by bypassing intermediate arrays and Set-to-Array instantiation.
 **Action:** Replace functional array chaining with standard `for` loops inside endpoints rendering complex GTFS relationships (like `shapes` extraction). Pre-instantiate target result arrays and push directly to them.
+
+## 2024-07-25 - Avoid O(N) map allocations per HTTP request
+**Learning:** Instantiating `Map` objects per HTTP request in hot endpoints (e.g., mapping large arrays like routes/trips) incurs significant allocation and garbage collection overhead in Cloudflare Workers.
+**Action:** Replaced dynamic routeMap construction (`const routeMap = new Map(); for (const r of allRoutes) routeMap.set(r.id, r);`) with a prebuilt cached map (`const { map: routeMap } = await getRoutesMaps(c.env.KV)`).
