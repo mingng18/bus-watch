@@ -82,3 +82,7 @@
 ## 2025-02-18 - Optimize array allocations when processing shapes
 **Learning:** Reconstructing GTFS shapes using chained methods like `Array.from(new Set(arr.map(...)))` and `Array.from(groups.entries()).filter().map()` inside heavily accessed endpoints causes severe CPU and memory allocation overhead. Benchmarking showed standard loops can perform the same filtering and mapping roughly 3-4x faster by bypassing intermediate arrays and Set-to-Array instantiation.
 **Action:** Replace functional array chaining with standard `for` loops inside endpoints rendering complex GTFS relationships (like `shapes` extraction). Pre-instantiate target result arrays and push directly to them.
+
+## 2024-07-25 - Parallelize independent data fetches using Promise.all
+**Learning:** In Cloudflare Workers and Node.js environments, executing multiple independent asynchronous operations (like KV store fetches or database queries) sequentially using multiple `await` statements significantly delays endpoint response times by compounding I/O latency.
+**Action:** When multiple independent data sources are required before processing, always group them into a single `await Promise.all([...])` array to fetch them concurrently, reducing total wait time to the duration of the slowest single request.
