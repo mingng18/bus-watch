@@ -51,3 +51,7 @@
 ## 2025-01-22 - Grammatical VoiceOver Pluralization
 **Learning:** Hardcoding plural strings like "\(minutes) minutes" causes VoiceOver to read ungrammatical phrases like "1 minutes".
 **Action:** Use ternary conditions (`count == 1 ? "1 minute" : "\(count) minutes"`) when generating VoiceOver labels to ensure grammatical correctness.
+
+## 2024-07-25 - Improve watchOS empty and error states readability
+**Learning:** In watchOS interfaces (like SwiftUI), centered multi-line text elements in empty/error states can look lopsided if they wrap on small screens.
+**Action:** Always add `.multilineTextAlignment(.center)` to centered text that might wrap, and use `Label` with standard system icons (e.g., `arrow.clockwise`, `gear`) for fallback actions to improve visual glanceability.

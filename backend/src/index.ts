@@ -526,20 +526,25 @@ app.get('/route/:routeId', async (c) => {
   const allTrips = await getAllTrips(c.env.KV);
   const allShapes = await getAllShapes(c.env.KV);
 
-  // Performance optimization: Avoid intermediate array allocations and garbage collection
-  // overhead in Cloudflare Workers by using a single pass with a Set and standard loops
-  // instead of chained .filter().map() and Array.from(new Set(arr.map(...)))
-  const seenShapeIds = new Set<string>();
-  let shapes: { id: string; points: [number, number][] }[] = [];
-
-  for (let i = 0; i < allTrips.length; i++) {
+  // Performance optimization: Avoid intermediate array allocations from .filter().map()
+  // and Array.from(new Set()) by using standard loops to collect unique shape IDs
+  // and construct the shapes array.
+  const shapeIds = new Set<string>();
+  const tgtRouteIdForShapes = route!.id;
+  for (let i = 0, len = allTrips.length; i < len; i++) {
     const t = allTrips[i];
-    if (t.routeId === route!.id && t.shapeId && !seenShapeIds.has(t.shapeId)) {
-      seenShapeIds.add(t.shapeId);
-      const points = allShapes[t.shapeId];
-      if (points) {
-        shapes.push({ id: t.shapeId, points });
-      }
+    if (t.routeId === tgtRouteIdForShapes && t.shapeId) {
+      shapeIds.add(t.shapeId);
+    }
+  }
+
+  let shapes: Array<{ id: string; points: [number, number][] }> = [];
+  for (const id of shapeIds) {
+    if (allShapes[id]) {
+      shapes.push({
+        id,
+        points: allShapes[id]
+      });
     }
   }
 
@@ -581,9 +586,14 @@ app.get('/route/:routeId', async (c) => {
             pts.push([row.lat, row.lon]);
           }
         }
-        shapes = Array.from(groups.entries())
-          .filter(([, pts]) => pts.length >= 2)
-          .map(([busNo, pts]) => ({ id: `trail_${busNo}`, points: pts }));
+        // Performance optimization: Replace Array.from(groups.entries()).filter().map()
+        // with a standard loop to avoid array allocations in this hot path.
+        shapes = [];
+        for (const [busNo, pts] of groups) {
+          if (pts.length >= 2) {
+            shapes.push({ id: `trail_${busNo}`, points: pts });
+          }
+        }
         if (shapes.length > 0) isReconstructed = true;
       }
     } catch (err) {
