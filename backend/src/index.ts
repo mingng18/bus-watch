@@ -440,10 +440,12 @@ app.get('/routes', async (c) => {
   const coordErr = validateLatLon(lat, lon);
   if (coordErr) return c.json({ error: coordErr }, 400);
 
-  const allStops = await getAllStops(c.env.KV);
-  const allRoutes = await getAllRoutes(c.env.KV);
-  const allTrips = await getAllTrips(c.env.KV);
-  const allTripStops = await getAllTripStops(c.env.KV);
+  const [allStops, allRoutes, allTrips, allTripStops] = await Promise.all([
+    getAllStops(c.env.KV),
+    getAllRoutes(c.env.KV),
+    getAllTrips(c.env.KV),
+    getAllTripStops(c.env.KV)
+  ]);
   const result = findNearbyRoutes(allStops, allRoutes, allTrips, allTripStops, lat, lon, radius);
   return c.json({ routes: result });
 });
