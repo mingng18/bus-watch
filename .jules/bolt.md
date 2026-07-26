@@ -83,6 +83,10 @@
 **Learning:** Reconstructing GTFS shapes using chained methods like `Array.from(new Set(arr.map(...)))` and `Array.from(groups.entries()).filter().map()` inside heavily accessed endpoints causes severe CPU and memory allocation overhead. Benchmarking showed standard loops can perform the same filtering and mapping roughly 3-4x faster by bypassing intermediate arrays and Set-to-Array instantiation.
 **Action:** Replace functional array chaining with standard `for` loops inside endpoints rendering complex GTFS relationships (like `shapes` extraction). Pre-instantiate target result arrays and push directly to them.
 
+## 2024-07-25 - Group sequential async Cloudflare KV lookups
+**Learning:** Sequential async lookups to remote stores like Cloudflare KV (e.g. `await getA(); await getB();`) compound latency linearly (e.g., 6 lookups at 50ms = 300ms delay).
+**Action:** Group independent data fetches into concurrent `Promise.all` blocks to bound the total execution time to the single slowest request, dramatically improving endpoint response times.
+
 ## 2024-07-25 - [Testing] 🧪 Add unit tests for detectStopPassages
 **Learning:** Pure functions like `detectStopPassages` that perform complex data transformations (like spatial bounds checking and time thresholding) on raw array inputs are highly susceptible to edge case bugs but are simultaneously the easiest code to test thoroughly without mocks.
 **Action:** Wrote deterministic unit tests that comprehensively exercise all logical branches of `detectStopPassages`, ensuring regressions are prevented for stop sequencing, outlier distance drops, and maximum inter-stop elapsed time validation.
