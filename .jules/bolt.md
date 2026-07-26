@@ -83,6 +83,10 @@
 **Learning:** Reconstructing GTFS shapes using chained methods like `Array.from(new Set(arr.map(...)))` and `Array.from(groups.entries()).filter().map()` inside heavily accessed endpoints causes severe CPU and memory allocation overhead. Benchmarking showed standard loops can perform the same filtering and mapping roughly 3-4x faster by bypassing intermediate arrays and Set-to-Array instantiation.
 **Action:** Replace functional array chaining with standard `for` loops inside endpoints rendering complex GTFS relationships (like `shapes` extraction). Pre-instantiate target result arrays and push directly to them.
 
+## 2024-07-25 - Group sequential async Cloudflare KV lookups
+**Learning:** Sequential async lookups to remote stores like Cloudflare KV (e.g. `await getA(); await getB();`) compound latency linearly (e.g., 6 lookups at 50ms = 300ms delay).
+**Action:** Group independent data fetches into concurrent `Promise.all` blocks to bound the total execution time to the single slowest request, dramatically improving endpoint response times.
+
 ## 2025-07-25 - Prevented cascading wait cascades in IO-bound endpoint
 **Learning:** Sequential awaits on non-dependent I/O calls significantly increase response times, especially in data-heavy hot paths.
 **Action:** Replaced sequential awaits on KV fetches for routes, realtime vehicles, and trip stops with a single `Promise.all` in the trip progress API endpoint to fetch them concurrently, removing unneeded delays and drastically improving response time.

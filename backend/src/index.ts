@@ -103,15 +103,27 @@ app.get('/nearby', async (c) => {
   const coordErr = validateLatLon(lat, lon);
   if (coordErr) return c.json({ error: coordErr }, 400);
 
-  const allStops = await getAllStops(c.env.KV);
-  const allRoutes = await getAllRoutes(c.env.KV);
-  const allTrips = await getAllTrips(c.env.KV);
-  const { map: routeMap } = await getRoutesMaps(c.env.KV);
-  const { tripMap, routeTripMap } = await getTripsMaps(c.env.KV);
-  const allTripStops = await getAllTripStops(c.env.KV);
-  const allCalendar = await getAllCalendar(c.env.KV);
-  const allFrequencies = await getAllFrequencies(c.env.KV);
-  const vehicles = await getRealtimeVehicles(c.env.KV);
+  const [
+    allStops,
+    allRoutes,
+    allTrips,
+    { map: routeMap },
+    { tripMap, routeTripMap },
+    allTripStops,
+    allCalendar,
+    allFrequencies,
+    vehicles
+  ] = await Promise.all([
+    getAllStops(c.env.KV),
+    getAllRoutes(c.env.KV),
+    getAllTrips(c.env.KV),
+    getRoutesMaps(c.env.KV),
+    getTripsMaps(c.env.KV),
+    getAllTripStops(c.env.KV),
+    getAllCalendar(c.env.KV),
+    getAllFrequencies(c.env.KV),
+    getRealtimeVehicles(c.env.KV)
+  ]);
 
   const result = findNearbyStops({
     stops: allStops,
@@ -343,13 +355,23 @@ app.get('/bus/position/:busId', async (c) => {
 app.get('/station/:stopId/schedule', async (c) => {
   const stopId = c.req.param('stopId');
   try {
-    const allStops = await getAllStops(c.env.KV);
-    const allRoutes = await getAllRoutes(c.env.KV);
-    const routesMaps = await getRoutesMaps(c.env.KV);
-    const allTrips = await getAllTrips(c.env.KV);
-    const allTripStops = await getAllTripStops(c.env.KV);
-    const allCalendar = await getAllCalendar(c.env.KV);
-    const allFrequencies = await getAllFrequencies(c.env.KV);
+    const [
+      allStops,
+      allRoutes,
+      routesMaps,
+      allTrips,
+      allTripStops,
+      allCalendar,
+      allFrequencies
+    ] = await Promise.all([
+      getAllStops(c.env.KV),
+      getAllRoutes(c.env.KV),
+      getRoutesMaps(c.env.KV),
+      getAllTrips(c.env.KV),
+      getAllTripStops(c.env.KV),
+      getAllCalendar(c.env.KV),
+      getAllFrequencies(c.env.KV)
+    ]);
 
     const result = getStationSchedule(stopId, allStops, allRoutes, allTrips, allTripStops, allCalendar, routesMaps.map);
     return c.json(result);
@@ -371,12 +393,21 @@ app.get('/station/:stopId/schedule/toward', async (c) => {
   const limit = Math.min(Math.max(Number.isFinite(parsed) ? parsed : 5, 1), 50);
 
   try {
-    const allStops = await getAllStops(c.env.KV);
-    const allRoutes = await getAllRoutes(c.env.KV);
-    const routesMaps = await getRoutesMaps(c.env.KV);
-    const allTrips = await getAllTrips(c.env.KV);
-    const allTripStops = await getAllTripStops(c.env.KV);
-    const allCalendar = await getAllCalendar(c.env.KV);
+    const [
+      allStops,
+      allRoutes,
+      routesMaps,
+      allTrips,
+      allTripStops,
+      allCalendar
+    ] = await Promise.all([
+      getAllStops(c.env.KV),
+      getAllRoutes(c.env.KV),
+      getRoutesMaps(c.env.KV),
+      getAllTrips(c.env.KV),
+      getAllTripStops(c.env.KV),
+      getAllCalendar(c.env.KV)
+    ]);
 
     const result = getDeparturesTowardDestination(
       stopId, destinationStopId, allStops, allRoutes, allTrips, allTripStops, allCalendar, limit, routesMaps.map
@@ -442,10 +473,17 @@ app.get('/routes', async (c) => {
   const coordErr = validateLatLon(lat, lon);
   if (coordErr) return c.json({ error: coordErr }, 400);
 
-  const allStops = await getAllStops(c.env.KV);
-  const allRoutes = await getAllRoutes(c.env.KV);
-  const allTrips = await getAllTrips(c.env.KV);
-  const allTripStops = await getAllTripStops(c.env.KV);
+  const [
+    allStops,
+    allRoutes,
+    allTrips,
+    allTripStops
+  ] = await Promise.all([
+    getAllStops(c.env.KV),
+    getAllRoutes(c.env.KV),
+    getAllTrips(c.env.KV),
+    getAllTripStops(c.env.KV)
+  ]);
   const result = findNearbyRoutes(allStops, allRoutes, allTrips, allTripStops, lat, lon, radius);
   return c.json({ routes: result });
 });
