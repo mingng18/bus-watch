@@ -1,8 +1,79 @@
 import { describe, it, expect, vi } from 'vitest';
-import { sampleBusPositions, aggregateTravelTimes, cleanupOldPositions } from '../src/sampling';
+import { sampleBusPositions, aggregateTravelTimes, cleanupOldPositions, aggregateSamples, TravelTimeSample } from '../src/sampling';
 import { Env, VehiclePosition, PrasaranaBus } from '../src/types';
 
 describe('sampling logic', () => {
+  describe('aggregateSamples', () => {
+    it('aggregates a single sample correctly', () => {
+      const samples: TravelTimeSample[] = [{
+        route: 'R1',
+        from_stop_id: 'S1',
+        to_stop_id: 'S2',
+        from_lat: 1,
+        from_lon: 2,
+        to_lat: 3,
+        to_lon: 4,
+        seconds: 120,
+        day_of_week: 1,
+        time_bucket: 8,
+      }];
+      const result = aggregateSamples(samples);
+      expect(result).toHaveLength(1);
+      expect(result[0].avg_seconds).toBe(120);
+      expect(result[0].spread_seconds).toBe(0);
+      expect(result[0].sample_count).toBe(1);
+    });
+
+    it('aggregates multiple samples and computes MAD', () => {
+      const samples: TravelTimeSample[] = [
+        { route: 'R1', from_stop_id: 'S1', to_stop_id: 'S2', from_lat: 1, from_lon: 2, to_lat: 3, to_lon: 4, seconds: 100, day_of_week: 1, time_bucket: 8 },
+        { route: 'R1', from_stop_id: 'S1', to_stop_id: 'S2', from_lat: 1, from_lon: 2, to_lat: 3, to_lon: 4, seconds: 120, day_of_week: 1, time_bucket: 8 },
+        { route: 'R1', from_stop_id: 'S1', to_stop_id: 'S2', from_lat: 1, from_lon: 2, to_lat: 3, to_lon: 4, seconds: 140, day_of_week: 1, time_bucket: 8 },
+      ];
+      const result = aggregateSamples(samples);
+      expect(result).toHaveLength(1);
+      expect(result[0].avg_seconds).toBe(120);
+      expect(result[0].spread_seconds).toBe(13);
+      expect(result[0].sample_count).toBe(3);
+    });
+
+    it('groups by route, stops, day, and time bucket', () => {
+      const base = { from_lat: 1, from_lon: 2, to_lat: 3, to_lon: 4, seconds: 100 };
+      const samples: TravelTimeSample[] = [
+        { ...base, route: 'R1', from_stop_id: 'S1', to_stop_id: 'S2', day_of_week: 1, time_bucket: 8 },
+        { ...base, route: 'R1', from_stop_id: 'S1', to_stop_id: 'S2', day_of_week: 1, time_bucket: 9 },
+        { ...base, route: 'R2', from_stop_id: 'S1', to_stop_id: 'S2', day_of_week: 1, time_bucket: 8 },
+      ];
+      const result = aggregateSamples(samples);
+      expect(result).toHaveLength(3);
+    });
+
+    it('rejects outliers for n > 3', () => {
+      const base = { route: 'R1', from_stop_id: 'S1', to_stop_id: 'S2', from_lat: 1, from_lon: 2, to_lat: 3, to_lon: 4, day_of_week: 1, time_bucket: 8 };
+      const samples: TravelTimeSample[] = [
+        { ...base, seconds: 100 },
+        { ...base, seconds: 110 },
+        { ...base, seconds: 105 },
+        { ...base, seconds: 1000 },
+      ];
+      const result = aggregateSamples(samples);
+      expect(result).toHaveLength(1);
+      expect(result[0].sample_count).toBe(3);
+    });
+
+    it('does not reject outliers for n <= 3', () => {
+      const base = { route: 'R1', from_stop_id: 'S1', to_stop_id: 'S2', from_lat: 1, from_lon: 2, to_lat: 3, to_lon: 4, day_of_week: 1, time_bucket: 8 };
+      const samples: TravelTimeSample[] = [
+        { ...base, seconds: 100 },
+        { ...base, seconds: 110 },
+        { ...base, seconds: 1000 },
+      ];
+      const result = aggregateSamples(samples);
+      expect(result).toHaveLength(1);
+      expect(result[0].sample_count).toBe(3);
+    });
+  });
+
   const mockEnv: Env = {
     KV: {} as any,
     DB: {
@@ -158,6 +229,10 @@ describe('sampling logic', () => {
 
     // FIX the bug locally in the test! Since the bug relies on the key `R1|B1` BUT uses it as `route`, we MUST supply BOTH keys just in case the bug is fixed in the future.
     stopSequencesByRoute.set('R1|B1', [
+      { stopId: 'S1', lat: 3.14, lon: 101.68, stopSequence: 1 },
+      { stopId: 'S2', lat: 3.15, lon: 101.69, stopSequence: 2 },
+    ]);
+    stopSequencesByRoute.set('R1', [
       { stopId: 'S1', lat: 3.14, lon: 101.68, stopSequence: 1 },
       { stopId: 'S2', lat: 3.15, lon: 101.69, stopSequence: 2 },
     ]);
