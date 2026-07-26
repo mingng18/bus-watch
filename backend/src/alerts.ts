@@ -242,79 +242,50 @@ function parseSlug(slug: string): ParsedSlug | null {
   const base = slug.replace(/-\d+$/, "");
   const tokens = base.split("-");
 
-  // Bus road closure: info-penutupan-jalan-laluan-<routes...>
   if (base.startsWith("info-penutupan-jalan-laluan-")) {
-    const routes = extractRoutes(tokens);
-    const title = routes.length
-      ? `Road closure — routes ${routes.join(", ")}`
-      : "Road closure";
-    return { title, summary: title, affectedLines: routes, severity: "severe" };
+    return parseBusAlert(tokens, "Road closure", "severe");
   }
-  // Traffic disruption: info-gangguan-trafik-laluan-<routes...>
   if (base.startsWith("info-gangguan-trafik-laluan-")) {
-    const routes = extractRoutes(tokens);
-    const title = routes.length
-      ? `Traffic disruption — routes ${routes.join(", ")}`
-      : "Traffic disruption";
-    return {
-      title,
-      summary: title,
-      affectedLines: routes,
-      severity: "warning",
-    };
+    return parseBusAlert(tokens, "Traffic disruption", "warning");
   }
-  // Bus delay: kelewatan-bas-<n>-laluan-terjejas
   if (/^kelewatan-bas-\d+-laluan-terjejas$/.test(base)) {
     const n = tokens[tokens.indexOf("bas") + 1];
     const title = `Bus delay — ${n} route(s) affected`;
     return { title, summary: title, affectedLines: [], severity: "warning" };
   }
-  // Train delay: kelewatan-tren-laluan-<line>
   if (base.startsWith("kelewatan-tren-laluan-")) {
-    const line = lineName(tokens.slice(tokens.indexOf("laluan") + 1).join(" "));
-    const title = line ? `Train delay — ${line} line` : "Train delay";
-    return {
-      title,
-      summary: title,
-      affectedLines: line ? [line] : [],
-      severity: "warning",
-    };
+    return parseLineAlert(tokens, "Train delay", "warning");
   }
-  // Service restored: perkhidmatan-pulih-laluan-<line>
   if (base.startsWith("perkhidmatan-pulih-laluan-")) {
-    const line = lineName(tokens.slice(tokens.indexOf("laluan") + 1).join(" "));
-    const title = line ? `Service restored — ${line} line` : "Service restored";
-    return {
-      title,
-      summary: title,
-      affectedLines: line ? [line] : [],
-      severity: "info",
-    };
+    return parseLineAlert(tokens, "Service restored", "info");
   }
-  // Frequency update: kemas-kini-kekerapan-laluan-<line>
   if (base.startsWith("kemas-kini-kekerapan-laluan-")) {
-    const line = lineName(tokens.slice(tokens.indexOf("laluan") + 1).join(" "));
-    const title = line ? `Frequency update — ${line} line` : "Frequency update";
-    return {
-      title,
-      summary: title,
-      affectedLines: line ? [line] : [],
-      severity: "info",
-    };
+    return parseLineAlert(tokens, "Frequency update", "info");
   }
-  // Line update: kemas-kini-laluan-<line>
   if (base.startsWith("kemas-kini-laluan-")) {
-    const line = lineName(tokens.slice(tokens.indexOf("laluan") + 1).join(" "));
-    const title = line ? `Line update — ${line} line` : "Line update";
-    return {
-      title,
-      summary: title,
-      affectedLines: line ? [line] : [],
-      severity: "info",
-    };
+    return parseLineAlert(tokens, "Line update", "info");
   }
 
   return null;
+}
+
+function parseBusAlert(tokens: string[], label: string, severity: AlertSeverity): ParsedSlug {
+  const routes = extractRoutes(tokens);
+  const title = routes.length
+    ? `${label} — routes ${routes.join(", ")}`
+    : label;
+  return { title, summary: title, affectedLines: routes, severity };
+}
+
+function parseLineAlert(tokens: string[], label: string, severity: AlertSeverity): ParsedSlug {
+  const line = lineName(tokens.slice(tokens.indexOf("laluan") + 1).join(" "));
+  const title = line ? `${label} — ${line} line` : label;
+  return {
+    title,
+    summary: title,
+    affectedLines: line ? [line] : [],
+    severity,
+  };
 }
 
 /** Extract trailing route numbers following the `laluan` token. */
