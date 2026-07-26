@@ -1,6 +1,6 @@
-import { Env, VehiclePosition, PrasaranaBus, TripStopEntry } from './types';
-import { haversineDistance } from './haversine';
-import { klDayOfWeek } from './time-kl';
+import { Env, VehiclePosition, PrasaranaBus, TripStopEntry } from "./types";
+import { haversineDistance } from "./haversine";
+import { klDayOfWeek } from "./time-kl";
 
 interface LastPosition {
   bus_no: string;
@@ -62,10 +62,31 @@ export interface AggregatedTravelTime {
   spread_seconds: number;
 }
 
-export async function sampleBusPositions(env: Env, vehicles: VehiclePosition[], prasaranaBuses: PrasaranaBus[]) {
-  const stmts = [];
+export async function sampleBusPositions(
+  env: Env,
+  vehicles: VehiclePosition[],
+  prasaranaBuses: PrasaranaBus[],
+) {
   const now = Math.floor(Date.now() / 1000);
 
+  const lastPositions = await fetchLastPositions(env);
+
+  const stmts = [
+    ...prepareGtfsInsertStatements(env, vehicles, lastPositions, now),
+    ...preparePrasaranaInsertStatements(
+      env,
+      prasaranaBuses,
+      lastPositions,
+      now,
+    ),
+  ];
+
+  await executeBatchInserts(env, stmts);
+}
+
+async function fetchLastPositions(
+  env: Env,
+): Promise<Map<string, LastPosition>> {
   // Deterministic "last position per bus_no". The previous form
   // `GROUP BY bus_no HAVING timestamp = MAX(timestamp)` is non-standard SQL:
   // the SELECT lists non-aggregated lat/lon/ts while grouping only by bus_no,
@@ -81,7 +102,7 @@ export async function sampleBusPositions(env: Env, vehicles: VehiclePosition[], 
          ROW_NUMBER() OVER (PARTITION BY bus_no ORDER BY timestamp DESC, rowid DESC) AS rn
        FROM bus_positions
        WHERE timestamp > (unixepoch() - 600)
-     ) WHERE rn = 1`
+     ) WHERE rn = 1`,
   ).all<LastPosition>();
 
   const lastPositions = new Map<string, LastPosition>();
@@ -90,46 +111,89 @@ export async function sampleBusPositions(env: Env, vehicles: VehiclePosition[], 
       lastPositions.set(r.bus_no, r);
     }
   }
-  
-  // Insert GTFS vehicles
+  return lastPositions;
+}
+
+function prepareGtfsInsertStatements(
+  env: Env,
+  vehicles: VehiclePosition[],
+  lastPositions: Map<string, LastPosition>,
+  now: number,
+): any[] {
+  const stmts = [];
   const gtfsInsertStmt = env.DB.prepare(
     `INSERT INTO bus_positions (bus_no, route, source, lat, lon, speed, timestamp)
-     VALUES (?, ?, ?, ?, ?, NULL, ?)`
+     VALUES (?, ?, ?, ?, ?, NULL, ?)`,
   );
   for (const v of vehicles) {
     if (!v.tripId || !v.routeId) continue;
-    
+
     const last = lastPositions.get(v.tripId);
-    const moved = last ? haversineDistance(last.lat, last.lon, v.lat, v.lon) > 100 : true;
-    const timedOut = last ? (now - last.ts) >= 300 : true;
-    
+    const moved = last
+      ? haversineDistance(last.lat, last.lon, v.lat, v.lon) > 100
+      : true;
+    const timedOut = last ? now - last.ts >= 300 : true;
+
     if (moved || timedOut) {
-      stmts.push(gtfsInsertStmt.bind(v.tripId, v.routeId, 'gtfs', v.lat, v.lon, v.timestamp));
+      stmts.push(
+        gtfsInsertStmt.bind(
+          v.tripId,
+          v.routeId,
+          "gtfs",
+          v.lat,
+          v.lon,
+          v.timestamp,
+        ),
+      );
     }
   }
-  
-  // Insert Prasarana vehicles
+  return stmts;
+}
+
+function preparePrasaranaInsertStatements(
+  env: Env,
+  prasaranaBuses: PrasaranaBus[],
+  lastPositions: Map<string, LastPosition>,
+  now: number,
+): any[] {
+  const stmts = [];
   const prasaInsertStmt = env.DB.prepare(
     `INSERT INTO bus_positions (bus_no, route, source, lat, lon, speed, timestamp)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
   );
   for (const b of prasaranaBuses) {
     const last = lastPositions.get(b.bus_no);
-    
+
     let ts = now;
     if (b.dt_gps) {
       const parsed = Math.floor(new Date(b.dt_gps).getTime() / 1000);
       if (!isNaN(parsed)) ts = parsed;
     }
-    
-    const moved = last ? haversineDistance(last.lat, last.lon, b.latitude, b.longitude) > 100 : true;
-    const timedOut = last ? (ts - last.ts) >= 300 : true;
-    
+
+    const moved = last
+      ? haversineDistance(last.lat, last.lon, b.latitude, b.longitude) > 100
+      : true;
+    const timedOut = last ? ts - last.ts >= 300 : true;
+
     if (moved || timedOut) {
-      stmts.push(prasaInsertStmt.bind(b.bus_no, b.route, 'prasarana', b.latitude, b.longitude, b.speed, ts));
+      stmts.push(
+        prasaInsertStmt.bind(
+          b.bus_no,
+          b.route,
+          "prasarana",
+          b.latitude,
+          b.longitude,
+          b.speed,
+          ts,
+        ),
+      );
     }
   }
-  
+  return stmts;
+}
+
+async function executeBatchInserts(env: Env, stmts: any[]) {
+  if (stmts.length === 0) return;
   // Batch insert in chunks of 100 to avoid D1 limits
   // We use bounded concurrency (e.g. 5 concurrent batches) to avoid overwhelming D1 limits
   // while propagating any failures to the caller.
@@ -270,17 +334,18 @@ export function aggregateSamples(
   for (const s of samples) {
     const key = `${s.route}|${s.from_stop_id}|${s.to_stop_id}|${s.day_of_week}|${s.time_bucket}`;
     let arr = groups.get(key);
-    if (!arr) groups.set(key, arr = []);
+    if (!arr) groups.set(key, (arr = []));
     arr.push(s);
   }
 
   const out: AggregatedTravelTime[] = [];
   for (const arr of groups.values()) {
     // Per-key MAD outlier rejection.
-    const cleaned = rejectOutliers(arr.map(s => s.seconds));
+    const cleaned = rejectOutliers(arr.map((s) => s.seconds));
     if (cleaned.length === 0) continue;
     const avg = cleaned.reduce((a, b) => a + b, 0) / cleaned.length;
-    const mad = cleaned.reduce((a, b) => a + Math.abs(b - avg), 0) / cleaned.length;
+    const mad =
+      cleaned.reduce((a, b) => a + Math.abs(b - avg), 0) / cleaned.length;
     const first = arr[0];
     out.push({
       route: first.route,
@@ -309,7 +374,7 @@ function rejectOutliers(values: number[], threshold = 3): number[] {
   if (values.length <= 3) return values;
   const sorted = [...values].sort((a, b) => a - b);
   const median = sorted[Math.floor(sorted.length / 2)];
-  const devs = values.map(v => Math.abs(v - median));
+  const devs = values.map((v) => Math.abs(v - median));
   const mad = devs.reduce((a, b) => a + b, 0) / devs.length;
   if (mad === 0) return values; // all values identical or near-median
   return values.filter((_, i) => devs[i] <= threshold * mad);
@@ -326,7 +391,10 @@ export function canonicalStopSequencesByRoute(
   trips: { id: string; routeId: string }[],
   tripStops: Record<string, TripStopEntry[]>,
 ): Map<string, TripStopEntry[]> {
-  const bestByRoute = new Map<string, { stops: TripStopEntry[]; len: number }>();
+  const bestByRoute = new Map<
+    string,
+    { stops: TripStopEntry[]; len: number }
+  >();
   for (const t of trips) {
     const stops = tripStops[t.id];
     if (!stops || stops.length === 0) continue;
@@ -369,12 +437,17 @@ export async function aggregateTravelTimes(
        FROM bus_positions
        WHERE timestamp > ?
        ORDER BY route, bus_no, timestamp`,
-    ).bind(since).all<PositionSample>();
-    rows = (results || []).filter(r =>
-      Number.isFinite(r.lat) && Number.isFinite(r.lon) && Number.isFinite(r.timestamp),
+    )
+      .bind(since)
+      .all<PositionSample>();
+    rows = (results || []).filter(
+      (r) =>
+        Number.isFinite(r.lat) &&
+        Number.isFinite(r.lon) &&
+        Number.isFinite(r.timestamp),
     );
   } catch (err) {
-    console.error('aggregateTravelTimes: failed to read bus_positions:', err);
+    console.error("aggregateTravelTimes: failed to read bus_positions:", err);
     return;
   }
   if (rows.length === 0) return;
@@ -394,7 +467,7 @@ export async function aggregateTravelTimes(
       lastArr!.push(r);
     } else {
       let arr = traces.get(key);
-      if (!arr) traces.set(key, arr = []);
+      if (!arr) traces.set(key, (arr = []));
       arr.push(r);
       lastKey = key;
       lastArr = arr;
@@ -403,7 +476,7 @@ export async function aggregateTravelTimes(
 
   const allSamples: TravelTimeSample[] = [];
   for (const [traceKey, samples] of traces) {
-    const route = traceKey.split('|')[0];
+    const route = traceKey.split("|")[0];
     const stops = stopSequencesByRoute.get(route);
     if (!stops) continue; // route unknown to GTFS static — nothing to key off
     try {
@@ -411,7 +484,10 @@ export async function aggregateTravelTimes(
       allSamples.push(...legs);
     } catch (err) {
       // One bad trace must not poison the rest.
-      console.error(`aggregateTravelTimes: detectStopPassages failed for route ${route}:`, err);
+      console.error(
+        `aggregateTravelTimes: detectStopPassages failed for route ${route}:`,
+        err,
+      );
     }
   }
   if (allSamples.length === 0) return;
@@ -438,12 +514,23 @@ export async function aggregateTravelTimes(
                                  + travel_times.spread_seconds * travel_times.sample_count)
                                 / (excluded.sample_count + travel_times.sample_count)),
          sample_count = travel_times.sample_count + excluded.sample_count,
-         updated_at = excluded.updated_at`
+         updated_at = excluded.updated_at`,
   );
-  const upsertStmts = aggregated.map(a =>
+  const upsertStmts = aggregated.map((a) =>
     travelTimesPrepStmt.bind(
-      a.route, a.from_stop_id, a.to_stop_id, a.from_lat, a.from_lon, a.to_lat, a.to_lon,
-      a.avg_seconds, a.sample_count, now, a.day_of_week, a.time_bucket, a.spread_seconds,
+      a.route,
+      a.from_stop_id,
+      a.to_stop_id,
+      a.from_lat,
+      a.from_lon,
+      a.to_lat,
+      a.to_lon,
+      a.avg_seconds,
+      a.sample_count,
+      now,
+      a.day_of_week,
+      a.time_bucket,
+      a.spread_seconds,
     ),
   );
 
@@ -456,14 +543,20 @@ export async function aggregateTravelTimes(
 
   for (let i = 0; i < upsertStmts.length; i += BATCH_SIZE * CONCURRENCY) {
     const batchPromises = [];
-    for (let j = 0; j < CONCURRENCY && i + j * BATCH_SIZE < upsertStmts.length; j++) {
+    for (
+      let j = 0;
+      j < CONCURRENCY && i + j * BATCH_SIZE < upsertStmts.length;
+      j++
+    ) {
       const start = i + j * BATCH_SIZE;
       batchPromises.push(
-        env.DB.batch(upsertStmts.slice(start, start + BATCH_SIZE)).catch(err => {
-          console.error('aggregateTravelTimes: upsert batch failed:', err);
-          errors.push(err);
-        })
-  );
+        env.DB.batch(upsertStmts.slice(start, start + BATCH_SIZE)).catch(
+          (err) => {
+            console.error("aggregateTravelTimes: upsert batch failed:", err);
+            errors.push(err);
+          },
+        ),
+      );
     }
     await Promise.all(batchPromises);
   }
@@ -473,7 +566,8 @@ export async function aggregateTravelTimes(
   }
 }
 
-
 export async function cleanupOldPositions(env: Env) {
-  await env.DB.prepare(`DELETE FROM bus_positions WHERE timestamp < (unixepoch() - 7 * 24 * 60 * 60)`).run();
+  await env.DB.prepare(
+    `DELETE FROM bus_positions WHERE timestamp < (unixepoch() - 7 * 24 * 60 * 60)`,
+  ).run();
 }
