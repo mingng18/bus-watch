@@ -102,15 +102,27 @@ app.get('/nearby', async (c) => {
   const coordErr = validateLatLon(lat, lon);
   if (coordErr) return c.json({ error: coordErr }, 400);
 
-  const allStops = await getAllStops(c.env.KV);
-  const allRoutes = await getAllRoutes(c.env.KV);
-  const allTrips = await getAllTrips(c.env.KV);
-  const { map: routeMap } = await getRoutesMaps(c.env.KV);
-  const { tripMap, routeTripMap } = await getTripsMaps(c.env.KV);
-  const allTripStops = await getAllTripStops(c.env.KV);
-  const allCalendar = await getAllCalendar(c.env.KV);
-  const allFrequencies = await getAllFrequencies(c.env.KV);
-  const vehicles = await getRealtimeVehicles(c.env.KV);
+  const [
+    allStops,
+    allRoutes,
+    allTrips,
+    { map: routeMap },
+    { tripMap, routeTripMap },
+    allTripStops,
+    allCalendar,
+    allFrequencies,
+    vehicles
+  ] = await Promise.all([
+    getAllStops(c.env.KV),
+    getAllRoutes(c.env.KV),
+    getAllTrips(c.env.KV),
+    getRoutesMaps(c.env.KV),
+    getTripsMaps(c.env.KV),
+    getAllTripStops(c.env.KV),
+    getAllCalendar(c.env.KV),
+    getAllFrequencies(c.env.KV),
+    getRealtimeVehicles(c.env.KV)
+  ]);
 
   const result = findNearbyStops({
     stops: allStops,
@@ -340,13 +352,23 @@ app.get('/bus/position/:busId', async (c) => {
 app.get('/station/:stopId/schedule', async (c) => {
   const stopId = c.req.param('stopId');
   try {
-    const allStops = await getAllStops(c.env.KV);
-    const allRoutes = await getAllRoutes(c.env.KV);
-    const routesMaps = await getRoutesMaps(c.env.KV);
-    const allTrips = await getAllTrips(c.env.KV);
-    const allTripStops = await getAllTripStops(c.env.KV);
-    const allCalendar = await getAllCalendar(c.env.KV);
-    const allFrequencies = await getAllFrequencies(c.env.KV);
+    const [
+      allStops,
+      allRoutes,
+      routesMaps,
+      allTrips,
+      allTripStops,
+      allCalendar,
+      allFrequencies
+    ] = await Promise.all([
+      getAllStops(c.env.KV),
+      getAllRoutes(c.env.KV),
+      getRoutesMaps(c.env.KV),
+      getAllTrips(c.env.KV),
+      getAllTripStops(c.env.KV),
+      getAllCalendar(c.env.KV),
+      getAllFrequencies(c.env.KV)
+    ]);
 
     const result = getStationSchedule(stopId, allStops, allRoutes, allTrips, allTripStops, allCalendar, routesMaps.map);
     return c.json(result);
@@ -368,12 +390,21 @@ app.get('/station/:stopId/schedule/toward', async (c) => {
   const limit = Math.min(Math.max(Number.isFinite(parsed) ? parsed : 5, 1), 50);
 
   try {
-    const allStops = await getAllStops(c.env.KV);
-    const allRoutes = await getAllRoutes(c.env.KV);
-    const routesMaps = await getRoutesMaps(c.env.KV);
-    const allTrips = await getAllTrips(c.env.KV);
-    const allTripStops = await getAllTripStops(c.env.KV);
-    const allCalendar = await getAllCalendar(c.env.KV);
+    const [
+      allStops,
+      allRoutes,
+      routesMaps,
+      allTrips,
+      allTripStops,
+      allCalendar
+    ] = await Promise.all([
+      getAllStops(c.env.KV),
+      getAllRoutes(c.env.KV),
+      getRoutesMaps(c.env.KV),
+      getAllTrips(c.env.KV),
+      getAllTripStops(c.env.KV),
+      getAllCalendar(c.env.KV)
+    ]);
 
     const result = getDeparturesTowardDestination(
       stopId, destinationStopId, allStops, allRoutes, allTrips, allTripStops, allCalendar, limit, routesMaps.map
@@ -438,10 +469,17 @@ app.get('/routes', async (c) => {
   const coordErr = validateLatLon(lat, lon);
   if (coordErr) return c.json({ error: coordErr }, 400);
 
-  const allStops = await getAllStops(c.env.KV);
-  const allRoutes = await getAllRoutes(c.env.KV);
-  const allTrips = await getAllTrips(c.env.KV);
-  const allTripStops = await getAllTripStops(c.env.KV);
+  const [
+    allStops,
+    allRoutes,
+    allTrips,
+    allTripStops
+  ] = await Promise.all([
+    getAllStops(c.env.KV),
+    getAllRoutes(c.env.KV),
+    getAllTrips(c.env.KV),
+    getAllTripStops(c.env.KV)
+  ]);
   const result = findNearbyRoutes(allStops, allRoutes, allTrips, allTripStops, lat, lon, radius);
   return c.json({ routes: result });
 });
@@ -522,14 +560,29 @@ app.get('/route/:routeId', async (c) => {
   const mergedBuses = mergeBusRoutes(gtfsBuses, pBuses);
 
   const allTrips = await getAllTrips(c.env.KV);
-  const routeTrips = allTrips.filter(t => t.routeId === route!.id && t.shapeId);
-
   const allShapes = await getAllShapes(c.env.KV);
-  const shapeIds = Array.from(new Set(routeTrips.map(t => t.shapeId)));
-  let shapes = shapeIds.filter(id => allShapes[id]).map(id => ({
-    id,
-    points: allShapes[id]
-  }));
+
+  // Performance optimization: Avoid intermediate array allocations from .filter().map()
+  // and Array.from(new Set()) by using standard loops to collect unique shape IDs
+  // and construct the shapes array.
+  const shapeIds = new Set<string>();
+  const tgtRouteIdForShapes = route!.id;
+  for (let i = 0, len = allTrips.length; i < len; i++) {
+    const t = allTrips[i];
+    if (t.routeId === tgtRouteIdForShapes && t.shapeId) {
+      shapeIds.add(t.shapeId);
+    }
+  }
+
+  let shapes: Array<{ id: string; points: [number, number][] }> = [];
+  for (const id of shapeIds) {
+    if (allShapes[id]) {
+      shapes.push({
+        id,
+        points: allShapes[id]
+      });
+    }
+  }
 
   // Fallback: reconstruct route shape from D1 historical bus positions
   let isReconstructed = false;
@@ -569,9 +622,14 @@ app.get('/route/:routeId', async (c) => {
             pts.push([row.lat, row.lon]);
           }
         }
-        shapes = Array.from(groups.entries())
-          .filter(([, pts]) => pts.length >= 2)
-          .map(([busNo, pts]) => ({ id: `trail_${busNo}`, points: pts }));
+        // Performance optimization: Replace Array.from(groups.entries()).filter().map()
+        // with a standard loop to avoid array allocations in this hot path.
+        shapes = [];
+        for (const [busNo, pts] of groups) {
+          if (pts.length >= 2) {
+            shapes.push({ id: `trail_${busNo}`, points: pts });
+          }
+        }
         if (shapes.length > 0) isReconstructed = true;
       }
     } catch (err) {
