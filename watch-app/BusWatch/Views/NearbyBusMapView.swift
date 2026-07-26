@@ -6,7 +6,8 @@ struct NearbyMapPresentation: Equatable {
     let showsCurrentLocation = true
 
     var accessibilityLabel: String {
-        "Live bus map with \(busCount) buses and your current location"
+        let busText = busCount == 1 ? "1 bus" : "\(busCount) buses"
+        return "Live bus map with \(busText) and your current location"
     }
 }
 
