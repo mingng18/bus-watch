@@ -82,3 +82,7 @@
 ## 2025-02-18 - Optimize array allocations when processing shapes
 **Learning:** Reconstructing GTFS shapes using chained methods like `Array.from(new Set(arr.map(...)))` and `Array.from(groups.entries()).filter().map()` inside heavily accessed endpoints causes severe CPU and memory allocation overhead. Benchmarking showed standard loops can perform the same filtering and mapping roughly 3-4x faster by bypassing intermediate arrays and Set-to-Array instantiation.
 **Action:** Replace functional array chaining with standard `for` loops inside endpoints rendering complex GTFS relationships (like `shapes` extraction). Pre-instantiate target result arrays and push directly to them.
+
+## 2024-07-25 - Group sequential async Cloudflare KV lookups
+**Learning:** Sequential async lookups to remote stores like Cloudflare KV (e.g. `await getA(); await getB();`) compound latency linearly (e.g., 6 lookups at 50ms = 300ms delay).
+**Action:** Group independent data fetches into concurrent `Promise.all` blocks to bound the total execution time to the single slowest request, dramatically improving endpoint response times.
