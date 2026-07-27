@@ -55,3 +55,7 @@
 ## 2024-07-25 - Improve watchOS empty and error states readability
 **Learning:** In watchOS interfaces (like SwiftUI), centered multi-line text elements in empty/error states can look lopsided if they wrap on small screens.
 **Action:** Always add `.multilineTextAlignment(.center)` to centered text that might wrap, and use `Label` with standard system icons (e.g., `arrow.clockwise`, `gear`) for fallback actions to improve visual glanceability.
+
+## 2025-01-23 - Prevent watchOS navigation title truncation
+**Learning:** In watchOS SwiftUI apps, `Label` components inside `ToolbarItem`s without a defined label style may cause the navigation title to truncate due to limited screen real estate, even if the label text is short.
+**Action:** Always apply `.labelStyle(.iconOnly)` to `Label` components inside `ToolbarItem`s (e.g., back buttons) to conserve small screen real estate and prevent navigation title truncation, while still retaining the text label for VoiceOver users.
