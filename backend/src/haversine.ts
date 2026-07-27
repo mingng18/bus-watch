@@ -18,3 +18,13 @@ export function haversineDistance(
     Math.cos(lat1 * TO_RAD) * Math.cos(lat2 * TO_RAD) * Math.sin(dLon / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
+
+/**
+ * Returns a fast lat/lon delta bounding box for a given radius in meters.
+ * Used to skip expensive haversine calculations.
+ */
+export function getBoundingBox(lat: number, radiusM: number): { latDelta: number; lonDelta: number } {
+  const latDelta = radiusM / 111000;
+  const lonDelta = Math.abs(radiusM / (111000 * Math.cos(lat * TO_RAD)));
+  return { latDelta, lonDelta };
+}

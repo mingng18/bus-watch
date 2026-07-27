@@ -13,7 +13,7 @@ import {
   HistoricalEtaResult,
   EtaConfidence,
 } from "./types";
-import { haversineDistance } from "./haversine";
+import { haversineDistance, getBoundingBox } from "./haversine";
 import { toKlLocal } from "./time-kl";
 // @ts-ignore
 import { expandTripsForStop } from "./frequency";
@@ -50,8 +50,10 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
   // Performance optimization: Replaced chained array methods (.map().filter())
   // with a standard loop to eliminate intermediate object allocations.
   const nearby: { stop: Stop; distance: number }[] = [];
+  const { latDelta, lonDelta } = getBoundingBox(lat, radiusM);
   for (let i = 0; i < stops.length; i++) {
     const stop = stops[i];
+    if (Math.abs(stop.lat - lat) > latDelta || Math.abs(stop.lon - lon) > lonDelta) continue;
     const distance = haversineDistance(lat, lon, stop.lat, stop.lon);
     if (distance <= radiusM) {
       nearby.push({ stop, distance });
@@ -161,7 +163,10 @@ export function findNearbyBusRoutes(
   const results: BusRouteEntry[] = [];
   const seen = new Set<string>();
 
+  const { latDelta, lonDelta } = getBoundingBox(lat, radiusM);
+
   for (const v of vehicles) {
+    if (Math.abs(v.lat - lat) > latDelta || Math.abs(v.lon - lon) > lonDelta) continue;
     const d = haversineDistance(lat, lon, v.lat, v.lon);
     if (d > radiusM) continue;
 
@@ -218,6 +223,8 @@ export function findNearbyPrasaranaBuses(
 
   const results: BusRouteEntry[] = [];
 
+  const { latDelta, lonDelta } = getBoundingBox(lat, radiusM);
+
   for (const b of buses) {
     if (
       b.trip_rev_kind === "01" ||
@@ -226,6 +233,7 @@ export function findNearbyPrasaranaBuses(
     )
       continue;
 
+    if (Math.abs(b.latitude - lat) > latDelta || Math.abs(b.longitude - lon) > lonDelta) continue;
     const d = haversineDistance(lat, lon, b.latitude, b.longitude);
     if (d > radiusM) continue;
 
