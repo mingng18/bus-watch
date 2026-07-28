@@ -86,3 +86,7 @@
 ## 2024-07-25 - Group sequential async Cloudflare KV lookups
 **Learning:** Sequential async lookups to remote stores like Cloudflare KV (e.g. `await getA(); await getB();`) compound latency linearly (e.g., 6 lookups at 50ms = 300ms delay).
 **Action:** Group independent data fetches into concurrent `Promise.all` blocks to bound the total execution time to the single slowest request, dramatically improving endpoint response times.
+
+## 2024-07-28 - [Testing] 🧪 Testing friendlyMessage helper
+**Learning:** Added unit tests for a top-level standalone helper function `friendlyMessage(for: Error)` in a Swift project that maps error enum cases to strings, ensuring that fallback non-custom `Error` types resolve to the default generic string.
+**Action:** Modified `APIClientTests.swift` to add `testFriendlyMessageForAPIError()` and `testFriendlyMessageForOtherError()`, explicitly checking standard `APIError`s, raw `NSError`s, and `URLError`s against the hardcoded message copy.
