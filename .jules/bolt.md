@@ -86,3 +86,7 @@
 ## 2024-07-25 - Group sequential async Cloudflare KV lookups
 **Learning:** Sequential async lookups to remote stores like Cloudflare KV (e.g. `await getA(); await getB();`) compound latency linearly (e.g., 6 lookups at 50ms = 300ms delay).
 **Action:** Group independent data fetches into concurrent `Promise.all` blocks to bound the total execution time to the single slowest request, dramatically improving endpoint response times.
+
+## 2024-07-28 - [Performance] ⚡ Optimize array manipulation
+**Learning:** In hot code paths in TypeScript, chaining array methods like `.map().reduce()` and `.filter()` creates intermediate arrays and closure allocations which cause garbage collection overhead.
+**Action:** Replaced chained array methods with traditional `for` loops to minimize GC pressure and improve performance.
