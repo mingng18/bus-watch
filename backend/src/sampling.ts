@@ -408,29 +408,10 @@ export function canonicalStopSequencesByRoute(
   return out;
 }
 
-/**
- * Read recent sampled positions from D1, detect stop passages per route+bus,
- * aggregate into travel-time buckets, and upsert into travel_times.
- *
- * `stopSequencesByRoute` is the canonical ordered stop list per route_id
- * (build it from KV trip_stops with canonicalStopSequencesByRoute before
- * calling). Passing it in keeps this function — and its pure helpers — free
- * of KV/index.ts coupling, which is what makes the algorithm unit-testable
- * against fixtures without a live DB.
- *
- * Defensive by design (issue #133): every stage is wrapped so one bad route
- * or one malformed row can't crash the cron. The cron itself wraps this call
- * in try/catch too.
- */
-export async function aggregateTravelTimes(
+export async function fetchBusPositions(
   env: Env,
-  stopSequencesByRoute: Map<string, TripStopEntry[]>,
-) {
-  // Pull positions from the last 6h. The sampling cron runs every 5 min, so a
-  // 6h window lets a single run catch a full commute peak's worth of passages
-  // even after a couple of skipped runs, while bounding the query cost.
-  const since = Math.floor(Date.now() / 1000) - 6 * 60 * 60;
-  let rows: PositionSample[] = [];
+  since: number,
+): Promise<PositionSample[]> {
   try {
     const { results } = await env.DB.prepare(
       `SELECT bus_no, route, lat, lon, timestamp
@@ -440,7 +421,7 @@ export async function aggregateTravelTimes(
     )
       .bind(since)
       .all<PositionSample>();
-    rows = (results || []).filter(
+    return (results || []).filter(
       (r) =>
         Number.isFinite(r.lat) &&
         Number.isFinite(r.lon) &&
@@ -448,16 +429,14 @@ export async function aggregateTravelTimes(
     );
   } catch (err) {
     console.error("aggregateTravelTimes: failed to read bus_positions:", err);
-    return;
+    return [];
   }
-  if (rows.length === 0) return;
+}
 
-  // Group positions by (route, bus_no) so each trace is one bus's path.
-  // The query orders by route, bus_no, so consecutive rows usually share the same key.
-  // We cache the last key and array to skip expensive Map lookups in the hot loop.
+export function groupPositionsByTrace(
+  rows: PositionSample[],
+): Map<string, PositionSample[]> {
   const traces = new Map<string, PositionSample[]>();
-  // Performance optimization: Data is already sorted by route and bus_no.
-  // Cache lastKey and lastArr to prevent redundant map lookups.
   let lastKey: string | null = null;
   let lastArr: PositionSample[] = [];
 
@@ -473,33 +452,35 @@ export async function aggregateTravelTimes(
       lastArr = arr;
     }
   }
+  return traces;
+}
 
+export function extractTravelTimeSamples(
+  traces: Map<string, PositionSample[]>,
+  stopSequencesByRoute: Map<string, TripStopEntry[]>,
+): TravelTimeSample[] {
   const allSamples: TravelTimeSample[] = [];
   for (const [traceKey, samples] of traces) {
     const route = traceKey.split("|")[0];
     const stops = stopSequencesByRoute.get(route);
-    if (!stops) continue; // route unknown to GTFS static — nothing to key off
+    if (!stops) continue;
     try {
       const legs = detectStopPassages(samples, stops, route);
       allSamples.push(...legs);
     } catch (err) {
-      // One bad trace must not poison the rest.
       console.error(
         `aggregateTravelTimes: detectStopPassages failed for route ${route}:`,
         err,
       );
     }
   }
-  if (allSamples.length === 0) return;
+  return allSamples;
+}
 
-  const aggregated = aggregateSamples(allSamples);
-  if (aggregated.length === 0) return;
-
-  // Upsert. ON CONFLICT key is (route, from_stop_id, to_stop_id, day_of_week,
-  // time_bucket) per migration 0004. We recompute the running average from the
-  // stored row + new samples so an old bucket accrues evidence over time rather
-  // than being overwritten by the latest 6h window. A single D1 batch keeps
-  // this atomic and bounded.
+export async function upsertAggregatedTravelTimes(
+  env: Env,
+  aggregated: AggregatedTravelTime[],
+): Promise<void> {
   const now = Math.floor(Date.now() / 1000);
   const travelTimesPrepStmt = env.DB.prepare(
     `INSERT INTO travel_times
@@ -534,9 +515,6 @@ export async function aggregateTravelTimes(
     ),
   );
 
-  // Chunk to stay under D1's per-batch limit.
-  // We use bounded concurrency (e.g. 5 concurrent batches) to avoid overwhelming D1 limits
-  // while propagating any failures to the caller.
   const BATCH_SIZE = 100;
   const CONCURRENCY = 5;
   const errors: any[] = [];
@@ -562,8 +540,52 @@ export async function aggregateTravelTimes(
   }
 
   if (errors.length > 0) {
-    throw errors[0]; // Propagate the first error encountered
+    throw errors[0];
   }
+}
+
+/**
+ * Read recent sampled positions from D1, detect stop passages per route+bus,
+ * aggregate into travel-time buckets, and upsert into travel_times.
+ *
+ * `stopSequencesByRoute` is the canonical ordered stop list per route_id
+ * (build it from KV trip_stops with canonicalStopSequencesByRoute before
+ * calling). Passing it in keeps this function — and its pure helpers — free
+ * of KV/index.ts coupling, which is what makes the algorithm unit-testable
+ * against fixtures without a live DB.
+ *
+ * Defensive by design (issue #133): every stage is wrapped so one bad route
+ * or one malformed row can't crash the cron. The cron itself wraps this call
+ * in try/catch too.
+ */
+export async function aggregateTravelTimes(
+  env: Env,
+  stopSequencesByRoute: Map<string, TripStopEntry[]>,
+) {
+  // Pull positions from the last 6h. The sampling cron runs every 5 min, so a
+  // 6h window lets a single run catch a full commute peak's worth of passages
+  // even after a couple of skipped runs, while bounding the query cost.
+  const since = Math.floor(Date.now() / 1000) - 6 * 60 * 60;
+  const rows = await fetchBusPositions(env, since);
+  if (rows.length === 0) return;
+
+  // Group positions by (route, bus_no) so each trace is one bus's path.
+  // The query orders by route, bus_no, so consecutive rows usually share the same key.
+  // We cache the last key and array to skip expensive Map lookups in the hot loop.
+  const traces = groupPositionsByTrace(rows);
+
+  const allSamples = extractTravelTimeSamples(traces, stopSequencesByRoute);
+  if (allSamples.length === 0) return;
+
+  const aggregated = aggregateSamples(allSamples);
+  if (aggregated.length === 0) return;
+
+  // Upsert. ON CONFLICT key is (route, from_stop_id, to_stop_id, day_of_week,
+  // time_bucket) per migration 0004. We recompute the running average from the
+  // stored row + new samples so an old bucket accrues evidence over time rather
+  // than being overwritten by the latest 6h window. A single D1 batch keeps
+  // this atomic and bounded.
+  await upsertAggregatedTravelTimes(env, aggregated);
 }
 
 export async function cleanupOldPositions(env: Env) {
