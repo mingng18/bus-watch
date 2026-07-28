@@ -86,3 +86,7 @@
 ## 2024-07-25 - Group sequential async Cloudflare KV lookups
 **Learning:** Sequential async lookups to remote stores like Cloudflare KV (e.g. `await getA(); await getB();`) compound latency linearly (e.g., 6 lookups at 50ms = 300ms delay).
 **Action:** Group independent data fetches into concurrent `Promise.all` blocks to bound the total execution time to the single slowest request, dramatically improving endpoint response times.
+
+## 2024-06-25 - [Testing] 🧪 WatchOS Testing with XcodeGen
+**Learning:** When using XcodeGen (`project.yml`), test files placed within a directory mapped as a source (e.g. `BusWatchTests`) are automatically picked up. Manually declaring `- path: BusWatchTests/MyTest.swift` under `sources` is redundant and unnecessary.
+**Action:** Relied on XcodeGen's automatic discovery rather than explicitly adding the path to `project.yml`.
