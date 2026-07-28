@@ -37,4 +37,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             startUpdating()
         }
     }
+
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        // Stop updating location to save battery when an error occurs
+        stopUpdating()
+    }
 }
