@@ -104,11 +104,12 @@ class ContextEngine: ObservableObject {
             } catch {
                 // Network failed — fall back to the last cached timetable so
                 // the rider still sees scheduled times, flagged as offline.
-                if let cached = scheduleCache.schedule(for: stop.id) {
-                    await MainActor.run { self.setState(.station(stop, cached, isOffline: true)) }
-                } else {
+                guard let cached = scheduleCache.schedule(for: stop.id) else {
                     await MainActor.run { self.setState(.error(friendlyMessage(for: error))) }
+                    return
                 }
+
+                await MainActor.run { self.setState(.station(stop, cached, isOffline: true)) }
             }
         }
     }
