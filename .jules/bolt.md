@@ -86,3 +86,7 @@
 ## 2024-07-25 - Group sequential async Cloudflare KV lookups
 **Learning:** Sequential async lookups to remote stores like Cloudflare KV (e.g. `await getA(); await getB();`) compound latency linearly (e.g., 6 lookups at 50ms = 300ms delay).
 **Action:** Group independent data fetches into concurrent `Promise.all` blocks to bound the total execution time to the single slowest request, dramatically improving endpoint response times.
+
+## 2026-07-28 - [Refactor] 🧹 Extracted helper functions in sampling.ts
+**Learning:** Functions doing complex DB operations combined with in-memory transformations can quickly become unwieldy (like `aggregateTravelTimes`). Extracting the distinct logical steps (fetching, grouping, transforming, upserting) into smaller, exported helper functions makes the main function a readable orchestrator.
+**Action:** Used `sed` or node string replacement via patch file to carefully extract logical blocks while preserving exactly the same logic and tests.
