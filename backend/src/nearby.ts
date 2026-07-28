@@ -15,7 +15,6 @@ import {
 } from "./types";
 import { haversineDistance } from "./haversine";
 import { toKlLocal } from "./time-kl";
-// @ts-ignore
 import { expandTripsForStop } from "./frequency";
 
 export interface FindNearbyStopsContext {
