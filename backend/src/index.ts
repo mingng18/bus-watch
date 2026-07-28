@@ -10,7 +10,7 @@ import { findNearbyStops, findNearbyBusRoutes, findNearbyPrasaranaBuses, getHist
 import { getBusTripProgress } from './bus-tracker';
 import { getStationSchedule } from './station';
 import { findNearbyRoutes } from './routes';
-import { VehiclePosition, PrasaranaBus, BusRouteEntry, Env, Route, Trip } from './types';
+import { VehiclePosition, PrasaranaBus, BusRouteEntry, Env, Route, Trip, Stop } from './types';
 import { haversineDistance } from './haversine';
 import { sampleBusPositions, aggregateTravelTimes, cleanupOldPositions, canonicalStopSequencesByRoute } from './sampling';
 import { ingestRailTimetables } from './rail-ingest';
@@ -357,6 +357,7 @@ app.get('/station/:stopId/schedule', async (c) => {
       allStops,
       allRoutes,
       routesMaps,
+      stopsMaps,
       allTrips,
       allTripStops,
       allCalendar,
@@ -365,13 +366,14 @@ app.get('/station/:stopId/schedule', async (c) => {
       getAllStops(c.env.KV),
       getAllRoutes(c.env.KV),
       getRoutesMaps(c.env.KV),
+      getStopsMaps(c.env.KV),
       getAllTrips(c.env.KV),
       getAllTripStops(c.env.KV),
       getAllCalendar(c.env.KV),
       getAllFrequencies(c.env.KV)
     ]);
 
-    const result = getStationSchedule(stopId, allStops, allRoutes, allTrips, allTripStops, allCalendar, routesMaps.map);
+    const result = getStationSchedule(stopId, allStops, allRoutes, allTrips, allTripStops, allCalendar, routesMaps.map, stopsMaps.map);
     return c.json(result);
   } catch (err) {
     // getStationSchedule throws on unknown stopId (e.g. a stale saved
@@ -395,6 +397,7 @@ app.get('/station/:stopId/schedule/toward', async (c) => {
       allStops,
       allRoutes,
       routesMaps,
+      stopsMaps,
       allTrips,
       allTripStops,
       allCalendar
@@ -402,13 +405,14 @@ app.get('/station/:stopId/schedule/toward', async (c) => {
       getAllStops(c.env.KV),
       getAllRoutes(c.env.KV),
       getRoutesMaps(c.env.KV),
+      getStopsMaps(c.env.KV),
       getAllTrips(c.env.KV),
       getAllTripStops(c.env.KV),
       getAllCalendar(c.env.KV)
     ]);
 
     const result = getDeparturesTowardDestination(
-      stopId, destinationStopId, allStops, allRoutes, allTrips, allTripStops, allCalendar, limit, routesMaps.map
+      stopId, destinationStopId, allStops, allRoutes, allTrips, allTripStops, allCalendar, limit, routesMaps.map, stopsMaps.map
     );
     return c.json(result);
   } catch (err) {
@@ -671,6 +675,21 @@ async function getAllRoutes(kv: KVNamespace) {
   const allRoutes = await Promise.all([...AGENCIES, ...SELANGOR_AGENCIES].map(a => getKvJson<Route[]>(kv, `routes:${a}`).catch(() => []))).then(res => res.flatMap(r => r || []));
   cachedRoutes = { routes: allRoutes, expires: now + CACHE_TTL_MS };
   return allRoutes;
+}
+
+
+let cachedStopsMap: { map: Map<string, Stop>, expires: number } | null = null;
+async function getStopsMaps(kv: KVNamespace): Promise<{ map: Map<string, Stop> }> {
+  const now = Date.now();
+  if (cachedStopsMap && cachedStopsMap.expires > now) return cachedStopsMap;
+  const allStops = await getAllStops(kv);
+  const map = new Map<string, Stop>();
+  for (let i = 0; i < allStops.length; i++) {
+    const s = allStops[i];
+    map.set(s.id, s);
+  }
+  cachedStopsMap = { map, expires: now + CACHE_TTL_MS };
+  return cachedStopsMap;
 }
 
 async function getRoutesMaps(kv: KVNamespace): Promise<{ map: Map<string, Route>, shortNameMap: Map<string, Route> }> {
