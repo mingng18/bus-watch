@@ -86,3 +86,7 @@
 ## 2024-07-25 - Group sequential async Cloudflare KV lookups
 **Learning:** Sequential async lookups to remote stores like Cloudflare KV (e.g. `await getA(); await getB();`) compound latency linearly (e.g., 6 lookups at 50ms = 300ms delay).
 **Action:** Group independent data fetches into concurrent `Promise.all` blocks to bound the total execution time to the single slowest request, dramatically improving endpoint response times.
+
+## 2024-05-18 - [Testing] 🧪 Testing LocationManager delegate methods
+**Learning:** When writing unit tests for iOS `CLLocationManagerDelegate` methods (like `didFailWithError`), there is no need to expand the mock `CLLocationManager` to internally trigger these callbacks. It is cleaner and more direct to invoke the delegate method directly on the System Under Test (`sut.locationManager(mockManager, didFailWithError: ...)`) and assert the resulting state changes (like verifying that `stopUpdatingLocationCalled` is true on the mock).
+**Action:** Always prefer direct invocation of delegate methods on the SUT to simulate lifecycle events instead of over-complicating mock objects with internal simulation logic.
