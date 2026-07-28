@@ -173,4 +173,17 @@ final class APIClientTests: XCTestCase {
             XCTAssertEqual(friendlyMessage(for: error), APIError.badResponse.friendlyMessage)
         }
     }
+
+    func testFriendlyMessageForAPIError() {
+        XCTAssertEqual(friendlyMessage(for: APIError.invalidURL), "Couldn't load this stop. Try another.")
+        XCTAssertEqual(friendlyMessage(for: APIError.badResponse), "Couldn't reach BusWatch. Check your connection.")
+    }
+
+    func testFriendlyMessageForOtherError() {
+        let nsError = NSError(domain: "test", code: 123, userInfo: nil)
+        XCTAssertEqual(friendlyMessage(for: nsError), "Couldn't reach BusWatch. Check your connection.")
+
+        let urlError = URLError(.notConnectedToInternet)
+        XCTAssertEqual(friendlyMessage(for: urlError), "Couldn't reach BusWatch. Check your connection.")
+    }
 }
