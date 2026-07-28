@@ -86,3 +86,7 @@
 ## 2024-07-25 - Group sequential async Cloudflare KV lookups
 **Learning:** Sequential async lookups to remote stores like Cloudflare KV (e.g. `await getA(); await getB();`) compound latency linearly (e.g., 6 lookups at 50ms = 300ms delay).
 **Action:** Group independent data fetches into concurrent `Promise.all` blocks to bound the total execution time to the single slowest request, dramatically improving endpoint response times.
+
+## 2025-02-12 - [Performance] ⚡ Array deduplication pattern with Record and index loops
+**Learning:** In Cloudflare Workers or Node.js running V8, using `Set` for deduplication and `for...of` loops incurs noticeable allocation and iteration overhead for small-to-medium arrays, compared to using a plain JavaScript object (`Record<string, boolean>`) and standard index-based `for` loops. While `Set` provides cleaner syntax, the object-dictionary and standard `for` loop combination avoids iterator creation and performs consistently faster in tight, simple deduplication scenarios.
+**Action:** When a tight loop is critical for performance or executed frequently, prefer `Record<string, boolean>` over `Set<T>` for deduplicating short strings or primitives, and use `for (let i = 0; i < arr.length; i++)` instead of `for (const item of arr)`. Note that for general purpose use cases, prototype collisions should be considered (e.g. `Object.create(null)` instead of `{}`), but in domain-specific bounded strings (like route names), a plain object is safe and fast.
