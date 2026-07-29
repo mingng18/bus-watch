@@ -785,8 +785,8 @@ async function getPrasaranaBuses(kv: KVNamespace): Promise<{ buses: PrasaranaBus
   }
 }
 
-function mergeBusRoutes(gtfsRoutes: BusRouteEntry[], prasaranaRoutes: BusRouteEntry[]): BusRouteEntry[] {
-  const seen: Record<string, boolean> = {};
+export function mergeBusRoutes(gtfsRoutes: BusRouteEntry[], prasaranaRoutes: BusRouteEntry[]): BusRouteEntry[] {
+  const seen = Object.create(null) as Record<string, boolean>;
   const merged: BusRouteEntry[] = [];
 
   for (let i = 0; i < gtfsRoutes.length; i++) {
