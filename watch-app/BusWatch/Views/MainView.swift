@@ -33,8 +33,8 @@ struct MainView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     Button(action: { engine.showNearby() }) {
                         Label("Back", systemImage: "chevron.left")
-                            .labelStyle(.iconOnly)
                     }
+                    .accessibilityHint("Returns to the nearby stops list.")
                 }
             } else if AppFeatureFlags.serviceAlerts {
                 ToolbarItem(placement: .topBarLeading) {
@@ -42,6 +42,7 @@ struct MainView: View {
                         Label("Service alerts", systemImage: "exclamationmark.bubble")
                             .labelStyle(.iconOnly)
                     }
+                    .accessibilityHint("Shows active service disruptions.")
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
@@ -49,6 +50,7 @@ struct MainView: View {
                     Label("Manual Selection", systemImage: "list.bullet")
                         .labelStyle(.iconOnly)
                 }
+                .accessibilityHint("Choose a station manually.")
             }
             if AppFeatureFlags.externalJourneyPlanner {
                 ToolbarItem(placement: .bottomBar) {
