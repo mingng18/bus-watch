@@ -87,6 +87,10 @@
 **Learning:** Sequential async lookups to remote stores like Cloudflare KV (e.g. `await getA(); await getB();`) compound latency linearly (e.g., 6 lookups at 50ms = 300ms delay).
 **Action:** Group independent data fetches into concurrent `Promise.all` blocks to bound the total execution time to the single slowest request, dramatically improving endpoint response times.
 
+## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for Haversine Calculations
+**Learning:** In Cloudflare Workers where execution time and CPU cycles are highly constrained, large loops (e.g., iterating through thousands of bus stops or vehicles) that calculate geographic distance using the Haversine formula can be a significant bottleneck due to expensive trigonometric math (`Math.sin`, `Math.cos`, `Math.atan2`).
+**Action:** When filtering objects by geographic radius, implement a spatial pre-filter using a fast bounding box approximation before invoking the precise distance calculation. Use simple float comparisons (`<`, `>`) to aggressively prune out-of-bounds coordinates early, drastically reducing trigonometric overhead.
+
 ## 2025-07-25 - Prevented cascading wait cascades in IO-bound endpoint
 **Learning:** Sequential awaits on non-dependent I/O calls significantly increase response times, especially in data-heavy hot paths.
 **Action:** Replaced sequential awaits on KV fetches for routes, realtime vehicles, and trip stops with a single `Promise.all` in the trip progress API endpoint to fetch them concurrently, removing unneeded delays and drastically improving response time.
