@@ -87,6 +87,14 @@
 **Learning:** Sequential async lookups to remote stores like Cloudflare KV (e.g. `await getA(); await getB();`) compound latency linearly (e.g., 6 lookups at 50ms = 300ms delay).
 **Action:** Group independent data fetches into concurrent `Promise.all` blocks to bound the total execution time to the single slowest request, dramatically improving endpoint response times.
 
+## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for Haversine Calculations
+**Learning:** In Cloudflare Workers where execution time and CPU cycles are highly constrained, large loops (e.g., iterating through thousands of bus stops or vehicles) that calculate geographic distance using the Haversine formula can be a significant bottleneck due to expensive trigonometric math (`Math.sin`, `Math.cos`, `Math.atan2`).
+**Action:** When filtering objects by geographic radius, implement a spatial pre-filter using a fast bounding box approximation before invoking the precise distance calculation. Use simple float comparisons (`<`, `>`) to aggressively prune out-of-bounds coordinates early, drastically reducing trigonometric overhead.
+
+## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for inner loops
+**Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop`) can reintroduce the trigonometric bottleneck of `haversineDistance`.
+**Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
+
 ## 2023-11-20 - Ensure DB Insert Failure Is Tested in Rail Timetable Ingestion
 **Learning:** Adding test coverage for failure modes in `batch` operations ensures the ingestion pipeline correctly identifies partial updates and sets the proper error state without swallowing errors or reporting incorrect success counts.
 **Action:** Wrote an `it` block in `rail-ingest.test.ts` mocking `mockDb.batch` to throw an error on the 3rd invocation, asserting `{ inserted: 2, error: 'D1 error on trips' }` was returned.
