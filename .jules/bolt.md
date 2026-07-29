@@ -90,6 +90,10 @@
 ## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for Haversine Calculations
 **Learning:** In Cloudflare Workers where execution time and CPU cycles are highly constrained, large loops (e.g., iterating through thousands of bus stops or vehicles) that calculate geographic distance using the Haversine formula can be a significant bottleneck due to expensive trigonometric math (`Math.sin`, `Math.cos`, `Math.atan2`).
 **Action:** When filtering objects by geographic radius, implement a spatial pre-filter using a fast bounding box approximation before invoking the precise distance calculation. Use simple float comparisons (`<`, `>`) to aggressively prune out-of-bounds coordinates early, drastically reducing trigonometric overhead.
+
+## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for inner loops
+**Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop`) can reintroduce the trigonometric bottleneck of `haversineDistance`.
+**Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
 ## 2024-07-28 - [Testing] 🧪 Add tests for CountdownSnapshot
 **Learning:** The watch-app project uses XcodeGen (`project.yml`). When adding new test files to an existing test directory (like `BusWatchTests`), they are automatically included via directory configuration in `project.yml`, meaning no manual `xcodeproj` parsing or project file modification is necessary.
 **Action:** Created `CountdownSnapshotTests.swift` directly in the filesystem and relied on the existing project configuration for it to be included in test targets.
