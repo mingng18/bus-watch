@@ -471,7 +471,12 @@ app.get('/routes', async (c) => {
   const coordErr = validateLatLon(lat, lon);
   if (coordErr) return c.json({ error: coordErr }, 400);
 
-  const [allStops, allRoutes, allTrips, allTripStops] = await Promise.all([
+  const [
+    allStops,
+    allRoutes,
+    allTrips,
+    allTripStops
+  ] = await Promise.all([
     getAllStops(c.env.KV),
     getAllRoutes(c.env.KV),
     getAllTrips(c.env.KV),
