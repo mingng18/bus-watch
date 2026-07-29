@@ -87,6 +87,10 @@
 **Learning:** Sequential async lookups to remote stores like Cloudflare KV (e.g. `await getA(); await getB();`) compound latency linearly (e.g., 6 lookups at 50ms = 300ms delay).
 **Action:** Group independent data fetches into concurrent `Promise.all` blocks to bound the total execution time to the single slowest request, dramatically improving endpoint response times.
 
+## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for Haversine Calculations
+**Learning:** In Cloudflare Workers where execution time and CPU cycles are highly constrained, large loops (e.g., iterating through thousands of bus stops or vehicles) that calculate geographic distance using the Haversine formula can be a significant bottleneck due to expensive trigonometric math (`Math.sin`, `Math.cos`, `Math.atan2`).
+**Action:** When filtering objects by geographic radius, implement a spatial pre-filter using a fast bounding box approximation before invoking the precise distance calculation. Use simple float comparisons (`<`, `>`) to aggressively prune out-of-bounds coordinates early, drastically reducing trigonometric overhead.
+
 ## 2024-07-25 - Avoid O(N) map allocations per HTTP request
 **Learning:** Instantiating `Map` objects per HTTP request in hot endpoints (e.g., mapping large arrays like routes/trips) incurs significant allocation and garbage collection overhead in Cloudflare Workers.
 **Action:** Replaced dynamic routeMap construction (`const routeMap = new Map(); for (const r of allRoutes) routeMap.set(r.id, r);`) with a prebuilt cached map (`const { map: routeMap } = await getRoutesMaps(c.env.KV)`).
