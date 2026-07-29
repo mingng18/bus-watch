@@ -12436,9 +12436,20 @@ async function fetchAndParseAgency(agency) {
     const response = await fetch(url, { signal: AbortSignal.timeout(15e3) });
     if (!response.ok) throw new Error(`Failed to fetch ${agency}: ${response.status}`);
     const zipBuffer = await response.arrayBuffer();
-    files = unzipSync(new Uint8Array(zipBuffer));
+    let totalSize = 0;
+    const MAX_SIZE = 50 * 1024 * 1024;
+    files = unzipSync(new Uint8Array(zipBuffer), {
+      filter: /* @__PURE__ */ __name((file) => {
+        totalSize += file.originalSize;
+        if (totalSize > MAX_SIZE) {
+          throw new Error("Zip bomb detected: extracted size exceeds 50MB limit");
+        }
+        return true;
+      }, "filter")
+    });
   } catch (err2) {
-    throw new Error(`Failed to fetch ${agency}: ${err2.message || err2}`);
+    const msg = err2.message || String(err2);
+    throw new Error(msg.startsWith("Failed to fetch") ? msg : `Failed to fetch ${agency}: ${msg}`);
   }
   const getFile = /* @__PURE__ */ __name((name) => {
     const key = Object.keys(files).find((k) => k.endsWith(name));
@@ -12590,7 +12601,11 @@ function findNearbyStops(ctx) {
     const arrivals = [];
     if (stop.type === "bus") {
       const seen = /* @__PURE__ */ new Set();
+      const stopBox = getBoundingBox(stop.lat, stop.lon, 500);
       for (const v of vehicles) {
+        if (v.lat < stopBox.minLat || v.lat > stopBox.maxLat || v.lon < stopBox.minLon || v.lon > stopBox.maxLon) {
+          continue;
+        }
         const d = haversineDistance(stop.lat, stop.lon, v.lat, v.lon);
         if (d > 500) continue;
         const trip = tripMap.get(v.tripId);
