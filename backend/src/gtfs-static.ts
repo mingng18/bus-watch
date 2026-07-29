@@ -137,9 +137,21 @@ export async function fetchAndParseAgency(agency: string): Promise<AgencyData> {
     const response = await fetch(url, { signal: AbortSignal.timeout(15000) });
     if (!response.ok) throw new Error(`Failed to fetch ${agency}: ${response.status}`);
     const zipBuffer = await response.arrayBuffer();
-    files = unzipSync(new Uint8Array(zipBuffer));
+    let totalSize = 0;
+    const MAX_SIZE = 50 * 1024 * 1024; // 50MB reasonable limit for text files
+
+    files = unzipSync(new Uint8Array(zipBuffer), {
+      filter: (file) => {
+        totalSize += file.originalSize;
+        if (totalSize > MAX_SIZE) {
+          throw new Error('Zip bomb detected: extracted size exceeds 50MB limit');
+        }
+        return true;
+      }
+    });
   } catch (err: any) {
-    throw new Error(`Failed to fetch ${agency}: ${err.message || err}`);
+    const msg = err.message || String(err);
+    throw new Error(msg.startsWith('Failed to fetch') ? msg : `Failed to fetch ${agency}: ${msg}`);
   }
 
   const getFile = (name: string): string => {
