@@ -6,7 +6,8 @@ struct NearbyMapPresentation: Equatable {
     let showsCurrentLocation = true
 
     var accessibilityLabel: String {
-        "Live bus map with \(busCount) buses and your current location"
+        let busText = busCount == 1 ? "1 bus" : "\(busCount) buses"
+        return "Live bus map with \(busText) and your current location"
     }
 }
 
@@ -103,6 +104,7 @@ struct NearbyBusMapView: View {
         }
         .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll, showsTraffic: false))
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(presentation.accessibilityLabel)
     }
 }
