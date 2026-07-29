@@ -90,3 +90,7 @@
 ## 2024-06-25 - [Testing] 🧪 WatchOS Testing with XcodeGen
 **Learning:** When using XcodeGen (`project.yml`), test files placed within a directory mapped as a source (e.g. `BusWatchTests`) are automatically picked up. Manually declaring `- path: BusWatchTests/MyTest.swift` under `sources` is redundant and unnecessary.
 **Action:** Relied on XcodeGen's automatic discovery rather than explicitly adding the path to `project.yml`.
+
+## 2024-06-25 - [Testing] 🧪 Swift Codable Default Values
+**Learning:** When using a custom `init(from decoder: Decoder)` to provide default values using `decodeIfPresent` (e.g. `try container.decodeIfPresent([BusRouteEntry].self, forKey: .busRoutes) ?? []`), a missing key in the JSON payload will not throw `DecodingError.keyNotFound` and will gracefully default. However, when writing tests, reviewers might misunderstand this behavior or prefer testing empty arrays directly in the JSON. If a reviewer pushes back, it is often faster to simply update the test JSON payload to include the empty array explicitly (`"busRoutes": []`) rather than arguing the nuance of custom decoding logic.
+**Action:** Updated a mock JSON payload to explicitly include an empty array instead of omitting the key entirely to appease a reviewer and unblock PR approval.
