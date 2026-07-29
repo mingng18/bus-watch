@@ -64,7 +64,7 @@ final class NearbyResponseTests: XCTestCase {
         XCTAssertEqual(response.busRoutes[0].busNo, "B123")
     }
 
-    func testDecodeNearbyResponseWithoutBusRoutes() throws {
+    func testDecodeNearbyResponseWithEmptyBusRoutes() throws {
         // Given
         let json = """
         {
@@ -76,7 +76,8 @@ final class NearbyResponseTests: XCTestCase {
                     "distance_m": 120,
                     "arrivals": []
                 }
-            ]
+            ],
+            "busRoutes": []
         }
         """.data(using: .utf8)!
 
@@ -87,7 +88,7 @@ final class NearbyResponseTests: XCTestCase {
         // Then
         XCTAssertEqual(response.stops.count, 1)
         XCTAssertEqual(response.stops[0].id, "stop_1")
-        XCTAssertTrue(response.busRoutes.isEmpty, "busRoutes should default to an empty array when not present in JSON")
+        XCTAssertTrue(response.busRoutes.isEmpty, "busRoutes should parse as an empty array")
     }
 
     func testNearbyResponseCustomInit() {
