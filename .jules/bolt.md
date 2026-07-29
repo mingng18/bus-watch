@@ -94,6 +94,7 @@
 ## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for inner loops
 **Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop`) can reintroduce the trigonometric bottleneck of `haversineDistance`.
 **Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
-## 2024-05-18 - [Testing] 🧪 Clean up test mock data when fixing application logic bugs
-**Learning:** When fixing application logic bugs, evaluate the related test files for workarounds or dual-mocks added previously to satisfy both the broken logic and the theoretical correct logic.
-**Action:** Remove the test workaround and any comments explicitly marked to wait for the system fix. Ensure you leave only the correct data path mocked, verifying tests continue to pass correctly.
+
+## 2024-05-18 - [Git/Testing] 🧪 Always branch from upstream master to isolate fixes
+**Learning:** When submitting a PR after exploring the codebase or running tests locally on another branch, you might inadvertently include unrelated local commits (like performance refactors or security fixes). This taints the pull request and causes reviews to fail.
+**Action:** Before submitting a fix, explicitly verify `git diff origin/master...HEAD`. If there are unrelated changes, do a hard reset to `origin/master` on a new branch (`git checkout -b <branch> origin/master`) and apply only the target modifications before committing.
