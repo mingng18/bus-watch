@@ -13,9 +13,8 @@ import {
   HistoricalEtaResult,
   EtaConfidence,
 } from "./types";
-import { haversineDistance } from "./haversine";
+import { haversineDistance, getBoundingBox } from "./haversine";
 import { toKlLocal } from "./time-kl";
-// @ts-ignore
 import { expandTripsForStop } from "./frequency";
 
 export interface FindNearbyStopsContext {
@@ -50,8 +49,17 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
   // Performance optimization: Replaced chained array methods (.map().filter())
   // with a standard loop to eliminate intermediate object allocations.
   const nearby: { stop: Stop; distance: number }[] = [];
+  const box = getBoundingBox(lat, lon, radiusM);
   for (let i = 0; i < stops.length; i++) {
     const stop = stops[i];
+    if (
+      stop.lat < box.minLat ||
+      stop.lat > box.maxLat ||
+      stop.lon < box.minLon ||
+      stop.lon > box.maxLon
+    ) {
+      continue;
+    }
     const distance = haversineDistance(lat, lon, stop.lat, stop.lon);
     if (distance <= radiusM) {
       nearby.push({ stop, distance });
@@ -160,8 +168,17 @@ export function findNearbyBusRoutes(
   }
   const results: BusRouteEntry[] = [];
   const seen = new Set<string>();
+  const box = getBoundingBox(lat, lon, radiusM);
 
   for (const v of vehicles) {
+    if (
+      v.lat < box.minLat ||
+      v.lat > box.maxLat ||
+      v.lon < box.minLon ||
+      v.lon > box.maxLon
+    ) {
+      continue;
+    }
     const d = haversineDistance(lat, lon, v.lat, v.lon);
     if (d > radiusM) continue;
 
@@ -217,6 +234,7 @@ export function findNearbyPrasaranaBuses(
   }
 
   const results: BusRouteEntry[] = [];
+  const box = getBoundingBox(lat, lon, radiusM);
 
   for (const b of buses) {
     if (
@@ -226,6 +244,14 @@ export function findNearbyPrasaranaBuses(
     )
       continue;
 
+    if (
+      b.latitude < box.minLat ||
+      b.latitude > box.maxLat ||
+      b.longitude < box.minLon ||
+      b.longitude > box.maxLon
+    ) {
+      continue;
+    }
     const d = haversineDistance(lat, lon, b.latitude, b.longitude);
     if (d > radiusM) continue;
 
