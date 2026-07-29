@@ -1,5 +1,4 @@
 import type { KVNamespace } from '@cloudflare/workers-types';
-
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
