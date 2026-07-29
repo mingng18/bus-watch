@@ -144,7 +144,6 @@ app.get('/nearby', async (c) => {
   const busRoutes = findNearbyBusRoutes(allRoutes, allTrips, vehicles, lat, lon, 1000, routeMap, tripMap);
 
   // Merge Prasarana Socket.IO bus data (covers routes not in GTFS like T816)
-
   const prasaranaNearby = findNearbyPrasaranaBuses(prasaranaBuses, allRoutes, allTrips, lat, lon, Math.max(radius, 1000), routeTripMap);
   const mergedBusRoutes = mergeBusRoutes(busRoutes, prasaranaNearby);
 
