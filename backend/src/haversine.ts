@@ -2,7 +2,7 @@
 // outside the function body to prevent re-allocation and re-computation
 // during hot execution paths (like scanning thousands of nearby stops).
 const R = 6371000;
-const TO_RAD = Math.PI / 180;
+export const TO_RAD = Math.PI / 180;
 
 export function haversineDistance(
   lat1: number,
@@ -19,12 +19,21 @@ export function haversineDistance(
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-/**
- * Returns a fast lat/lon delta bounding box for a given radius in meters.
- * Used to skip expensive haversine calculations.
- */
-export function getBoundingBox(lat: number, radiusM: number): { latDelta: number; lonDelta: number } {
+
+export interface BoundingBox {
+  minLat: number;
+  maxLat: number;
+  minLon: number;
+  maxLon: number;
+}
+
+export function getBoundingBox(lat: number, lon: number, radiusM: number): BoundingBox {
   const latDelta = radiusM / 111000;
-  const lonDelta = Math.abs(radiusM / (111000 * Math.cos(lat * TO_RAD)));
-  return { latDelta, lonDelta };
+  const lonDelta = radiusM / (111000 * Math.max(0.0001, Math.cos(lat * TO_RAD)));
+  return {
+    minLat: lat - latDelta,
+    maxLat: lat + latDelta,
+    minLon: lon - lonDelta,
+    maxLon: lon + lonDelta,
+  };
 }
