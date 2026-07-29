@@ -13,10 +13,17 @@ export function findNearbyRoutes(
   // Performance optimization: Replaced chained array methods (.filter().map())
   // with a standard for loop to avoid intermediate array allocations.
   const stopIds = new Set<string>();
-  const { minLat, maxLat, minLon, maxLon } = getBoundingBox(lat, lon, radiusM);
+  const box = getBoundingBox(lat, lon, radiusM);
   for (let i = 0; i < stops.length; i++) {
     const s = stops[i];
-    if (s.lat < minLat || s.lat > maxLat || s.lon < minLon || s.lon > maxLon) continue;
+    if (
+      s.lat < box.minLat ||
+      s.lat > box.maxLat ||
+      s.lon < box.minLon ||
+      s.lon > box.maxLon
+    ) {
+      continue;
+    }
     if (haversineDistance(lat, lon, s.lat, s.lon) <= radiusM) {
       stopIds.add(s.id);
     }

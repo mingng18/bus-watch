@@ -2,25 +2,7 @@
 // outside the function body to prevent re-allocation and re-computation
 // during hot execution paths (like scanning thousands of nearby stops).
 const R = 6371000;
-const TO_RAD = Math.PI / 180;
-
-/**
- * Fast spatial pre-filter. Calculates a coordinate bounding box for a given radius.
- * Use this to quickly skip out-of-bounds points before running the expensive
- * haversineDistance function.
- */
-export function getBoundingBox(lat: number, lon: number, radiusM: number) {
-  const latDelta = radiusM / 110000;
-  // Performance optimization: Avoid cos calculation if at equator, but generally
-  // cache it to avoid multiple trigonometric operations.
-  const lonDelta = radiusM / (110000 * Math.cos(lat * TO_RAD));
-  return {
-    minLat: lat - latDelta,
-    maxLat: lat + latDelta,
-    minLon: lon - lonDelta,
-    maxLon: lon + lonDelta
-  };
-}
+export const TO_RAD = Math.PI / 180;
 
 export function haversineDistance(
   lat1: number,
@@ -35,4 +17,23 @@ export function haversineDistance(
     Math.sin(dLat / 2) ** 2 +
     Math.cos(lat1 * TO_RAD) * Math.cos(lat2 * TO_RAD) * Math.sin(dLon / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+
+export interface BoundingBox {
+  minLat: number;
+  maxLat: number;
+  minLon: number;
+  maxLon: number;
+}
+
+export function getBoundingBox(lat: number, lon: number, radiusM: number): BoundingBox {
+  const latDelta = radiusM / 111000;
+  const lonDelta = radiusM / (111000 * Math.max(0.0001, Math.cos(lat * TO_RAD)));
+  return {
+    minLat: lat - latDelta,
+    maxLat: lat + latDelta,
+    minLon: lon - lonDelta,
+    maxLon: lon + lonDelta,
+  };
 }

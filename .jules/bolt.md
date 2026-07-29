@@ -87,6 +87,10 @@
 **Learning:** Sequential async lookups to remote stores like Cloudflare KV (e.g. `await getA(); await getB();`) compound latency linearly (e.g., 6 lookups at 50ms = 300ms delay).
 **Action:** Group independent data fetches into concurrent `Promise.all` blocks to bound the total execution time to the single slowest request, dramatically improving endpoint response times.
 
-## 2025-02-18 - Optimize spatial queries with Bounding Box pre-filtering
-**Learning:** Performing `haversineDistance` (which contains expensive trigonometric functions like `Math.sin`, `Math.cos`, `Math.atan2`, and `Math.sqrt`) in a loop over thousands of points (e.g. all stops, trips, or routes) causes CPU overhead.
-**Action:** Implement a fast `getBoundingBox` check before calculating the exact Haversine distance to skip out-of-bounds coordinates early using simple arithmetic operators. This reduces execution time significantly in hot loops processing geolocation arrays.
+## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for Haversine Calculations
+**Learning:** In Cloudflare Workers where execution time and CPU cycles are highly constrained, large loops (e.g., iterating through thousands of bus stops or vehicles) that calculate geographic distance using the Haversine formula can be a significant bottleneck due to expensive trigonometric math (`Math.sin`, `Math.cos`, `Math.atan2`).
+**Action:** When filtering objects by geographic radius, implement a spatial pre-filter using a fast bounding box approximation before invoking the precise distance calculation. Use simple float comparisons (`<`, `>`) to aggressively prune out-of-bounds coordinates early, drastically reducing trigonometric overhead.
+
+## 2025-02-18 - Optimize redundant array traversals with inline indices
+**Learning:** In hot execution paths filtering sequences (like finding sequential transit stops), using `.findIndex()` and `.some()` chained loops allocates inline lambda functions per execution, causing GC overhead. Worse, standard sequential `for` loops still traverse parts of the array redundantly.
+**Action:** Replace sequential multi-pass array loops with a single loop utilizing inline index tracking (`currentIdx = -1`) and conditional states to significantly decrease array traversals and prevent intermediate object allocation, providing noticeable CPU efficiency gains.

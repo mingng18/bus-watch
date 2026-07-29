@@ -15,7 +15,6 @@ import {
 } from "./types";
 import { haversineDistance, getBoundingBox } from "./haversine";
 import { toKlLocal } from "./time-kl";
-// @ts-ignore
 import { expandTripsForStop } from "./frequency";
 
 export interface FindNearbyStopsContext {
@@ -50,13 +49,17 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
   // Performance optimization: Replaced chained array methods (.map().filter())
   // with a standard loop to eliminate intermediate object allocations.
   const nearby: { stop: Stop; distance: number }[] = [];
-
-  // Fast spatial pre-filter bounds
-  const { minLat, maxLat, minLon, maxLon } = getBoundingBox(lat, lon, radiusM);
-
+  const box = getBoundingBox(lat, lon, radiusM);
   for (let i = 0; i < stops.length; i++) {
     const stop = stops[i];
-    if (stop.lat < minLat || stop.lat > maxLat || stop.lon < minLon || stop.lon > maxLon) continue;
+    if (
+      stop.lat < box.minLat ||
+      stop.lat > box.maxLat ||
+      stop.lon < box.minLon ||
+      stop.lon > box.maxLon
+    ) {
+      continue;
+    }
     const distance = haversineDistance(lat, lon, stop.lat, stop.lon);
     if (distance <= radiusM) {
       nearby.push({ stop, distance });
@@ -86,9 +89,7 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
       const seen = new Set<string>();
       // Performance optimization: Avoid intermediate array allocation from .filter()
       // and redundant haversineDistance calculations by merging into a single loop.
-      const vBounds = getBoundingBox(stop.lat, stop.lon, 500);
       for (const v of vehicles) {
-        if (v.lat < vBounds.minLat || v.lat > vBounds.maxLat || v.lon < vBounds.minLon || v.lon > vBounds.maxLon) continue;
         const d = haversineDistance(stop.lat, stop.lon, v.lat, v.lon);
         if (d > 500) continue;
 
@@ -167,11 +168,17 @@ export function findNearbyBusRoutes(
   }
   const results: BusRouteEntry[] = [];
   const seen = new Set<string>();
-
-  const { minLat, maxLat, minLon, maxLon } = getBoundingBox(lat, lon, radiusM);
+  const box = getBoundingBox(lat, lon, radiusM);
 
   for (const v of vehicles) {
-    if (v.lat < minLat || v.lat > maxLat || v.lon < minLon || v.lon > maxLon) continue;
+    if (
+      v.lat < box.minLat ||
+      v.lat > box.maxLat ||
+      v.lon < box.minLon ||
+      v.lon > box.maxLon
+    ) {
+      continue;
+    }
     const d = haversineDistance(lat, lon, v.lat, v.lon);
     if (d > radiusM) continue;
 
@@ -227,8 +234,7 @@ export function findNearbyPrasaranaBuses(
   }
 
   const results: BusRouteEntry[] = [];
-
-  const { minLat, maxLat, minLon, maxLon } = getBoundingBox(lat, lon, radiusM);
+  const box = getBoundingBox(lat, lon, radiusM);
 
   for (const b of buses) {
     if (
@@ -238,7 +244,14 @@ export function findNearbyPrasaranaBuses(
     )
       continue;
 
-    if (b.latitude < minLat || b.latitude > maxLat || b.longitude < minLon || b.longitude > maxLon) continue;
+    if (
+      b.latitude < box.minLat ||
+      b.latitude > box.maxLat ||
+      b.longitude < box.minLon ||
+      b.longitude > box.maxLon
+    ) {
+      continue;
+    }
     const d = haversineDistance(lat, lon, b.latitude, b.longitude);
     if (d > radiusM) continue;
 

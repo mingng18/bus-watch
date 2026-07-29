@@ -47,26 +47,21 @@ export function getDeparturesTowardDestination(
     const stopsForTrip = tripStops[trip.id];
     if (!stopsForTrip) continue;
 
-    // Performance optimization: Replaced `.findIndex()` taking an inline lambda with a standard loop
-    // to prevent per-iteration function allocation and reduce garbage collection overhead
-    // in this heavily repeated hot path (looping through thousands of trips).
-    // Expected impact: Minor reduction in memory allocation and slight CPU efficiency gain.
-    let currentIdx = -1;
-    for (let i = 0; i < stopsForTrip.length; i++) {
-      if (stopsForTrip[i].stopId === stopId) {
-        currentIdx = i;
-        break;
-      }
-    }
-    if (currentIdx === -1) continue;
-
-    // The trip must continue on to the destination stop AFTER the current stop.
-    // Optimization: start searching from currentIdx + 1 directly instead of doing a full array iteration
+    // Performance optimization: Replaced chained `.findIndex()` and `.some()` loops
+    // with a single optimized loop that avoids intermediate array allocations and
+    // reduces the number of full array traversals.
+    // Expected impact: Minor reduction in memory allocation and CPU efficiency gain.
     let hasDestination = false;
-    for (let i = currentIdx + 1; i < stopsForTrip.length; i++) {
-      if (stopsForTrip[i].stopId === destinationStopId) {
-        hasDestination = true;
-        break;
+    let currentIdx = -1;
+    for (let i = 0, len = stopsForTrip.length; i < len; i++) {
+      const id = stopsForTrip[i].stopId;
+      if (currentIdx === -1) {
+        if (id === stopId) currentIdx = i;
+      } else {
+        if (id === destinationStopId) {
+          hasDestination = true;
+          break;
+        }
       }
     }
     if (!hasDestination) continue;
