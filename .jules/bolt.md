@@ -91,6 +91,10 @@
 **Learning:** In Cloudflare Workers where execution time and CPU cycles are highly constrained, large loops (e.g., iterating through thousands of bus stops or vehicles) that calculate geographic distance using the Haversine formula can be a significant bottleneck due to expensive trigonometric math (`Math.sin`, `Math.cos`, `Math.atan2`).
 **Action:** When filtering objects by geographic radius, implement a spatial pre-filter using a fast bounding box approximation before invoking the precise distance calculation. Use simple float comparisons (`<`, `>`) to aggressively prune out-of-bounds coordinates early, drastically reducing trigonometric overhead.
 
+## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for inner loops
+**Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop`) can reintroduce the trigonometric bottleneck of `haversineDistance`.
+**Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
+
 ## 2024-07-25 - [Testing] 🧪 Add unit tests for detectStopPassages
 **Learning:** Pure functions like `detectStopPassages` that perform complex data transformations (like spatial bounds checking and time thresholding) on raw array inputs are highly susceptible to edge case bugs but are simultaneously the easiest code to test thoroughly without mocks.
 **Action:** Wrote deterministic unit tests that comprehensively exercise all logical branches of `detectStopPassages`, ensuring regressions are prevented for stop sequencing, outlier distance drops, and maximum inter-stop elapsed time validation.
