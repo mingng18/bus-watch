@@ -47,8 +47,8 @@ export function getDeparturesTowardDestination(
     const stopsForTrip = tripStops[trip.id];
     if (!stopsForTrip) continue;
 
-    // Performance optimization: Replaced chained `.findIndex()` and `.some()` loops
-    // with a single optimized loop that avoids intermediate array allocations and
+    // Performance optimization: Replaced sequential array traversals with a single
+    // optimized loop that avoids intermediate array allocations and
     // reduces the number of full array traversals.
     // Expected impact: Minor reduction in memory allocation and CPU efficiency gain.
     let hasDestination = false;
