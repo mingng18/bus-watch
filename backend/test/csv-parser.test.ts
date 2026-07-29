@@ -80,5 +80,22 @@ describe('parseCsv', () => {
         { name: '', age: '25', city: '' },
       ]);
     });
+
+    it('handles empty rows and whitespace-only rows', () => {
+      const input = 'name,age,city\n\nAlice,30,KL\n   \nBob,25,PG';
+      const result = parseCsv(input);
+      expect(result).toEqual([
+        { name: 'Alice', age: '30', city: 'KL' },
+        { name: 'Bob', age: '25', city: 'PG' },
+      ]);
+    });
+
+    it('handles whitespace around unquoted fields', () => {
+      const input = 'name,age,city\n  Alice  ,  30  ,  KL  ';
+      const result = parseCsv(input);
+      expect(result).toEqual([
+        { name: 'Alice', age: '30', city: 'KL' },
+      ]);
+    });
   });
 });
