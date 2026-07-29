@@ -12436,20 +12436,9 @@ async function fetchAndParseAgency(agency) {
     const response = await fetch(url, { signal: AbortSignal.timeout(15e3) });
     if (!response.ok) throw new Error(`Failed to fetch ${agency}: ${response.status}`);
     const zipBuffer = await response.arrayBuffer();
-    let totalSize = 0;
-    const MAX_SIZE = 50 * 1024 * 1024;
-    files = unzipSync(new Uint8Array(zipBuffer), {
-      filter: /* @__PURE__ */ __name((file) => {
-        totalSize += file.originalSize;
-        if (totalSize > MAX_SIZE) {
-          throw new Error("Zip bomb detected: extracted size exceeds 50MB limit");
-        }
-        return true;
-      }, "filter")
-    });
+    files = unzipSync(new Uint8Array(zipBuffer));
   } catch (err2) {
-    const msg = err2.message || String(err2);
-    throw new Error(msg.startsWith("Failed to fetch") ? msg : `Failed to fetch ${agency}: ${msg}`);
+    throw new Error(`Failed to fetch ${agency}: ${err2.message || err2}`);
   }
   const getFile = /* @__PURE__ */ __name((name) => {
     const key = Object.keys(files).find((k) => k.endsWith(name));
@@ -12539,17 +12528,6 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 __name(haversineDistance, "haversineDistance");
-function getBoundingBox(lat, lon, radiusM) {
-  const latDelta = radiusM / 111e3;
-  const lonDelta = radiusM / (111e3 * Math.max(1e-4, Math.cos(lat * TO_RAD)));
-  return {
-    minLat: lat - latDelta,
-    maxLat: lat + latDelta,
-    minLon: lon - lonDelta,
-    maxLon: lon + lonDelta
-  };
-}
-__name(getBoundingBox, "getBoundingBox");
 
 // src/frequency.ts
 function expandTripsForStop(stopId, trips, tripStops, routes, calendar, frequencies, now, timeWindow) {
@@ -12573,12 +12551,8 @@ function findNearbyStops(ctx) {
   } = ctx;
   const now = /* @__PURE__ */ new Date();
   const nearby = [];
-  const box = getBoundingBox(lat, lon, radiusM);
   for (let i2 = 0; i2 < stops.length; i2++) {
     const stop = stops[i2];
-    if (stop.lat < box.minLat || stop.lat > box.maxLat || stop.lon < box.minLon || stop.lon > box.maxLon) {
-      continue;
-    }
     const distance = haversineDistance(lat, lon, stop.lat, stop.lon);
     if (distance <= radiusM) {
       nearby.push({ stop, distance });
@@ -12601,11 +12575,7 @@ function findNearbyStops(ctx) {
     const arrivals = [];
     if (stop.type === "bus") {
       const seen = /* @__PURE__ */ new Set();
-      const stopBox = getBoundingBox(stop.lat, stop.lon, 500);
       for (const v of vehicles) {
-        if (v.lat < stopBox.minLat || v.lat > stopBox.maxLat || v.lon < stopBox.minLon || v.lon > stopBox.maxLon) {
-          continue;
-        }
         const d = haversineDistance(stop.lat, stop.lon, v.lat, v.lon);
         if (d > 500) continue;
         const trip = tripMap.get(v.tripId);
@@ -12671,11 +12641,7 @@ function findNearbyBusRoutes(routes, trips, vehicles, lat, lon, radiusM = 1e3, p
   }
   const results = [];
   const seen = /* @__PURE__ */ new Set();
-  const box = getBoundingBox(lat, lon, radiusM);
   for (const v of vehicles) {
-    if (v.lat < box.minLat || v.lat > box.maxLat || v.lon < box.minLon || v.lon > box.maxLon) {
-      continue;
-    }
     const d = haversineDistance(lat, lon, v.lat, v.lon);
     if (d > radiusM) continue;
     const trip = tripMap.get(v.tripId);
@@ -12714,13 +12680,9 @@ function findNearbyPrasaranaBuses(buses, routes, trips, lat, lon, radiusM = 1e3,
     }
   }
   const results = [];
-  const box = getBoundingBox(lat, lon, radiusM);
   for (const b of buses) {
     if (b.trip_rev_kind === "01" || b.trip_rev_kind === "03" || b.trip_rev_kind === "05")
       continue;
-    if (b.latitude < box.minLat || b.latitude > box.maxLat || b.longitude < box.minLon || b.longitude > box.maxLon) {
-      continue;
-    }
     const d = haversineDistance(lat, lon, b.latitude, b.longitude);
     if (d > radiusM) continue;
     const routeCode = normalizeRouteCode(b.route);
@@ -12900,12 +12862,8 @@ __name(getStationSchedule, "getStationSchedule");
 // src/routes.ts
 function findNearbyRoutes(stops, routes, trips, tripStops, lat, lon, radiusM) {
   const stopIds = /* @__PURE__ */ new Set();
-  const box = getBoundingBox(lat, lon, radiusM);
   for (let i2 = 0; i2 < stops.length; i2++) {
     const s = stops[i2];
-    if (s.lat < box.minLat || s.lat > box.maxLat || s.lon < box.minLon || s.lon > box.maxLon) {
-      continue;
-    }
     if (haversineDistance(lat, lon, s.lat, s.lon) <= radiusM) {
       stopIds.add(s.id);
     }
@@ -12942,21 +12900,8 @@ __name(findNearbyRoutes, "findNearbyRoutes");
 
 // src/sampling.ts
 async function sampleBusPositions(env, vehicles, prasaranaBuses) {
+  const stmts = [];
   const now = Math.floor(Date.now() / 1e3);
-  const lastPositions = await fetchLastPositions(env);
-  const stmts = [
-    ...prepareGtfsInsertStatements(env, vehicles, lastPositions, now),
-    ...preparePrasaranaInsertStatements(
-      env,
-      prasaranaBuses,
-      lastPositions,
-      now
-    )
-  ];
-  await executeBatchInserts(env, stmts);
-}
-__name(sampleBusPositions, "sampleBusPositions");
-async function fetchLastPositions(env) {
   const { results } = await env.DB.prepare(
     `SELECT bus_no, lat, lon, ts FROM (
        SELECT bus_no, lat, lon, timestamp as ts, rowid,
@@ -12971,11 +12916,6 @@ async function fetchLastPositions(env) {
       lastPositions.set(r.bus_no, r);
     }
   }
-  return lastPositions;
-}
-__name(fetchLastPositions, "fetchLastPositions");
-function prepareGtfsInsertStatements(env, vehicles, lastPositions, now) {
-  const stmts = [];
   const gtfsInsertStmt = env.DB.prepare(
     `INSERT INTO bus_positions (bus_no, route, source, lat, lon, speed, timestamp)
      VALUES (?, ?, ?, ?, ?, NULL, ?)`
@@ -12986,23 +12926,9 @@ function prepareGtfsInsertStatements(env, vehicles, lastPositions, now) {
     const moved = last ? haversineDistance(last.lat, last.lon, v.lat, v.lon) > 100 : true;
     const timedOut = last ? now - last.ts >= 300 : true;
     if (moved || timedOut) {
-      stmts.push(
-        gtfsInsertStmt.bind(
-          v.tripId,
-          v.routeId,
-          "gtfs",
-          v.lat,
-          v.lon,
-          v.timestamp
-        )
-      );
+      stmts.push(gtfsInsertStmt.bind(v.tripId, v.routeId, "gtfs", v.lat, v.lon, v.timestamp));
     }
   }
-  return stmts;
-}
-__name(prepareGtfsInsertStatements, "prepareGtfsInsertStatements");
-function preparePrasaranaInsertStatements(env, prasaranaBuses, lastPositions, now) {
-  const stmts = [];
   const prasaInsertStmt = env.DB.prepare(
     `INSERT INTO bus_positions (bus_no, route, source, lat, lon, speed, timestamp)
      VALUES (?, ?, ?, ?, ?, ?, ?)`
@@ -13017,24 +12943,9 @@ function preparePrasaranaInsertStatements(env, prasaranaBuses, lastPositions, no
     const moved = last ? haversineDistance(last.lat, last.lon, b.latitude, b.longitude) > 100 : true;
     const timedOut = last ? ts - last.ts >= 300 : true;
     if (moved || timedOut) {
-      stmts.push(
-        prasaInsertStmt.bind(
-          b.bus_no,
-          b.route,
-          "prasarana",
-          b.latitude,
-          b.longitude,
-          b.speed,
-          ts
-        )
-      );
+      stmts.push(prasaInsertStmt.bind(b.bus_no, b.route, "prasarana", b.latitude, b.longitude, b.speed, ts));
     }
   }
-  return stmts;
-}
-__name(preparePrasaranaInsertStatements, "preparePrasaranaInsertStatements");
-async function executeBatchInserts(env, stmts) {
-  if (stmts.length === 0) return;
   const BATCH_SIZE2 = 100;
   const CONCURRENCY = 5;
   for (let i2 = 0; i2 < stmts.length; i2 += BATCH_SIZE2 * CONCURRENCY) {
@@ -13046,7 +12957,7 @@ async function executeBatchInserts(env, stmts) {
     await Promise.all(batchPromises);
   }
 }
-__name(executeBatchInserts, "executeBatchInserts");
+__name(sampleBusPositions, "sampleBusPositions");
 var STOP_PASSAGE_RADIUS_M = 80;
 var MAX_INTER_STOP_SECONDS = 30 * 60;
 function detectStopPassages(samples, stops, route) {
@@ -13190,10 +13101,7 @@ async function aggregateTravelTimes(env, stopSequencesByRoute) {
       const legs = detectStopPassages(samples, stops, route);
       allSamples.push(...legs);
     } catch (err2) {
-      console.error(
-        `aggregateTravelTimes: detectStopPassages failed for route ${route}:`,
-        err2
-      );
+      console.error(`aggregateTravelTimes: detectStopPassages failed for route ${route}:`, err2);
     }
   }
   if (allSamples.length === 0) return;
@@ -13240,12 +13148,10 @@ async function aggregateTravelTimes(env, stopSequencesByRoute) {
     for (let j = 0; j < CONCURRENCY && i2 + j * BATCH_SIZE2 < upsertStmts.length; j++) {
       const start = i2 + j * BATCH_SIZE2;
       batchPromises.push(
-        env.DB.batch(upsertStmts.slice(start, start + BATCH_SIZE2)).catch(
-          (err2) => {
-            console.error("aggregateTravelTimes: upsert batch failed:", err2);
-            errors.push(err2);
-          }
-        )
+        env.DB.batch(upsertStmts.slice(start, start + BATCH_SIZE2)).catch((err2) => {
+          console.error("aggregateTravelTimes: upsert batch failed:", err2);
+          errors.push(err2);
+        })
       );
     }
     await Promise.all(batchPromises);
@@ -13256,9 +13162,7 @@ async function aggregateTravelTimes(env, stopSequencesByRoute) {
 }
 __name(aggregateTravelTimes, "aggregateTravelTimes");
 async function cleanupOldPositions(env) {
-  await env.DB.prepare(
-    `DELETE FROM bus_positions WHERE timestamp < (unixepoch() - 7 * 24 * 60 * 60)`
-  ).run();
+  await env.DB.prepare(`DELETE FROM bus_positions WHERE timestamp < (unixepoch() - 7 * 24 * 60 * 60)`).run();
 }
 __name(cleanupOldPositions, "cleanupOldPositions");
 
@@ -13293,20 +13197,7 @@ async function fetchAndParseGtfsData() {
     const resp = await fetch(RAIL_GTFS_URL, { signal: AbortSignal.timeout(15e3) });
     if (!resp.ok) throw new Error(`GTFS fetch failed: ${resp.status}`);
     const zipBuffer = await resp.arrayBuffer();
-    let totalSize = 0;
-    const MAX_SIZE = 50 * 1024 * 1024;
-    const ALLOWED_FILES = /* @__PURE__ */ new Set(["stops.txt", "routes.txt", "trips.txt", "stop_times.txt"]);
-    files = unzipSync(new Uint8Array(zipBuffer), {
-      filter: /* @__PURE__ */ __name((file) => {
-        const fileName = file.name.split("/").pop() || file.name;
-        if (!ALLOWED_FILES.has(fileName)) return false;
-        totalSize += file.originalSize;
-        if (totalSize > MAX_SIZE) {
-          throw new Error("Zip bomb detected: extracted size exceeds 50MB limit");
-        }
-        return true;
-      }, "filter")
-    });
+    files = unzipSync(new Uint8Array(zipBuffer));
   } catch (err2) {
     const msg = err2.message || String(err2);
     throw new Error(msg.startsWith("GTFS fetch failed") ? msg : `GTFS fetch failed: ${msg}`);
@@ -13598,25 +13489,14 @@ function extractUrlEntries(xml) {
     }
     const block = xml.slice(startRe.lastIndex, endMatch.index);
     startRe.lastIndex = endRe.lastIndex;
-    const loc = extractTagContent(block, "loc");
+    const loc = block.match(/<loc>\s*([^<]*?)\s*<\/loc>/i)?.[1]?.trim();
     if (!loc) continue;
-    const lastmod = extractTagContent(block, "lastmod");
+    const lastmod = block.match(/<lastmod>\s*([^<]*?)\s*<\/lastmod>/i)?.[1]?.trim();
     entries.push({ loc, lastmod: lastmod || null });
   }
   return entries;
 }
 __name(extractUrlEntries, "extractUrlEntries");
-function extractTagContent(block, tag) {
-  const lowerBlock = block.toLowerCase();
-  const startTag = `<${tag}>`;
-  const endTag = `</${tag}>`;
-  const startIdx = lowerBlock.indexOf(startTag);
-  if (startIdx === -1) return void 0;
-  const endIdx = lowerBlock.indexOf(endTag, startIdx + startTag.length);
-  if (endIdx === -1) return void 0;
-  return block.slice(startIdx + startTag.length, endIdx).trim();
-}
-__name(extractTagContent, "extractTagContent");
 var NON_DISRUPTION_SLUGS = [
   "malaysian-philharmonic",
   "mrt-"
@@ -13649,10 +13529,19 @@ function parseSlug(slug) {
   const base = slug.replace(/-\d+$/, "");
   const tokens = base.split("-");
   if (base.startsWith("info-penutupan-jalan-laluan-")) {
-    return parseBusAlert(tokens, "Road closure", "severe");
+    const routes = extractRoutes(tokens);
+    const title = routes.length ? `Road closure \u2014 routes ${routes.join(", ")}` : "Road closure";
+    return { title, summary: title, affectedLines: routes, severity: "severe" };
   }
   if (base.startsWith("info-gangguan-trafik-laluan-")) {
-    return parseBusAlert(tokens, "Traffic disruption", "warning");
+    const routes = extractRoutes(tokens);
+    const title = routes.length ? `Traffic disruption \u2014 routes ${routes.join(", ")}` : "Traffic disruption";
+    return {
+      title,
+      summary: title,
+      affectedLines: routes,
+      severity: "warning"
+    };
   }
   if (/^kelewatan-bas-\d+-laluan-terjejas$/.test(base)) {
     const n = tokens[tokens.indexOf("bas") + 1];
@@ -13660,37 +13549,48 @@ function parseSlug(slug) {
     return { title, summary: title, affectedLines: [], severity: "warning" };
   }
   if (base.startsWith("kelewatan-tren-laluan-")) {
-    return parseLineAlert(tokens, "Train delay", "warning");
+    const line = lineName(tokens.slice(tokens.indexOf("laluan") + 1).join(" "));
+    const title = line ? `Train delay \u2014 ${line} line` : "Train delay";
+    return {
+      title,
+      summary: title,
+      affectedLines: line ? [line] : [],
+      severity: "warning"
+    };
   }
   if (base.startsWith("perkhidmatan-pulih-laluan-")) {
-    return parseLineAlert(tokens, "Service restored", "info");
+    const line = lineName(tokens.slice(tokens.indexOf("laluan") + 1).join(" "));
+    const title = line ? `Service restored \u2014 ${line} line` : "Service restored";
+    return {
+      title,
+      summary: title,
+      affectedLines: line ? [line] : [],
+      severity: "info"
+    };
   }
   if (base.startsWith("kemas-kini-kekerapan-laluan-")) {
-    return parseLineAlert(tokens, "Frequency update", "info");
+    const line = lineName(tokens.slice(tokens.indexOf("laluan") + 1).join(" "));
+    const title = line ? `Frequency update \u2014 ${line} line` : "Frequency update";
+    return {
+      title,
+      summary: title,
+      affectedLines: line ? [line] : [],
+      severity: "info"
+    };
   }
   if (base.startsWith("kemas-kini-laluan-")) {
-    return parseLineAlert(tokens, "Line update", "info");
+    const line = lineName(tokens.slice(tokens.indexOf("laluan") + 1).join(" "));
+    const title = line ? `Line update \u2014 ${line} line` : "Line update";
+    return {
+      title,
+      summary: title,
+      affectedLines: line ? [line] : [],
+      severity: "info"
+    };
   }
   return null;
 }
 __name(parseSlug, "parseSlug");
-function parseBusAlert(tokens, label, severity) {
-  const routes = extractRoutes(tokens);
-  const title = routes.length ? `${label} \u2014 routes ${routes.join(", ")}` : label;
-  return { title, summary: title, affectedLines: routes, severity };
-}
-__name(parseBusAlert, "parseBusAlert");
-function parseLineAlert(tokens, label, severity) {
-  const line = lineName(tokens.slice(tokens.indexOf("laluan") + 1).join(" "));
-  const title = line ? `${label} \u2014 ${line} line` : label;
-  return {
-    title,
-    summary: title,
-    affectedLines: line ? [line] : [],
-    severity
-  };
-}
-__name(parseLineAlert, "parseLineAlert");
 function extractRoutes(tokens) {
   const idx = tokens.indexOf("laluan");
   if (idx === -1) return [];
@@ -13715,6 +13615,7 @@ var REALTIME_AGENCIES = ["rapid-bus-kl", "rapid-bus-mrtfeeder"];
 var AGENCIES = [...REALTIME_AGENCIES, ...SELANGOR_AGENCIES];
 var app = new Hono2();
 app.use("*", secureHeaders());
+app.use("*", cors({ origin: /* @__PURE__ */ __name((origin, c) => c.env.FRONTEND_URL || "", "origin") }));
 app.use("*", cors({ origin: /* @__PURE__ */ __name((origin, c) => c.env.FRONTEND_URL ?? null, "origin") }));
 app.use("*", async (c, next) => {
   if (c.req.path.length > 256) {
@@ -13767,27 +13668,15 @@ app.get("/nearby", async (c) => {
   if (radius > 1e4) radius = 1e4;
   const coordErr = validateLatLon(lat, lon);
   if (coordErr) return c.json({ error: coordErr }, 400);
-  const [
-    allStops,
-    allRoutes,
-    allTrips,
-    { map: routeMap },
-    { tripMap, routeTripMap },
-    allTripStops,
-    allCalendar,
-    allFrequencies,
-    vehicles
-  ] = await Promise.all([
-    getAllStops(c.env.KV),
-    getAllRoutes(c.env.KV),
-    getAllTrips(c.env.KV),
-    getRoutesMaps(c.env.KV),
-    getTripsMaps(c.env.KV),
-    getAllTripStops(c.env.KV),
-    getAllCalendar(c.env.KV),
-    getAllFrequencies(c.env.KV),
-    getRealtimeVehicles(c.env.KV)
-  ]);
+  const allStops = await getAllStops(c.env.KV);
+  const allRoutes = await getAllRoutes(c.env.KV);
+  const allTrips = await getAllTrips(c.env.KV);
+  const { map: routeMap } = await getRoutesMaps(c.env.KV);
+  const { tripMap, routeTripMap } = await getTripsMaps(c.env.KV);
+  const allTripStops = await getAllTripStops(c.env.KV);
+  const allCalendar = await getAllCalendar(c.env.KV);
+  const allFrequencies = await getAllFrequencies(c.env.KV);
+  const vehicles = await getRealtimeVehicles(c.env.KV);
   const result = findNearbyStops({
     stops: allStops,
     routes: allRoutes,
@@ -13851,6 +13740,7 @@ app.get("/nearby", async (c) => {
 app.get("/bus/trip/:tripId/progress", async (c) => {
   const tripId = c.req.param("tripId");
   try {
+    const allRoutes = await getAllRoutes(c.env.KV);
     const vehicles = await getRealtimeVehicles(c.env.KV);
     let vehicle = null;
     for (let i2 = 0, len = vehicles.length; i2 < len; i2++) {
@@ -13860,7 +13750,8 @@ app.get("/bus/trip/:tripId/progress", async (c) => {
       }
     }
     const allTripStops = await getAllTripStops(c.env.KV);
-    const { map: routeMap } = await getRoutesMaps(c.env.KV);
+    const routeMap = /* @__PURE__ */ new Map();
+    for (const r of allRoutes) routeMap.set(r.id, r);
     const result = getBusTripProgress(tripId, routeMap, allTripStops, vehicle);
     return c.json(result);
   } catch (err2) {
@@ -13973,23 +13864,13 @@ app.get("/bus/position/:busId", async (c) => {
 app.get("/station/:stopId/schedule", async (c) => {
   const stopId = c.req.param("stopId");
   try {
-    const [
-      allStops,
-      allRoutes,
-      routesMaps,
-      allTrips,
-      allTripStops,
-      allCalendar,
-      allFrequencies
-    ] = await Promise.all([
-      getAllStops(c.env.KV),
-      getAllRoutes(c.env.KV),
-      getRoutesMaps(c.env.KV),
-      getAllTrips(c.env.KV),
-      getAllTripStops(c.env.KV),
-      getAllCalendar(c.env.KV),
-      getAllFrequencies(c.env.KV)
-    ]);
+    const allStops = await getAllStops(c.env.KV);
+    const allRoutes = await getAllRoutes(c.env.KV);
+    const routesMaps = await getRoutesMaps(c.env.KV);
+    const allTrips = await getAllTrips(c.env.KV);
+    const allTripStops = await getAllTripStops(c.env.KV);
+    const allCalendar = await getAllCalendar(c.env.KV);
+    const allFrequencies = await getAllFrequencies(c.env.KV);
     const result = getStationSchedule(stopId, allStops, allRoutes, allTrips, allTripStops, allCalendar, routesMaps.map);
     return c.json(result);
   } catch (err2) {
@@ -14003,21 +13884,12 @@ app.get("/station/:stopId/schedule/toward", async (c) => {
   const parsed = parseInt(c.req.query("limit") || "5", 10);
   const limit = Math.min(Math.max(Number.isFinite(parsed) ? parsed : 5, 1), 50);
   try {
-    const [
-      allStops,
-      allRoutes,
-      routesMaps,
-      allTrips,
-      allTripStops,
-      allCalendar
-    ] = await Promise.all([
-      getAllStops(c.env.KV),
-      getAllRoutes(c.env.KV),
-      getRoutesMaps(c.env.KV),
-      getAllTrips(c.env.KV),
-      getAllTripStops(c.env.KV),
-      getAllCalendar(c.env.KV)
-    ]);
+    const allStops = await getAllStops(c.env.KV);
+    const allRoutes = await getAllRoutes(c.env.KV);
+    const routesMaps = await getRoutesMaps(c.env.KV);
+    const allTrips = await getAllTrips(c.env.KV);
+    const allTripStops = await getAllTripStops(c.env.KV);
+    const allCalendar = await getAllCalendar(c.env.KV);
     const result = getDeparturesTowardDestination(
       stopId,
       destinationStopId,
@@ -14077,17 +13949,10 @@ app.get("/routes", async (c) => {
   if (radius > 1e4) radius = 1e4;
   const coordErr = validateLatLon(lat, lon);
   if (coordErr) return c.json({ error: coordErr }, 400);
-  const [
-    allStops,
-    allRoutes,
-    allTrips,
-    allTripStops
-  ] = await Promise.all([
-    getAllStops(c.env.KV),
-    getAllRoutes(c.env.KV),
-    getAllTrips(c.env.KV),
-    getAllTripStops(c.env.KV)
-  ]);
+  const allStops = await getAllStops(c.env.KV);
+  const allRoutes = await getAllRoutes(c.env.KV);
+  const allTrips = await getAllTrips(c.env.KV);
+  const allTripStops = await getAllTripStops(c.env.KV);
   const result = findNearbyRoutes(allStops, allRoutes, allTrips, allTripStops, lat, lon, radius);
   return c.json({ routes: result });
 });
@@ -14152,24 +14017,13 @@ app.get("/route/:routeId", async (c) => {
   }
   const mergedBuses = mergeBusRoutes(gtfsBuses, pBuses);
   const allTrips = await getAllTrips(c.env.KV);
+  const routeTrips = allTrips.filter((t) => t.routeId === route.id && t.shapeId);
   const allShapes = await getAllShapes(c.env.KV);
-  const shapeIds = /* @__PURE__ */ new Set();
-  const tgtRouteIdForShapes = route.id;
-  for (let i2 = 0, len = allTrips.length; i2 < len; i2++) {
-    const t = allTrips[i2];
-    if (t.routeId === tgtRouteIdForShapes && t.shapeId) {
-      shapeIds.add(t.shapeId);
-    }
-  }
-  let shapes = [];
-  for (const id of shapeIds) {
-    if (allShapes[id]) {
-      shapes.push({
-        id,
-        points: allShapes[id]
-      });
-    }
-  }
+  const shapeIds = Array.from(new Set(routeTrips.map((t) => t.shapeId)));
+  let shapes = shapeIds.filter((id) => allShapes[id]).map((id) => ({
+    id,
+    points: allShapes[id]
+  }));
   let isReconstructed = false;
   if (shapes.length === 0) {
     try {
@@ -14201,12 +14055,7 @@ app.get("/route/:routeId", async (c) => {
             pts.push([row.lat, row.lon]);
           }
         }
-        shapes = [];
-        for (const [busNo, pts] of groups) {
-          if (pts.length >= 2) {
-            shapes.push({ id: `trail_${busNo}`, points: pts });
-          }
-        }
+        shapes = Array.from(groups.entries()).filter(([, pts]) => pts.length >= 2).map(([busNo, pts]) => ({ id: `trail_${busNo}`, points: pts }));
         if (shapes.length > 0) isReconstructed = true;
       }
     } catch (err2) {
