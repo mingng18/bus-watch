@@ -62,7 +62,16 @@ function getBusArrivalsForStop(
 ): Arrival[] {
   const arrivals: Arrival[] = [];
   const seen = new Set<string>();
+  const stopBox = getBoundingBox(stop.lat, stop.lon, 500);
   for (const v of vehicles) {
+    if (
+      v.lat < stopBox.minLat ||
+      v.lat > stopBox.maxLat ||
+      v.lon < stopBox.minLon ||
+      v.lon > stopBox.maxLon
+    ) {
+      continue;
+    }
     const d = haversineDistance(stop.lat, stop.lon, v.lat, v.lon);
     if (d > 500) continue;
 
