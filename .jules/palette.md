@@ -56,6 +56,13 @@
 **Learning:** In watchOS interfaces (like SwiftUI), centered multi-line text elements in empty/error states can look lopsided if they wrap on small screens.
 **Action:** Always add `.multilineTextAlignment(.center)` to centered text that might wrap, and use `Label` with standard system icons (e.g., `arrow.clockwise`, `gear`) for fallback actions to improve visual glanceability.
 
+## 2025-01-22 - Apply icon-only style to toolbar items
+**Learning:** In watchOS SwiftUI apps, text-based labels inside `ToolbarItem`s can consume too much screen real estate and cramp or truncate the main navigation title.
+**Action:** Apply `.labelStyle(.iconOnly)` to `Label` components inside `ToolbarItem`s to conserve screen space visually, while still retaining the text label explicitly for VoiceOver users.
+
+## 2024-05-26 - Hide Map internals from VoiceOver
+**Learning:** In SwiftUI, `Map` views expose all internal markers to VoiceOver by default, creating a fragmented screen reader experience where every marker is read individually, often with unhelpful or overly technical details.
+**Action:** Apply `.accessibilityElement(children: .ignore)` to the map and add a unified `.accessibilityLabel` to summarize the map's contents instead.
 ## 2025-01-23 - Add accessibility hints to icon-only toolbar buttons
 **Learning:** In SwiftUI, icon-only toolbar buttons have terse labels. VoiceOver users may need more context about what action the button performs, especially for generic icons like lists or chevrons.
 **Action:** Always provide an `.accessibilityHint` to icon-only toolbar buttons to explain the consequence of the action (e.g., "Returns to the nearby stops list.").

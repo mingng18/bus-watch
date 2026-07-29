@@ -33,6 +33,7 @@ struct MainView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     Button(action: { engine.showNearby() }) {
                         Label("Back", systemImage: "chevron.left")
+                            .labelStyle(.iconOnly)
                     }
                     .accessibilityHint("Returns to the nearby stops list.")
                 }
