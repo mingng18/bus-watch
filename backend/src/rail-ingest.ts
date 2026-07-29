@@ -37,22 +37,7 @@ async function fetchAndParseGtfsData() {
     const resp = await fetch(RAIL_GTFS_URL, { signal: AbortSignal.timeout(15000) });
     if (!resp.ok) throw new Error(`GTFS fetch failed: ${resp.status}`);
     const zipBuffer = await resp.arrayBuffer();
-    let totalSize = 0;
-    const MAX_SIZE = 50 * 1024 * 1024; // 50MB reasonable limit for text files
-    const ALLOWED_FILES = new Set(['stops.txt', 'routes.txt', 'trips.txt', 'stop_times.txt']);
-
-    files = unzipSync(new Uint8Array(zipBuffer), {
-      filter: (file) => {
-        const fileName = file.name.split('/').pop() || file.name;
-        if (!ALLOWED_FILES.has(fileName)) return false;
-
-        totalSize += file.originalSize;
-        if (totalSize > MAX_SIZE) {
-          throw new Error('Zip bomb detected: extracted size exceeds 50MB limit');
-        }
-        return true;
-      }
-    });
+    files = unzipSync(new Uint8Array(zipBuffer));
   } catch (err: any) {
     // Avoid duplicating the prefix if it already exists
     const msg = err.message || String(err);

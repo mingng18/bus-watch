@@ -73,12 +73,3 @@
 **Vulnerability:** Regular Expression Denial of Service (ReDoS) vulnerability in `backend/src/alerts.ts` due to unbounded wildcard capture groups `[\s\S]*?` or similar constructs in XML parsing.
 **Learning:** Using regex to parse XML/HTML tags with unbounded captures like `/<tag>\s*([^<]*?)\s*<\/tag>/i` is extremely susceptible to ReDoS when the input is malformed, as backtracking grows exponentially.
 **Prevention:** Avoid using single regular expressions for block extraction. Use sequential token matching (finding the start token, updating the search index, then finding the end token) combined with string slicing (`xml.slice()`) which guarantees linear time complexity.
-
-## $(date +%Y-%m-%d) - Fix Zip Bomb Vulnerability in GTFS Ingest
-**Learning:** When extracting untrusted ZIP archives in memory-constrained environments (like Cloudflare Workers) using `fflate`, a Zip Bomb vulnerability exists where a small compressed file expands to exhaust memory. This can be mitigated by using `fflate`'s `unzipSync` filter option to allow-list required files and track `file.originalSize` against a strict maximum size limit (e.g., 50MB).
-**Action:** Created memory entry for mitigating Zip Bomb vulnerabilities during in-memory ZIP extraction.
-
-## 2025-02-28 - Fix Zip Bomb Vulnerability in GTFS Static Ingest
-**Vulnerability:** Unbounded extraction of untrusted ZIP archives in `backend/src/gtfs-static.ts` via `fflate`'s `unzipSync`.
-**Learning:** Extracting untrusted ZIP archives in memory without constraints allows for Zip Bomb vulnerabilities, which can exhaust memory and crash the Cloudflare Worker.
-**Prevention:** Use extraction filters to allow-list required files and track `file.originalSize` against a strict maximum size limit (e.g., 50MB) to mitigate Zip Bomb attacks.
