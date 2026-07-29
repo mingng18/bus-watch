@@ -87,6 +87,10 @@
 **Learning:** Sequential async lookups to remote stores like Cloudflare KV (e.g. `await getA(); await getB();`) compound latency linearly (e.g., 6 lookups at 50ms = 300ms delay).
 **Action:** Group independent data fetches into concurrent `Promise.all` blocks to bound the total execution time to the single slowest request, dramatically improving endpoint response times.
 
-## $(date +%Y-%m-%d) - [Refactoring] 🧪 Extracting KV Caching Logic
+## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for Haversine Calculations
+**Learning:** In Cloudflare Workers where execution time and CPU cycles are highly constrained, large loops (e.g., iterating through thousands of bus stops or vehicles) that calculate geographic distance using the Haversine formula can be a significant bottleneck due to expensive trigonometric math (`Math.sin`, `Math.cos`, `Math.atan2`).
+**Action:** When filtering objects by geographic radius, implement a spatial pre-filter using a fast bounding box approximation before invoking the precise distance calculation. Use simple float comparisons (`<`, `>`) to aggressively prune out-of-bounds coordinates early, drastically reducing trigonometric overhead.
+
+## 2026-07-29 - [Refactoring] 🧪 Extracting KV Caching Logic
 **Learning:** When refactoring a large Cloudflare Worker file (like `index.ts`), extracting module-scoped variables (like `let cachedStopsPromise: ...`) into a separate module (e.g., `kv.ts`) perfectly preserves their state across warm invocations. The Node.js/V8 module system inherently ensures these variables act as singletons per isolate, keeping caching logic intact without needing complex dependency injection.
 **Action:** Extracted 160 lines of KV data helpers and their associated module-scoped cache maps from `index.ts` to `kv.ts` to improve file length and code readability.
