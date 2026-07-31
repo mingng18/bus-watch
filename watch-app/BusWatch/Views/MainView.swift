@@ -33,6 +33,7 @@ struct MainView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     Button(action: { engine.showNearby() }) {
                         Label("Back", systemImage: "chevron.left")
+                            .labelStyle(.iconOnly)
                     }
                 }
             } else if AppFeatureFlags.serviceAlerts {
@@ -83,20 +84,26 @@ struct MainView: View {
                 .accessibilityHidden(true)
             Text("Location access needed")
                 .font(.caption)
+                .multilineTextAlignment(.center)
             #if canImport(UIKit) && !os(watchOS)
-            Button("Open Settings") {
+            Button {
                 if let url = URL(string: UIApplication.openSettingsURLString) {
                     UIApplication.shared.open(url)
                 }
+            } label: {
+                Label("Open Settings", systemImage: "gear")
             }
             .buttonStyle(.bordered)
             #elseif os(watchOS)
             Text("Enable in Watch Settings")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
             #endif
-            Button("Manual Selection") {
+            Button {
                 showManual = true
+            } label: {
+                Label("Manual Selection", systemImage: "list.bullet")
             }
             .buttonStyle(.bordered)
         }
@@ -111,8 +118,11 @@ struct MainView: View {
                 .accessibilityHidden(true)
             Text(message)
                 .font(.caption)
-            Button("Retry") {
+                .multilineTextAlignment(.center)
+            Button {
                 engine.start()
+            } label: {
+                Label("Retry", systemImage: "arrow.clockwise")
             }
             .buttonStyle(.bordered)
         }
