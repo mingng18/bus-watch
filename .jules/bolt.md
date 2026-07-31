@@ -95,6 +95,11 @@
 **Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop`) can reintroduce the trigonometric bottleneck of `haversineDistance`.
 **Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
 
+
+## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for inner loops
+**Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop` or evaluating historical passages) can reintroduce the trigonometric bottleneck of `haversineDistance`.
+**Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
+
 ## 2025-02-18 - Optimize GTFS Rail Ingestion Array Allocations
 **Learning:** During GTFS data ingestion (`rail-ingest.ts`), chaining `.filter().map()` arrays to extract required IDs (`railRouteIds`, `railTripIds`, `railStopIds`, etc.) from massive datasets (like `stops.txt`, `routes.txt`, `trips.txt`, `stop_times.txt` which can contain millions of rows) causes significant intermediate array allocations in memory.
 **Action:** Replace the chained array methods with standard `for...of` loops and pre-instantiated arrays (`D1PreparedStatement[]`) or Sets (`Set<string>`) to parse and populate the required data in a single iteration. This minimizes memory consumption and reduces garbage collection pressure when executing within constrained Cloudflare Worker limits.
