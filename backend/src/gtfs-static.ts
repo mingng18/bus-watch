@@ -139,9 +139,13 @@ export async function fetchAndParseAgency(agency: string): Promise<AgencyData> {
     const zipBuffer = await response.arrayBuffer();
     let totalSize = 0;
     const MAX_SIZE = 50 * 1024 * 1024; // 50MB reasonable limit for text files
+    const ALLOWED_FILES = new Set(['stops.txt', 'routes.txt', 'trips.txt', 'stop_times.txt', 'calendar.txt', 'agency.txt', 'calendar_dates.txt', 'shapes.txt']);
 
     files = unzipSync(new Uint8Array(zipBuffer), {
       filter: (file) => {
+        const fileName = file.name.split('/').pop() || file.name;
+        if (!ALLOWED_FILES.has(fileName)) return false;
+
         totalSize += file.originalSize;
         if (totalSize > MAX_SIZE) {
           throw new Error('Zip bomb detected: extracted size exceeds 50MB limit');
