@@ -63,6 +63,7 @@
 ## 2024-05-26 - Hide Map internals from VoiceOver
 **Learning:** In SwiftUI, `Map` views expose all internal markers to VoiceOver by default, creating a fragmented screen reader experience where every marker is read individually, often with unhelpful or overly technical details.
 **Action:** Apply `.accessibilityElement(children: .ignore)` to the map and add a unified `.accessibilityLabel` to summarize the map's contents instead.
+
 ## 2025-01-23 - Add accessibility hints to icon-only toolbar buttons
 **Learning:** In SwiftUI, icon-only toolbar buttons have terse labels. VoiceOver users may need more context about what action the button performs, especially for generic icons like lists or chevrons.
 **Action:** Always provide an `.accessibilityHint` to icon-only toolbar buttons to explain the consequence of the action (e.g., "Returns to the nearby stops list.").
