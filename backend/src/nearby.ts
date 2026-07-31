@@ -89,7 +89,18 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
       const seen = new Set<string>();
       // Performance optimization: Avoid intermediate array allocation from .filter()
       // and redundant haversineDistance calculations by merging into a single loop.
+      // Additionally, apply a bounding box pre-filter to bypass expensive trigonometric
+      // functions for vehicles that are clearly out of range.
+      const stopBox = getBoundingBox(stop.lat, stop.lon, 500);
       for (const v of vehicles) {
+        if (
+          v.lat < stopBox.minLat ||
+          v.lat > stopBox.maxLat ||
+          v.lon < stopBox.minLon ||
+          v.lon > stopBox.maxLon
+        ) {
+          continue;
+        }
         const d = haversineDistance(stop.lat, stop.lon, v.lat, v.lon);
         if (d > 500) continue;
 
