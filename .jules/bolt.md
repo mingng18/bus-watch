@@ -95,6 +95,10 @@
 **Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop`) can reintroduce the trigonometric bottleneck of `haversineDistance`.
 **Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
 
+## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for inner loops
+**Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop` or evaluating historical passages) can reintroduce the trigonometric bottleneck of `haversineDistance`.
+**Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
+
 ## 2024-05-18 - [Testing] 🧪 Testing LocationManager delegate methods
 **Learning:** When writing unit tests for iOS `CLLocationManagerDelegate` methods (like `didFailWithError`), there is no need to expand the mock `CLLocationManager` to internally trigger these callbacks. It is cleaner and more direct to invoke the delegate method directly on the System Under Test (`sut.locationManager(mockManager, didFailWithError: ...)`) and assert the resulting state changes (like verifying that `stopUpdatingLocationCalled` is true on the mock).
 **Action:** Always prefer direct invocation of delegate methods on the SUT to simulate lifecycle events instead of over-complicating mock objects with internal simulation logic.
