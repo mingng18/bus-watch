@@ -95,6 +95,10 @@
 **Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop`) can reintroduce the trigonometric bottleneck of `haversineDistance`.
 **Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
 
-## $(date +%Y-%m-%d) - [Refactoring] 🧹 Use guard let for early return to reduce nesting
+## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for inner loops
+**Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop` or evaluating historical passages) can reintroduce the trigonometric bottleneck of `haversineDistance`.
+**Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
+
+## 2026-07-29 - [Refactoring] 🧹 Use guard let for early return to reduce nesting
 **Learning:** In Swift code, use `guard let` with early returns to un-nest conditional logic and handle fallbacks/errors (e.g., inside `catch` blocks), instead of relying on deeply nested `if let ... else` statements. This flattens control flow and improves code readability.
 **Action:** Refactored a nested `if let ... else` inside a `catch` block in `ContextEngine.swift` into a `guard let ... else { ... return }`, successfully reducing nesting depth.
