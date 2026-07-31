@@ -95,6 +95,10 @@
 **Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop`) can reintroduce the trigonometric bottleneck of `haversineDistance`.
 **Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
 
+## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for inner loops
+**Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop` or evaluating historical passages) can reintroduce the trigonometric bottleneck of `haversineDistance`.
+**Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
+
 ## 2026-07-29 - [Refactoring] 🧪 Extracting KV Caching Logic
 **Learning:** When refactoring a large Cloudflare Worker file (like `index.ts`), extracting module-scoped variables (like `let cachedStopsPromise: ...`) into a separate module (e.g., `kv.ts`) perfectly preserves their state across warm invocations. The Node.js/V8 module system inherently ensures these variables act as singletons per isolate, keeping caching logic intact without needing complex dependency injection.
 **Action:** Extracted 160 lines of KV data helpers and their associated module-scoped cache maps from `index.ts` to `kv.ts` to improve file length and code readability.
