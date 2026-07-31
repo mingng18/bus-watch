@@ -137,6 +137,7 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
     radiusM,
   } = ctx;
   const now = new Date();
+
   const nearby = filterAndSortStops(stops, lat, lon, radiusM);
 
   const tripMap = ctx.tripMap || new Map<string, Trip>();
