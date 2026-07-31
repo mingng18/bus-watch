@@ -95,6 +95,10 @@
 **Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop`) can reintroduce the trigonometric bottleneck of `haversineDistance`.
 **Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
 
+## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for inner loops
+**Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop` or evaluating historical passages) can reintroduce the trigonometric bottleneck of `haversineDistance`.
+**Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
+
 ## 2025-02-12 - [Performance] ⚡ Optimize array allocations in sampling pipeline
 **Learning:** When writing performance-critical data aggregation pipelines (like processing GPS traces for ETAs), intermediate array allocations (e.g., using `Array.prototype.map`, `.filter`, or `.reduce`) in hot loops can cause severe garbage collection overhead. Furthermore, for purely numerical mathematical operations (like finding medians or Mean Absolute Deviations), using `Float64Array` provides massive CPU cache and memory locality benefits over standard V8 arrays.
 **Action:** Replaced chained array methods with standard `for` loops in hot loops. Migrated math functions handling internal extraction, sorting, and deviation summing to utilize pre-allocated `Float64Array`s instead of standard arrays, significantly reducing allocation and GC pauses.
