@@ -95,6 +95,11 @@
 **Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop`) can reintroduce the trigonometric bottleneck of `haversineDistance`.
 **Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
 
+## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for inner loops
+**Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop` or evaluating historical passages) can reintroduce the trigonometric bottleneck of `haversineDistance`.
+**Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
+
+
 ## 2023-11-20 - Ensure DB Insert Failure Is Tested in Rail Timetable Ingestion
 **Learning:** Adding test coverage for failure modes in `batch` operations ensures the ingestion pipeline correctly identifies partial updates and sets the proper error state without swallowing errors or reporting incorrect success counts.
 **Action:** Wrote an `it` block in `rail-ingest.test.ts` mocking `mockDb.batch` to throw an error on the 3rd invocation, asserting `{ inserted: 2, error: 'D1 error on trips' }` was returned.
