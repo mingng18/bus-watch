@@ -63,3 +63,7 @@
 ## 2024-05-26 - Hide Map internals from VoiceOver
 **Learning:** In SwiftUI, `Map` views expose all internal markers to VoiceOver by default, creating a fragmented screen reader experience where every marker is read individually, often with unhelpful or overly technical details.
 **Action:** Apply `.accessibilityElement(children: .ignore)` to the map and add a unified `.accessibilityLabel` to summarize the map's contents instead.
+
+## 2025-01-22 - Graceful Fallbacks for Empty Route Identifiers
+**Learning:** Transit APIs can sometimes return empty strings for route or line identifiers (e.g. `routeShortName` or `line`), which can cause completely blank text fields in headers or lists, and result in confusing, broken VoiceOver strings (like " to Sentul, 5 minutes" or "Live location of bus ").
+**Action:** Always provide generic, localized fallback text (such as "Live bus" or "Service") when rendering transit route identifiers, and use these same fallbacks in constructed `accessibilityLabel` phrases.
