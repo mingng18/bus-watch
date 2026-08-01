@@ -13,9 +13,8 @@ import {
   HistoricalEtaResult,
   EtaConfidence,
 } from "./types";
-import { haversineDistance } from "./haversine";
+import { haversineDistance, getBoundingBox } from "./haversine";
 import { toKlLocal } from "./time-kl";
-// @ts-ignore
 import { expandTripsForStop } from "./frequency";
 
 export interface FindNearbyStopsContext {
@@ -50,8 +49,17 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
   // Performance optimization: Replaced chained array methods (.map().filter())
   // with a standard loop to eliminate intermediate object allocations.
   const nearby: { stop: Stop; distance: number }[] = [];
+  const box = getBoundingBox(lat, lon, radiusM);
   for (let i = 0; i < stops.length; i++) {
     const stop = stops[i];
+    if (
+      stop.lat < box.minLat ||
+      stop.lat > box.maxLat ||
+      stop.lon < box.minLon ||
+      stop.lon > box.maxLon
+    ) {
+      continue;
+    }
     const distance = haversineDistance(lat, lon, stop.lat, stop.lon);
     if (distance <= radiusM) {
       nearby.push({ stop, distance });
@@ -81,7 +89,18 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
       const seen = new Set<string>();
       // Performance optimization: Avoid intermediate array allocation from .filter()
       // and redundant haversineDistance calculations by merging into a single loop.
+      // Additionally, apply a bounding box pre-filter to bypass expensive trigonometric
+      // functions for vehicles that are clearly out of range.
+      const stopBox = getBoundingBox(stop.lat, stop.lon, 500);
       for (const v of vehicles) {
+        if (
+          v.lat < stopBox.minLat ||
+          v.lat > stopBox.maxLat ||
+          v.lon < stopBox.minLon ||
+          v.lon > stopBox.maxLon
+        ) {
+          continue;
+        }
         const d = haversineDistance(stop.lat, stop.lon, v.lat, v.lon);
         if (d > 500) continue;
 
@@ -160,8 +179,17 @@ export function findNearbyBusRoutes(
   }
   const results: BusRouteEntry[] = [];
   const seen = new Set<string>();
+  const box = getBoundingBox(lat, lon, radiusM);
 
   for (const v of vehicles) {
+    if (
+      v.lat < box.minLat ||
+      v.lat > box.maxLat ||
+      v.lon < box.minLon ||
+      v.lon > box.maxLon
+    ) {
+      continue;
+    }
     const d = haversineDistance(lat, lon, v.lat, v.lon);
     if (d > radiusM) continue;
 
@@ -217,6 +245,7 @@ export function findNearbyPrasaranaBuses(
   }
 
   const results: BusRouteEntry[] = [];
+  const box = getBoundingBox(lat, lon, radiusM);
 
   for (const b of buses) {
     if (
@@ -226,6 +255,14 @@ export function findNearbyPrasaranaBuses(
     )
       continue;
 
+    if (
+      b.latitude < box.minLat ||
+      b.latitude > box.maxLat ||
+      b.longitude < box.minLon ||
+      b.longitude > box.maxLon
+    ) {
+      continue;
+    }
     const d = haversineDistance(lat, lon, b.latitude, b.longitude);
     if (d > radiusM) continue;
 
@@ -391,6 +428,9 @@ export async function getBatchedHistoricalETAs(
  * bus most recently passed (the from-stop for an ETA to a downstream stop).
  * Used by /bus/eta to resolve the from-stop key the audit flagged as missing.
  */
+const TO_RAD = Math.PI / 180;
+const CONST_111000 = 111000;
+
 export function nearestFromStopOnRoute(
   busLat: number,
   busLon: number,
@@ -399,11 +439,39 @@ export function nearestFromStopOnRoute(
   if (stops.length === 0) return null;
   let best = stops[0];
   let bestD = haversineDistance(busLat, busLon, best.lat, best.lon);
+
+  // Performance optimization: Pre-calculate the longitude divisor to avoid
+  // executing Math.cos(busLat) in every loop iteration, and dynamically
+  // shrink the bounding box on every closer stop found to prune outer stops quickly.
+  const lonDivisor = CONST_111000 * Math.max(0.0001, Math.cos(busLat * TO_RAD));
+
+  let latDelta = bestD / CONST_111000;
+  let lonDelta = bestD / lonDivisor;
+  let minLat = busLat - latDelta;
+  let maxLat = busLat + latDelta;
+  let minLon = busLon - lonDelta;
+  let maxLon = busLon + lonDelta;
+
   for (let i = 1; i < stops.length; i++) {
-    const d = haversineDistance(busLat, busLon, stops[i].lat, stops[i].lon);
+    const stop = stops[i];
+    if (
+      stop.lat < minLat ||
+      stop.lat > maxLat ||
+      stop.lon < minLon ||
+      stop.lon > maxLon
+    ) {
+      continue;
+    }
+    const d = haversineDistance(busLat, busLon, stop.lat, stop.lon);
     if (d < bestD) {
       bestD = d;
-      best = stops[i];
+      best = stop;
+      latDelta = bestD / CONST_111000;
+      lonDelta = bestD / lonDivisor;
+      minLat = busLat - latDelta;
+      maxLat = busLat + latDelta;
+      minLon = busLon - lonDelta;
+      maxLon = busLon + lonDelta;
     }
   }
   return best;
