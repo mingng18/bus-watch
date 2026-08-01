@@ -12815,15 +12815,34 @@ async function getBatchedHistoricalETAs(db, queries, now = /* @__PURE__ */ new D
   return map;
 }
 __name(getBatchedHistoricalETAs, "getBatchedHistoricalETAs");
+var TO_RAD2 = Math.PI / 180;
+var CONST_111000 = 111e3;
 function nearestFromStopOnRoute(busLat, busLon, stops) {
   if (stops.length === 0) return null;
   let best = stops[0];
   let bestD = haversineDistance(busLat, busLon, best.lat, best.lon);
+  const lonDivisor = CONST_111000 * Math.max(1e-4, Math.cos(busLat * TO_RAD2));
+  let latDelta = bestD / CONST_111000;
+  let lonDelta = bestD / lonDivisor;
+  let minLat = busLat - latDelta;
+  let maxLat = busLat + latDelta;
+  let minLon = busLon - lonDelta;
+  let maxLon = busLon + lonDelta;
   for (let i2 = 1; i2 < stops.length; i2++) {
-    const d = haversineDistance(busLat, busLon, stops[i2].lat, stops[i2].lon);
+    const stop = stops[i2];
+    if (stop.lat < minLat || stop.lat > maxLat || stop.lon < minLon || stop.lon > maxLon) {
+      continue;
+    }
+    const d = haversineDistance(busLat, busLon, stop.lat, stop.lon);
     if (d < bestD) {
       bestD = d;
-      best = stops[i2];
+      best = stop;
+      latDelta = bestD / CONST_111000;
+      lonDelta = bestD / lonDivisor;
+      minLat = busLat - latDelta;
+      maxLat = busLat + latDelta;
+      minLon = busLon - lonDelta;
+      maxLon = busLon + lonDelta;
     }
   }
   return best;
