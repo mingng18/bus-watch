@@ -13210,7 +13210,7 @@ async function aggregateTravelTimes(env, stopSequencesByRoute) {
   }
   const allSamples = [];
   for (const [traceKey, samples] of traces) {
-    const route = traceKey.split("|")[0];
+    const route = samples[0].route;
     const stops = stopSequencesByRoute.get(route);
     if (!stops) continue;
     try {
