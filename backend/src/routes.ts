@@ -1,5 +1,5 @@
 import { Stop, Route, Trip, TripStopEntry, RouteInfo } from './types';
-import { haversineDistance, getBoundingBox } from './haversine';
+import { haversineDistance } from './haversine';
 
 export function findNearbyRoutes(
   stops: Stop[],
@@ -13,17 +13,8 @@ export function findNearbyRoutes(
   // Performance optimization: Replaced chained array methods (.filter().map())
   // with a standard for loop to avoid intermediate array allocations.
   const stopIds = new Set<string>();
-  const box = getBoundingBox(lat, lon, radiusM);
   for (let i = 0; i < stops.length; i++) {
     const s = stops[i];
-    if (
-      s.lat < box.minLat ||
-      s.lat > box.maxLat ||
-      s.lon < box.minLon ||
-      s.lon > box.maxLon
-    ) {
-      continue;
-    }
     if (haversineDistance(lat, lon, s.lat, s.lon) <= radiusM) {
       stopIds.add(s.id);
     }

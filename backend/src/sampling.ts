@@ -1,5 +1,5 @@
 import { Env, VehiclePosition, PrasaranaBus, TripStopEntry } from "./types";
-import { haversineDistance, getBoundingBox } from "./haversine";
+import { haversineDistance } from "./haversine";
 import { klDayOfWeek } from "./time-kl";
 
 interface LastPosition {
@@ -267,22 +267,11 @@ export function detectStopPassages(
   let stopIdx = 0;
   let lastPassageTs: number | null = null; // timestamp the previous stop was hit
   let lastPassageStop: TripStopEntry | null = null;
-  let targetBox = getBoundingBox(stops[0].lat, stops[0].lon, STOP_PASSAGE_RADIUS_M);
 
   for (const s of ordered) {
     // Only test against the next expected stop. This enforces in-order
     // passage and makes a far-ahead outlier unable to skip stops.
     const target = stops[stopIdx];
-
-    if (
-      s.lat < targetBox.minLat ||
-      s.lat > targetBox.maxLat ||
-      s.lon < targetBox.minLon ||
-      s.lon > targetBox.maxLon
-    ) {
-      continue;
-    }
-
     const d = haversineDistance(s.lat, s.lon, target.lat, target.lon);
     if (d > STOP_PASSAGE_RADIUS_M) continue;
 
@@ -312,7 +301,6 @@ export function detectStopPassages(
     lastPassageStop = target;
     stopIdx++;
     if (stopIdx >= stops.length) break; // reached the terminus
-    targetBox = getBoundingBox(stops[stopIdx].lat, stops[stopIdx].lon, STOP_PASSAGE_RADIUS_M);
   }
 
   return results;

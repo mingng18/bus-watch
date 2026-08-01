@@ -33,7 +33,6 @@ struct MainView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     Button(action: { engine.showNearby() }) {
                         Label("Back", systemImage: "chevron.left")
-                            .labelStyle(.iconOnly)
                     }
                 }
             } else if AppFeatureFlags.serviceAlerts {

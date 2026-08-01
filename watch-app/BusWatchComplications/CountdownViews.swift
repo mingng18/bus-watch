@@ -21,7 +21,7 @@ struct CountdownCircularView: View {
                     .foregroundStyle(.secondary)
             }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(snapshot.minutesUntil == 1 ? "1 minute" : "\(snapshot.minutesUntil) minutes")
+            .accessibilityLabel("\(snapshot.minutesUntil) minutes")
         } else {
             Image(systemName: "bus")
                 .font(.title3)
@@ -58,7 +58,7 @@ struct CountdownRectangularView: View {
                 }
             }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel("\(snapshot.line) to \(snapshot.destination), \(snapshot.minutesUntil == 1 ? "1 minute" : "\(snapshot.minutesUntil) minutes"), from \(snapshot.stopName)")
+            .accessibilityLabel("\(snapshot.line) to \(snapshot.destination), \(snapshot.minutesUntil) minutes, from \(snapshot.stopName)")
         } else {
             VStack(alignment: .leading, spacing: 2) {
                 Image(systemName: "star")
@@ -82,7 +82,7 @@ struct CountdownInlineView: View {
         if let snapshot {
             Text("\(snapshot.line) · \(snapshot.minutesUntil) min · \(snapshot.stopName)")
                 .contentTransition(.numericText())
-                .accessibilityLabel("\(snapshot.line), \(snapshot.minutesUntil == 1 ? "1 minute" : "\(snapshot.minutesUntil) minutes"), from \(snapshot.stopName)")
+                .accessibilityLabel("\(snapshot.line), \(snapshot.minutesUntil) minutes, from \(snapshot.stopName)")
         } else {
             Text("BusWatch")
         }
@@ -98,7 +98,7 @@ struct CountdownCornerView: View {
             Text("\(snapshot.minutesUntil)m")
                 .font(.caption2.weight(.bold))
                 .contentTransition(.numericText())
-                .accessibilityLabel(snapshot.minutesUntil == 1 ? "1 minute" : "\(snapshot.minutesUntil) minutes")
+                .accessibilityLabel("\(snapshot.minutesUntil) minutes")
         } else {
             Image(systemName: "bus")
                 .font(.caption2)

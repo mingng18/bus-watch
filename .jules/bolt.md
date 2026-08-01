@@ -86,18 +86,3 @@
 ## 2024-07-25 - Group sequential async Cloudflare KV lookups
 **Learning:** Sequential async lookups to remote stores like Cloudflare KV (e.g. `await getA(); await getB();`) compound latency linearly (e.g., 6 lookups at 50ms = 300ms delay).
 **Action:** Group independent data fetches into concurrent `Promise.all` blocks to bound the total execution time to the single slowest request, dramatically improving endpoint response times.
-
-## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for Haversine Calculations
-**Learning:** In Cloudflare Workers where execution time and CPU cycles are highly constrained, large loops (e.g., iterating through thousands of bus stops or vehicles) that calculate geographic distance using the Haversine formula can be a significant bottleneck due to expensive trigonometric math (`Math.sin`, `Math.cos`, `Math.atan2`).
-**Action:** When filtering objects by geographic radius, implement a spatial pre-filter using a fast bounding box approximation before invoking the precise distance calculation. Use simple float comparisons (`<`, `>`) to aggressively prune out-of-bounds coordinates early, drastically reducing trigonometric overhead.
-
-## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for inner loops
-**Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop`) can reintroduce the trigonometric bottleneck of `haversineDistance`.
-**Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
-
-## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for inner loops
-**Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop` or evaluating historical passages) can reintroduce the trigonometric bottleneck of `haversineDistance`.
-**Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
-## 2024-05-18 - [Git/Testing] 🧪 Always branch from upstream master to isolate fixes
-**Learning:** When submitting a PR after exploring the codebase or running tests locally on another branch, you might inadvertently include unrelated local commits (like performance refactors or security fixes). This taints the pull request and causes reviews to fail.
-**Action:** Before submitting a fix, explicitly verify `git diff origin/master...HEAD`. If there are unrelated changes, do a hard reset to `origin/master` on a new branch (`git checkout -b <branch> origin/master`) and apply only the target modifications before committing.
