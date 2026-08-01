@@ -1,4 +1,3 @@
-import type { KVNamespace } from '@cloudflare/workers-types';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
@@ -19,6 +18,7 @@ import { getRailSchedule, searchRailStops } from './rail-schedule';
 import { getDeparturesTowardDestination } from './departures-toward';
 import { getCachedAlerts, DEFAULT_ALERT_LIMIT } from './alerts';
 
+import type { KVNamespace } from '@cloudflare/workers-types';
 import {
   getKvJson,
   getAllStops,
