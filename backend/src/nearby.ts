@@ -428,6 +428,9 @@ export async function getBatchedHistoricalETAs(
  * bus most recently passed (the from-stop for an ETA to a downstream stop).
  * Used by /bus/eta to resolve the from-stop key the audit flagged as missing.
  */
+const TO_RAD = Math.PI / 180;
+const CONST_111000 = 111000;
+
 export function nearestFromStopOnRoute(
   busLat: number,
   busLon: number,
@@ -436,11 +439,39 @@ export function nearestFromStopOnRoute(
   if (stops.length === 0) return null;
   let best = stops[0];
   let bestD = haversineDistance(busLat, busLon, best.lat, best.lon);
+
+  // Performance optimization: Pre-calculate the longitude divisor to avoid
+  // executing Math.cos(busLat) in every loop iteration, and dynamically
+  // shrink the bounding box on every closer stop found to prune outer stops quickly.
+  const lonDivisor = CONST_111000 * Math.max(0.0001, Math.cos(busLat * TO_RAD));
+
+  let latDelta = bestD / CONST_111000;
+  let lonDelta = bestD / lonDivisor;
+  let minLat = busLat - latDelta;
+  let maxLat = busLat + latDelta;
+  let minLon = busLon - lonDelta;
+  let maxLon = busLon + lonDelta;
+
   for (let i = 1; i < stops.length; i++) {
-    const d = haversineDistance(busLat, busLon, stops[i].lat, stops[i].lon);
+    const stop = stops[i];
+    if (
+      stop.lat < minLat ||
+      stop.lat > maxLat ||
+      stop.lon < minLon ||
+      stop.lon > maxLon
+    ) {
+      continue;
+    }
+    const d = haversineDistance(busLat, busLon, stop.lat, stop.lon);
     if (d < bestD) {
       bestD = d;
-      best = stops[i];
+      best = stop;
+      latDelta = bestD / CONST_111000;
+      lonDelta = bestD / lonDivisor;
+      minLat = busLat - latDelta;
+      maxLat = busLat + latDelta;
+      minLon = busLon - lonDelta;
+      maxLon = busLon + lonDelta;
     }
   }
   return best;
