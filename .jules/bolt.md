@@ -99,6 +99,10 @@
 **Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop` or evaluating historical passages) can reintroduce the trigonometric bottleneck of `haversineDistance`.
 **Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
 
+## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for nearest point searches
+**Learning:** When performing O(N) array scans to find the nearest point (like `nearestFromStopOnRoute`), recalculating the precise `haversineDistance` for every single coordinate introduces significant trigonometric overhead. Additionally, calling generic bounding box helpers inside the loop repeats constant calculations (like `Math.cos(lat)`).
+**Action:** When finding a nearest point in a loop, pre-calculate the constants outside the loop, initialize a bounding box with the first point's distance, and dynamically shrink the bounding box limits (`minLat`, `maxLat`, `minLon`, `maxLon`) every time a closer point is found. This progressively and aggressively prunes outer coordinates with cheap arithmetic checks before falling back to `haversineDistance`.
+
 ## 2025-07-25 - Prevented cascading wait cascades in IO-bound endpoint
 **Learning:** Sequential awaits on non-dependent I/O calls significantly increase response times, especially in data-heavy hot paths.
 **Action:** Replaced sequential awaits on KV fetches for routes, realtime vehicles, and trip stops with a single `Promise.all` in the trip progress API endpoint to fetch them concurrently, removing unneeded delays and drastically improving response time.
