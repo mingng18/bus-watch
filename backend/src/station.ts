@@ -11,7 +11,14 @@ export function getStationSchedule(
   calendar: CalendarEntry[],
   pRouteMap?: Map<string, Route>
 ): StationScheduleResponse {
-  const stop = stops.find(s => s.id === stopId);
+  // Performance optimization: Replace .find with an inline loop to avoid allocating a lambda per request
+  let stop: Stop | undefined;
+  for (let i = 0; i < stops.length; i++) {
+    if (stops[i].id === stopId) {
+      stop = stops[i];
+      break;
+    }
+  }
   if (!stop) throw new Error(`Stop not found: ${stopId}`);
 
   const routeMap = pRouteMap || new Map<string, Route>();
