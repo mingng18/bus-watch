@@ -11,6 +11,7 @@ struct StationArrivalsView: View {
 
     @State private var reminderMinutes: Int = 5
     @State private var scheduledReminderId: String?
+    @State private var isSchedulingReminder: Bool = false
 
     private let leadOptions = [1, 3, 5, 10]
 
@@ -122,13 +123,22 @@ struct StationArrivalsView: View {
                     .accessibilityHint("How many minutes before arrival to notify you.")
                 }
                 Button {
-                    Task { await scheduleReminder(for: next) }
+                    Task {
+                        isSchedulingReminder = true
+                        await scheduleReminder(for: next)
+                        isSchedulingReminder = false
+                    }
                 } label: {
-                    Label(scheduledReminderId == nil ? "Set alert" : "Alert set",
-                          systemImage: scheduledReminderId == nil ? "bell" : "bell.badge.fill")
-                        .font(.caption)
+                    if isSchedulingReminder {
+                        ProgressView()
+                    } else {
+                        Label(scheduledReminderId == nil ? "Set alert" : "Alert set",
+                              systemImage: scheduledReminderId == nil ? "bell" : "bell.badge.fill")
+                            .font(.caption)
+                    }
                 }
                 .buttonStyle(.bordered)
+                .disabled(isSchedulingReminder)
                 .accessibilityLabel(scheduledReminderId == nil ? "Set alert" : "Alert set")
                 .accessibilityValue(scheduledReminderId == nil ? "Off" : "On")
                 .accessibilityHint(reminderMinutes == 1 ? "Schedules a notification 1 minute before arrival." : "Schedules a notification \(reminderMinutes) minutes before arrival.")
