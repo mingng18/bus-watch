@@ -205,11 +205,8 @@ app.get('/nearby', async (c) => {
 app.get('/bus/trip/:tripId/progress', async (c) => {
   const tripId = c.req.param('tripId');
   try {
-    const [allRoutes, vehicles, allTripStops] = await Promise.all([
-      getAllRoutes(c.env.KV),
-      getRealtimeVehicles(c.env.KV),
-      getAllTripStops(c.env.KV)
-    ]);
+    const allRoutes = await getAllRoutes(c.env.KV);
+    const vehicles = await getRealtimeVehicles(c.env.KV);
     // Optimization: Prevent lambda allocation in hot path
     let vehicle = null;
     for (let i = 0, len = vehicles.length; i < len; i++) {
@@ -218,6 +215,7 @@ app.get('/bus/trip/:tripId/progress', async (c) => {
         break;
       }
     }
+    const allTripStops = await getAllTripStops(c.env.KV);
     const routeMap = new Map<string, Route>();
     for (const r of allRoutes) routeMap.set(r.id, r);
     const result = getBusTripProgress(tripId, routeMap, allTripStops, vehicle);
@@ -516,7 +514,15 @@ app.get('/route/:routeId', async (c) => {
   const { buses: prasaranaBuses } = await getPrasaranaBuses(c.env.KV);
 
   if (!route) {
-    const hasPrasarana = prasaranaBuses.some(b => b.route === routeId || b.route === routeId + '0');
+    let hasPrasarana = false;
+    const target2 = routeId + '0';
+    for (let i = 0, len = prasaranaBuses.length; i < len; i++) {
+      const r = prasaranaBuses[i].route;
+      if (r === routeId || r === target2) {
+        hasPrasarana = true;
+        break;
+      }
+    }
     if (!hasPrasarana) return c.json({ error: 'Route not found' }, 404);
     route = { id: routeId, shortName: routeId, longName: '', type: 3 } as any;
   }
