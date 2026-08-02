@@ -67,3 +67,7 @@
 ## 2025-01-22 - Graceful Fallbacks for Empty Route Identifiers
 **Learning:** Transit APIs can sometimes return empty strings for route or line identifiers (e.g. `routeShortName` or `line`), which can cause completely blank text fields in headers or lists, and result in confusing, broken VoiceOver strings (like " to Sentul, 5 minutes" or "Live location of bus ").
 **Action:** Always provide generic, localized fallback text (such as "Live bus" or "Service") when rendering transit route identifiers, and use these same fallbacks in constructed `accessibilityLabel` phrases.
+
+## 2025-01-26 - Add inline loading states to async buttons
+**Learning:** In SwiftUI, `Button` actions that trigger system permission dialogues (like notification authorization) or await async work can leave the UI feeling unresponsive during the delay, potentially leading to duplicate taps.
+**Action:** Always maintain an `isLoading` state and conditionally swap the button's `Label` for a `ProgressView()` while applying `.disabled()` to provide immediate visual feedback and prevent duplicate interactions.
