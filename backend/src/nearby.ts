@@ -222,32 +222,36 @@ export function findNearbyPrasaranaBuses(
   lon: number,
   radiusM: number = 1000,
   pRouteTripMap?: Map<string, Trip>,
+  pShortNameMap?: Map<string, Route>,
 ): BusRouteEntry[] {
   // Performance optimization: Precompute map to avoid O(N^2) lookups in loop
   const routeTripMap = pRouteTripMap || new Map<string, Trip>();
   if (!pRouteTripMap) {
-    for (const t of trips) {
+    for (let i = 0; i < trips.length; i++) {
+      const t = trips[i];
       if (!routeTripMap.has(t.routeId)) {
         routeTripMap.set(t.routeId, t);
       }
     }
   }
 
-  const routeNameMap = new Map<
-    string,
-    { route: Route; trip: Trip | undefined }
-  >();
-  for (const r of routes) {
-    if (!routeNameMap.has(r.shortName)) {
-      const trip = routeTripMap.get(r.id);
-      routeNameMap.set(r.shortName, { route: r, trip });
+  // Performance optimization: Use cached shortNameMap across requests instead of allocating
+  // routeNameMap dynamically per request, which reduces object allocation overhead.
+  const shortNameMap = pShortNameMap || new Map<string, Route>();
+  if (!pShortNameMap) {
+    for (let i = 0; i < routes.length; i++) {
+      const r = routes[i];
+      if (!shortNameMap.has(r.shortName)) {
+        shortNameMap.set(r.shortName, r);
+      }
     }
   }
 
   const results: BusRouteEntry[] = [];
   const box = getBoundingBox(lat, lon, radiusM);
 
-  for (const b of buses) {
+  for (let i = 0; i < buses.length; i++) {
+    const b = buses[i];
     if (
       b.trip_rev_kind === "01" ||
       b.trip_rev_kind === "03" ||
@@ -269,8 +273,9 @@ export function findNearbyPrasaranaBuses(
     const routeCode = normalizeRouteCode(b.route);
 
     // Match with GTFS route for destination
-    const gtfsMatch = routeNameMap.get(routeCode);
-    const destination = gtfsMatch?.trip?.headsign || "";
+    const gtfsRoute = shortNameMap.get(routeCode);
+    const gtfsTrip = gtfsRoute ? routeTripMap.get(gtfsRoute.id) : undefined;
+    const destination = gtfsTrip?.headsign || "";
 
     // Road distance factor ~1.4 for urban KL
     const roadDist = d * 1.4;
@@ -280,7 +285,7 @@ export function findNearbyPrasaranaBuses(
         : Math.max(1, Math.round(roadDist / 250));
 
     results.push({
-      routeId: gtfsMatch?.route.id || routeCode,
+      routeId: gtfsRoute?.id || routeCode,
       routeShortName: routeCode,
       destination,
       minutes,
