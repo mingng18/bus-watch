@@ -1,8 +1,133 @@
 import { describe, it, expect, vi } from 'vitest';
-import { sampleBusPositions, aggregateTravelTimes, cleanupOldPositions, aggregateSamples, TravelTimeSample } from '../src/sampling';
-import { Env, VehiclePosition, PrasaranaBus } from '../src/types';
+import { sampleBusPositions, aggregateTravelTimes, cleanupOldPositions, aggregateSamples, TravelTimeSample, detectStopPassages, PositionSample } from '../src/sampling';
+import { Env, VehiclePosition, PrasaranaBus, TripStopEntry } from '../src/types';
 
 describe('sampling logic', () => {
+  describe('detectStopPassages', () => {
+    it('returns empty when there are no samples or less than 2 stops', () => {
+      const samples: PositionSample[] = [];
+      const stops: TripStopEntry[] = [
+        { stopId: 'S1', stopName: 'Stop 1', lat: 3.14, lon: 101.68, arrivalTime: '', departureTime: '', sequence: 1 }
+      ];
+      expect(detectStopPassages(samples, stops, 'R1')).toEqual([]);
+    });
+
+    it('returns a travel time sample for consecutive stop passages', () => {
+      // Points roughly 2km apart
+      const stops: TripStopEntry[] = [
+        { stopId: 'S1', stopName: 'S1', lat: 3.14, lon: 101.68, arrivalTime: '', departureTime: '', sequence: 1 },
+        { stopId: 'S2', stopName: 'S2', lat: 3.15, lon: 101.69, arrivalTime: '', departureTime: '', sequence: 2 }
+      ];
+      const samples: PositionSample[] = [
+        { bus_no: 'B1', route: 'R1', lat: 3.140001, lon: 101.680001, timestamp: 1700000000 },
+        { bus_no: 'B1', route: 'R1', lat: 3.150001, lon: 101.690001, timestamp: 1700000300 }, // 300 seconds later
+      ];
+
+      const result = detectStopPassages(samples, stops, 'R1');
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        route: 'R1',
+        from_stop_id: 'S1',
+        to_stop_id: 'S2',
+        seconds: 300,
+      });
+    });
+
+    it('defensively sorts out-of-order samples', () => {
+      const stops: TripStopEntry[] = [
+        { stopId: 'S1', stopName: 'S1', lat: 3.14, lon: 101.68, arrivalTime: '', departureTime: '', sequence: 1 },
+        { stopId: 'S2', stopName: 'S2', lat: 3.15, lon: 101.69, arrivalTime: '', departureTime: '', sequence: 2 }
+      ];
+      const samples: PositionSample[] = [
+        { bus_no: 'B1', route: 'R1', lat: 3.15, lon: 101.69, timestamp: 1700000300 },
+        { bus_no: 'B1', route: 'R1', lat: 3.14, lon: 101.68, timestamp: 1700000000 },
+      ];
+
+      const result = detectStopPassages(samples, stops, 'R1');
+      expect(result).toHaveLength(1);
+      expect(result[0].seconds).toBe(300);
+    });
+
+    it('ignores samples outside the passage radius', () => {
+      const stops: TripStopEntry[] = [
+        { stopId: 'S1', stopName: 'S1', lat: 3.14, lon: 101.68, arrivalTime: '', departureTime: '', sequence: 1 },
+        { stopId: 'S2', stopName: 'S2', lat: 3.15, lon: 101.69, arrivalTime: '', departureTime: '', sequence: 2 }
+      ];
+      const samples: PositionSample[] = [
+        { bus_no: 'B1', route: 'R1', lat: 3.14, lon: 101.68, timestamp: 1700000000 },
+        // Way off target
+        { bus_no: 'B1', route: 'R1', lat: 3.20, lon: 101.75, timestamp: 1700000100 },
+        { bus_no: 'B1', route: 'R1', lat: 3.15, lon: 101.69, timestamp: 1700000300 },
+      ];
+
+      const result = detectStopPassages(samples, stops, 'R1');
+      expect(result).toHaveLength(1);
+      expect(result[0].seconds).toBe(300);
+    });
+
+    it('does not emit travel time if inter-stop time exceeds max (30 min)', () => {
+      const stops: TripStopEntry[] = [
+        { stopId: 'S1', stopName: 'S1', lat: 3.14, lon: 101.68, arrivalTime: '', departureTime: '', sequence: 1 },
+        { stopId: 'S2', stopName: 'S2', lat: 3.15, lon: 101.69, arrivalTime: '', departureTime: '', sequence: 2 },
+        { stopId: 'S3', stopName: 'S3', lat: 3.16, lon: 101.70, arrivalTime: '', departureTime: '', sequence: 3 },
+      ];
+      const samples: PositionSample[] = [
+        { bus_no: 'B1', route: 'R1', lat: 3.14, lon: 101.68, timestamp: 1700000000 },
+        // Gap > 30 mins
+        { bus_no: 'B1', route: 'R1', lat: 3.15, lon: 101.69, timestamp: 1700002000 },
+        // Valid gap
+        { bus_no: 'B1', route: 'R1', lat: 3.16, lon: 101.70, timestamp: 1700002300 },
+      ];
+
+      const result = detectStopPassages(samples, stops, 'R1');
+      // First gap is 2000s (>1800s), should be dropped.
+      // Second gap is 300s, should be valid.
+      expect(result).toHaveLength(1);
+      expect(result[0].from_stop_id).toBe('S2');
+      expect(result[0].to_stop_id).toBe('S3');
+      expect(result[0].seconds).toBe(300);
+    });
+
+    it('enforces in-order passage and stops processing if a stop is skipped', () => {
+      const stops: TripStopEntry[] = [
+        { stopId: 'S1', stopName: 'S1', lat: 3.14, lon: 101.68, arrivalTime: '', departureTime: '', sequence: 1 },
+        { stopId: 'S2', stopName: 'S2', lat: 3.15, lon: 101.69, arrivalTime: '', departureTime: '', sequence: 2 },
+        { stopId: 'S3', stopName: 'S3', lat: 3.16, lon: 101.70, arrivalTime: '', departureTime: '', sequence: 3 },
+      ];
+
+      // Bus hits S1, skips S2 completely, hits S3
+      const samples: PositionSample[] = [
+        { bus_no: 'B1', route: 'R1', lat: 3.14, lon: 101.68, timestamp: 1700000000 }, // hits S1
+        { bus_no: 'B1', route: 'R1', lat: 3.16, lon: 101.70, timestamp: 1700000300 }, // hits S3 (but target is S2)
+      ];
+
+      const result = detectStopPassages(samples, stops, 'R1');
+      // Because it enforces in-order, S3 passage shouldn't be recorded as it's looking for S2.
+      expect(result).toHaveLength(0);
+    });
+
+    it('does not emit travel time if inter-stop time is 0', () => {
+      const stops: TripStopEntry[] = [
+        { stopId: 'S1', stopName: 'S1', lat: 3.14, lon: 101.68, arrivalTime: '', departureTime: '', sequence: 1 },
+        { stopId: 'S2', stopName: 'S2', lat: 3.15, lon: 101.69, arrivalTime: '', departureTime: '', sequence: 2 },
+        { stopId: 'S3', stopName: 'S3', lat: 3.16, lon: 101.70, arrivalTime: '', departureTime: '', sequence: 3 },
+      ];
+      // Bus hits S1 and S2 at the exact same timestamp (e.g. data glitch)
+      const samples: PositionSample[] = [
+        { bus_no: 'B1', route: 'R1', lat: 3.14, lon: 101.68, timestamp: 1700000000 },
+        { bus_no: 'B1', route: 'R1', lat: 3.15, lon: 101.69, timestamp: 1700000000 },
+        { bus_no: 'B1', route: 'R1', lat: 3.16, lon: 101.70, timestamp: 1700000300 },
+      ];
+
+      const result = detectStopPassages(samples, stops, 'R1');
+      // Gap between S1 and S2 is 0 seconds, should not emit.
+      // Gap between S2 and S3 is 300 seconds, should emit.
+      expect(result).toHaveLength(1);
+      expect(result[0].from_stop_id).toBe('S2');
+      expect(result[0].to_stop_id).toBe('S3');
+    });
+  });
+
   describe('aggregateSamples', () => {
     it('aggregates a single sample correctly', () => {
       const samples: TravelTimeSample[] = [{

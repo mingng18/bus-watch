@@ -106,3 +106,7 @@
 ## 2025-02-18 - Prasarana Map Allocation Optimization
 **Learning:** In the `findNearbyPrasaranaBuses` function which processes external bus arrivals, `routeNameMap` (to map between Prasarana short names and GTFS routes) was being instantiated dynamically on every single HTTP request (e.g. `/nearby`). Since there are hundreds of routes, initializing Map instances dynamically causes unnecessary garbage collection and CPU overhead.
 **Action:** Replaced dynamic `routeNameMap` allocation inside the nearby request handler with the module-cached `shortNameMap` exported from `getRoutesMaps` in `index.ts`. Passed it as an optional parameter (`pShortNameMap`) down to `findNearbyPrasaranaBuses`. This ensures O(1) route lookups using a globally cached map across subsequent requests, bypassing per-request memory allocation entirely.
+
+## 2025-02-18 - [Testing] 🧪 Thorough tests for detectStopPassages
+**Learning:** Pure functions with complex spatial and temporal boundary logic (like `detectStopPassages`) often go untested because mocking their inputs appears difficult. However, using synthetic inputs mapped to the specific edge cases (e.g., zero-time gaps, skipping stops, exceeding distance boundaries) simplifies validation immensely.
+**Action:** Implemented a full Vitest test suite for `detectStopPassages` in `backend/test/sampling.test.ts`, explicitly covering constraints like in-order passage enforcement, out-of-bounds geographic filtering, 0-second gap glitch rejection, and 30-minute maximum bounds testing.
