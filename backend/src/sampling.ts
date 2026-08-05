@@ -452,12 +452,16 @@ export async function aggregateTravelTimes(
     )
       .bind(since)
       .all<PositionSample>();
-    rows = (results || []).filter(
-      (r) =>
+    rows = [];
+    for (const r of results || []) {
+      if (
         Number.isFinite(r.lat) &&
         Number.isFinite(r.lon) &&
-        Number.isFinite(r.timestamp),
-    );
+        Number.isFinite(r.timestamp)
+      ) {
+        rows.push(r);
+      }
+    }
   } catch (err) {
     console.error("aggregateTravelTimes: failed to read bus_positions:", err);
     return;
