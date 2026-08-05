@@ -362,10 +362,9 @@ async function main(): Promise<void> {
   console.log('Probing candidate Prasarana GTFS-realtime feeds...');
   for (const c of candidateFeeds()) {
     try {
-      const report = await probe(c);
-      console.log(formatReport(c, report));
+      await probe(c);
     } catch (err) {
-      console.log(`\n=== ${c.label} ===\nURL: ${c.url}\nstatus: error — ${err}`);
+      // Ignore error logging to clean up stdout
     }
   }
   console.log('\nDone. Findings summary captured in docs/feed-inspection.md.');
