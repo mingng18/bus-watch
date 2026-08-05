@@ -106,3 +106,7 @@
 ## 2025-02-18 - Prasarana Map Allocation Optimization
 **Learning:** In the `findNearbyPrasaranaBuses` function which processes external bus arrivals, `routeNameMap` (to map between Prasarana short names and GTFS routes) was being instantiated dynamically on every single HTTP request (e.g. `/nearby`). Since there are hundreds of routes, initializing Map instances dynamically causes unnecessary garbage collection and CPU overhead.
 **Action:** Replaced dynamic `routeNameMap` allocation inside the nearby request handler with the module-cached `shortNameMap` exported from `getRoutesMaps` in `index.ts`. Passed it as an optional parameter (`pShortNameMap`) down to `findNearbyPrasaranaBuses`. This ensures O(1) route lookups using a globally cached map across subsequent requests, bypassing per-request memory allocation entirely.
+
+## 2024-05-18 - [Title] Performance optimization pattern: To reduce garbage collection overhead and intermediate array allocations in hot code paths, replace chained array methods like `.filter().map()` and array-based `.reduce()` with standard `for` or `for...of` loops.
+**Learning:** Chained array methods allocate intermediate arrays that are immediately thrown away, causing garbage collection overhead.
+**Action:** Replaced chained array methods with standard `for` loops in `rejectOutliers` in `backend/src/sampling.ts`.
