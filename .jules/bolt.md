@@ -106,3 +106,7 @@
 ## 2025-02-18 - Prasarana Map Allocation Optimization
 **Learning:** In the `findNearbyPrasaranaBuses` function which processes external bus arrivals, `routeNameMap` (to map between Prasarana short names and GTFS routes) was being instantiated dynamically on every single HTTP request (e.g. `/nearby`). Since there are hundreds of routes, initializing Map instances dynamically causes unnecessary garbage collection and CPU overhead.
 **Action:** Replaced dynamic `routeNameMap` allocation inside the nearby request handler with the module-cached `shortNameMap` exported from `getRoutesMaps` in `index.ts`. Passed it as an optional parameter (`pShortNameMap`) down to `findNearbyPrasaranaBuses`. This ensures O(1) route lookups using a globally cached map across subsequent requests, bypassing per-request memory allocation entirely.
+
+## 2025-02-18 - Optimize redundant lowercasing in parsing loops
+**Learning:** In string parsing functions that are called thousands of times inside loops (e.g. `extractUrlEntries` parsing XML), repeatedly applying `.toLowerCase()` to the same string inside sub-functions creates significant CPU and memory allocation overhead.
+**Action:** Lift the `.toLowerCase()` call out of the inner string extraction function (`extractTagContent`) into the main loop, compute it once per block, and pass it down as an argument. This avoids redundant string allocations and cuts execution time substantially.

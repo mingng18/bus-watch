@@ -155,18 +155,18 @@ function extractUrlEntries(xml: string): SitemapEntry[] {
     const block = xml.slice(startRe.lastIndex, endMatch.index);
     startRe.lastIndex = endRe.lastIndex; // Advance start search beyond the closing tag
 
-    const loc = extractTagContent(block, 'loc');
+    const lowerBlock = block.toLowerCase();
+    const loc = extractTagContent(block, lowerBlock, 'loc');
     if (!loc) continue;
 
-    const lastmod = extractTagContent(block, 'lastmod');
+    const lastmod = extractTagContent(block, lowerBlock, 'lastmod');
     entries.push({ loc, lastmod: lastmod || null });
   }
   return entries;
 }
 
 /** Extract tag contents robustly. */
-function extractTagContent(block: string, tag: string): string | undefined {
-  const lowerBlock = block.toLowerCase();
+function extractTagContent(block: string, lowerBlock: string, tag: string): string | undefined {
   const startTag = `<${tag}>`;
   const endTag = `</${tag}>`;
 
