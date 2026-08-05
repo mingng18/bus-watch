@@ -2,6 +2,9 @@ import { Stop, Route, Trip, TripStopEntry, CalendarEntry, StationScheduleRespons
 import { getActiveServiceIds } from './gtfs-static';
 import { klSecondsSinceMidnight, parseGtfsTimeSeconds } from './time-kl';
 
+let cachedStopsRef: Stop[] | null = null;
+let cachedStopsMap: Map<string, Stop> = new Map();
+
 export function getStationSchedule(
   stopId: string,
   stops: Stop[],
@@ -11,7 +14,15 @@ export function getStationSchedule(
   calendar: CalendarEntry[],
   pRouteMap?: Map<string, Route>
 ): StationScheduleResponse {
-  const stop = stops.find(s => s.id === stopId);
+  if (cachedStopsRef !== stops) {
+    cachedStopsMap.clear();
+    for (let i = 0; i < stops.length; i++) {
+      cachedStopsMap.set(stops[i].id, stops[i]);
+    }
+    cachedStopsRef = stops;
+  }
+
+  const stop = cachedStopsMap.get(stopId);
   if (!stop) throw new Error(`Stop not found: ${stopId}`);
 
   const routeMap = pRouteMap || new Map<string, Route>();
