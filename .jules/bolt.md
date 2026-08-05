@@ -106,3 +106,7 @@
 ## 2025-02-18 - Prasarana Map Allocation Optimization
 **Learning:** In the `findNearbyPrasaranaBuses` function which processes external bus arrivals, `routeNameMap` (to map between Prasarana short names and GTFS routes) was being instantiated dynamically on every single HTTP request (e.g. `/nearby`). Since there are hundreds of routes, initializing Map instances dynamically causes unnecessary garbage collection and CPU overhead.
 **Action:** Replaced dynamic `routeNameMap` allocation inside the nearby request handler with the module-cached `shortNameMap` exported from `getRoutesMaps` in `index.ts`. Passed it as an optional parameter (`pShortNameMap`) down to `findNearbyPrasaranaBuses`. This ensures O(1) route lookups using a globally cached map across subsequent requests, bypassing per-request memory allocation entirely.
+
+## 2024-08-05 - [Testing] 🧪 Missing tests for getBoundingBox
+**Learning:** Addressed missing tests for purely mathematical functions like `getBoundingBox` by asserting simple numerical boundaries for different latitudes.
+**Action:** Implemented a new describe block `getBoundingBox` in `haversine.test.ts` to evaluate coordinate deltas at the equator, 60 degrees, and poles. Checked edge cases for clamping cosine values using `vitest` assertions like `toBeCloseTo`.
