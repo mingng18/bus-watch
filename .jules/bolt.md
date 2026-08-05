@@ -106,3 +106,7 @@
 ## 2025-02-18 - Prasarana Map Allocation Optimization
 **Learning:** In the `findNearbyPrasaranaBuses` function which processes external bus arrivals, `routeNameMap` (to map between Prasarana short names and GTFS routes) was being instantiated dynamically on every single HTTP request (e.g. `/nearby`). Since there are hundreds of routes, initializing Map instances dynamically causes unnecessary garbage collection and CPU overhead.
 **Action:** Replaced dynamic `routeNameMap` allocation inside the nearby request handler with the module-cached `shortNameMap` exported from `getRoutesMaps` in `index.ts`. Passed it as an optional parameter (`pShortNameMap`) down to `findNearbyPrasaranaBuses`. This ensures O(1) route lookups using a globally cached map across subsequent requests, bypassing per-request memory allocation entirely.
+
+## 2024-08-05 - [Testing] 🧪 Add tests for canonicalStopSequencesByRoute
+**Learning:** Pure functions processing maps and arrays (like `canonicalStopSequencesByRoute`) are straightforward to test. Mocking complex domain objects (like `TripStopEntry`) can often be bypassed by asserting structurally identical objects or leveraging TypeScript type assertions (`as TripStopEntry`) when only specific fields are used by the unit under test.
+**Action:** Added a comprehensive test suite for `canonicalStopSequencesByRoute` covering empty inputs, missing mappings, and maximum length sequence selection.
