@@ -9,7 +9,7 @@ vi.mock("../src/frequency", () => ({
   ],
 }));
 import { describe, it, expect } from "vitest";
-import { findNearbyStops, findNearbyPrasaranaBuses, nearestFromStopOnRoute } from "../src/nearby";
+import { findNearbyStops, findNearbyPrasaranaBuses, nearestFromStopOnRoute, confidenceFromSamples } from "../src/nearby";
 import {
   Stop,
   Route,
@@ -459,5 +459,31 @@ describe("nearestFromStopOnRoute", () => {
     ];
     // 3.1, 101.6 is closest to 3.101, 101.601 (stopId 2)
     expect(nearestFromStopOnRoute(3.1, 101.6, stops)).toEqual(stops[1]);
+  });
+});
+
+describe("confidenceFromSamples", () => {
+  it("returns high for >= 8 samples and low spread", () => {
+    expect(confidenceFromSamples(8, 20, 100)).toBe("high");
+    expect(confidenceFromSamples(10, 0, 100)).toBe("high");
+  });
+
+  it("returns high for >= 8 samples when avgSeconds is 0 (edge case)", () => {
+    expect(confidenceFromSamples(8, 0, 0)).toBe("high");
+  });
+
+  it("returns medium for >= 8 samples but high spread", () => {
+    expect(confidenceFromSamples(8, 30, 100)).toBe("medium");
+  });
+
+  it("returns medium for 3 to 7 samples, regardless of spread", () => {
+    expect(confidenceFromSamples(3, 0, 100)).toBe("medium");
+    expect(confidenceFromSamples(7, 50, 100)).toBe("medium");
+  });
+
+  it("returns low for < 3 samples", () => {
+    expect(confidenceFromSamples(2, 0, 100)).toBe("low");
+    expect(confidenceFromSamples(1, 0, 100)).toBe("low");
+    expect(confidenceFromSamples(0, 0, 0)).toBe("low");
   });
 });

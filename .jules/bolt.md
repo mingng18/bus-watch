@@ -106,3 +106,7 @@
 ## 2025-02-18 - Prasarana Map Allocation Optimization
 **Learning:** In the `findNearbyPrasaranaBuses` function which processes external bus arrivals, `routeNameMap` (to map between Prasarana short names and GTFS routes) was being instantiated dynamically on every single HTTP request (e.g. `/nearby`). Since there are hundreds of routes, initializing Map instances dynamically causes unnecessary garbage collection and CPU overhead.
 **Action:** Replaced dynamic `routeNameMap` allocation inside the nearby request handler with the module-cached `shortNameMap` exported from `getRoutesMaps` in `index.ts`. Passed it as an optional parameter (`pShortNameMap`) down to `findNearbyPrasaranaBuses`. This ensures O(1) route lookups using a globally cached map across subsequent requests, bypassing per-request memory allocation entirely.
+
+## 2024-05-18 - [Testing] 🧪 Add tests for confidenceFromSamples
+**Learning:** Testing pure functions like `confidenceFromSamples` improves test coverage significantly with low effort, acting as a safety net for confidence algorithms.
+**Action:** Wrote exhaustive unit tests covering all branch thresholds (`>= 8` and `<= 0.25` spread for high, `>= 3` for medium, and `< 3` for low) and boundary cases (like `avgSeconds === 0`).
