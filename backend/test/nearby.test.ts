@@ -9,7 +9,74 @@ vi.mock("../src/frequency", () => ({
   ],
 }));
 import { describe, it, expect } from "vitest";
-import { findNearbyStops, findNearbyPrasaranaBuses, nearestFromStopOnRoute, confidenceFromSamples } from "../src/nearby";
+describe("findNearbyBusRoutes", () => {
+  const testRoutes = [
+    { id: "r1", shortName: "250", longName: "Route 250", type: 3 },
+    { id: "r2", shortName: "300", longName: "Route 300", type: 3 },
+  ];
+  const testTrips = [
+    { id: "t1", routeId: "r1", serviceId: "weekday", headsign: "Wangsa Maju", directionId: 0, shapeId: "" },
+    { id: "t2", routeId: "r2", serviceId: "weekday", headsign: "KL Sentral", directionId: 0, shapeId: "" },
+  ];
+
+  it("returns bus routes sorted by minutes (distance)", () => {
+    const lat = 3.2045;
+    const lon = 101.7317;
+    const vehicles = [
+      { tripId: "t1", routeId: "r1", lat: 3.2046, lon: 101.7318, currentStopSequence: 1, timestamp: 1000, stopId: "s1" },
+      { tripId: "t2", routeId: "r2", lat: 3.21, lon: 101.74, currentStopSequence: 1, timestamp: 1000, stopId: "s2" },
+    ];
+    const result = findNearbyBusRoutes(testRoutes, testTrips, vehicles, lat, lon, 2000);
+    expect(result.length).toBe(2);
+    expect(result[0].routeId).toBe("r1");
+    expect(result[1].routeId).toBe("r2");
+    expect(result[0].minutes).toBeLessThanOrEqual(result[1].minutes);
+    expect(result[0].destination).toBe("Wangsa Maju");
+  });
+
+  it("filters out vehicles outside the radius and bounding box", () => {
+    const lat = 3.2045;
+    const lon = 101.7317;
+    const vehicles = [
+      { tripId: "t1", routeId: "r1", lat: 3.2046, lon: 101.7318, currentStopSequence: 1, timestamp: 1000, stopId: "s1" },
+      { tripId: "t2", routeId: "r2", lat: 3.5, lon: 101.9, currentStopSequence: 1, timestamp: 1000, stopId: "s2" },
+    ];
+    const result = findNearbyBusRoutes(testRoutes, testTrips, vehicles, lat, lon, 1000);
+    expect(result.length).toBe(1);
+    expect(result[0].routeId).toBe("r1");
+  });
+
+  it("deduplicates vehicles belonging to the same route/trip", () => {
+    const lat = 3.2045;
+    const lon = 101.7317;
+    const vehicles = [
+      { tripId: "t1", routeId: "r1", lat: 3.2046, lon: 101.7318, currentStopSequence: 1, timestamp: 1000, stopId: "s1" },
+      { tripId: "t1", routeId: "r1", lat: 3.2047, lon: 101.7319, currentStopSequence: 2, timestamp: 1000, stopId: "s2" },
+    ];
+    const result = findNearbyBusRoutes(testRoutes, testTrips, vehicles, lat, lon, 1000);
+    expect(result.length).toBe(1);
+    expect(result[0].routeId).toBe("r1");
+  });
+
+  it("uses provided precomputed maps if available", () => {
+    const lat = 3.2045;
+    const lon = 101.7317;
+    const vehicles = [
+      { tripId: "t1", routeId: "r1", lat: 3.2046, lon: 101.7318, currentStopSequence: 1, timestamp: 1000, stopId: "s1" },
+    ];
+    const routeMap = new Map();
+    routeMap.set("r1", testRoutes[0]);
+    const tripMap = new Map();
+    tripMap.set("t1", testTrips[0]);
+    const result = findNearbyBusRoutes([], [], vehicles, lat, lon, 1000, routeMap, tripMap);
+    expect(result.length).toBe(1);
+    expect(result[0].routeId).toBe("r1");
+    expect(result[0].destination).toBe("Wangsa Maju");
+  });
+});
+
+import { findNearbyStops, findNearbyPrasaranaBuses, nearestFromStopOnRoute, confidenceFromSamples, findNearbyBusRoutes } from "../src/nearby";
+
 import {
   Stop,
   Route,
@@ -462,6 +529,72 @@ describe("nearestFromStopOnRoute", () => {
   });
 });
 
+describe("findNearbyBusRoutes", () => {
+  const testRoutes = [
+    { id: "r1", shortName: "250", longName: "Route 250", type: 3 },
+    { id: "r2", shortName: "300", longName: "Route 300", type: 3 },
+  ];
+  const testTrips = [
+    { id: "t1", routeId: "r1", serviceId: "weekday", headsign: "Wangsa Maju", directionId: 0, shapeId: "" },
+    { id: "t2", routeId: "r2", serviceId: "weekday", headsign: "KL Sentral", directionId: 0, shapeId: "" },
+  ];
+
+  it("returns bus routes sorted by minutes (distance)", () => {
+    const lat = 3.2045;
+    const lon = 101.7317;
+    const vehicles = [
+      { tripId: "t1", routeId: "r1", lat: 3.2046, lon: 101.7318, currentStopSequence: 1, timestamp: 1000, stopId: "s1" },
+      { tripId: "t2", routeId: "r2", lat: 3.21, lon: 101.74, currentStopSequence: 1, timestamp: 1000, stopId: "s2" },
+    ];
+    const result = findNearbyBusRoutes(testRoutes, testTrips, vehicles, lat, lon, 2000);
+    expect(result.length).toBe(2);
+    expect(result[0].routeId).toBe("r1");
+    expect(result[1].routeId).toBe("r2");
+    expect(result[0].minutes).toBeLessThanOrEqual(result[1].minutes);
+    expect(result[0].destination).toBe("Wangsa Maju");
+  });
+
+  it("filters out vehicles outside the radius and bounding box", () => {
+    const lat = 3.2045;
+    const lon = 101.7317;
+    const vehicles = [
+      { tripId: "t1", routeId: "r1", lat: 3.2046, lon: 101.7318, currentStopSequence: 1, timestamp: 1000, stopId: "s1" },
+      { tripId: "t2", routeId: "r2", lat: 3.5, lon: 101.9, currentStopSequence: 1, timestamp: 1000, stopId: "s2" },
+    ];
+    const result = findNearbyBusRoutes(testRoutes, testTrips, vehicles, lat, lon, 1000);
+    expect(result.length).toBe(1);
+    expect(result[0].routeId).toBe("r1");
+  });
+
+  it("deduplicates vehicles belonging to the same route/trip", () => {
+    const lat = 3.2045;
+    const lon = 101.7317;
+    const vehicles = [
+      { tripId: "t1", routeId: "r1", lat: 3.2046, lon: 101.7318, currentStopSequence: 1, timestamp: 1000, stopId: "s1" },
+      { tripId: "t1", routeId: "r1", lat: 3.2047, lon: 101.7319, currentStopSequence: 2, timestamp: 1000, stopId: "s2" },
+    ];
+    const result = findNearbyBusRoutes(testRoutes, testTrips, vehicles, lat, lon, 1000);
+    expect(result.length).toBe(1);
+    expect(result[0].routeId).toBe("r1");
+  });
+
+  it("uses provided precomputed maps if available", () => {
+    const lat = 3.2045;
+    const lon = 101.7317;
+    const vehicles = [
+      { tripId: "t1", routeId: "r1", lat: 3.2046, lon: 101.7318, currentStopSequence: 1, timestamp: 1000, stopId: "s1" },
+    ];
+    const routeMap = new Map();
+    routeMap.set("r1", testRoutes[0]);
+    const tripMap = new Map();
+    tripMap.set("t1", testTrips[0]);
+    const result = findNearbyBusRoutes([], [], vehicles, lat, lon, 1000, routeMap, tripMap);
+    expect(result.length).toBe(1);
+    expect(result[0].routeId).toBe("r1");
+    expect(result[0].destination).toBe("Wangsa Maju");
+  });
+});
+
 describe("confidenceFromSamples", () => {
   it("returns high for >= 8 samples and low spread", () => {
     expect(confidenceFromSamples(8, 20, 100)).toBe("high");
@@ -485,5 +618,6 @@ describe("confidenceFromSamples", () => {
     expect(confidenceFromSamples(2, 0, 100)).toBe("low");
     expect(confidenceFromSamples(1, 0, 100)).toBe("low");
     expect(confidenceFromSamples(0, 0, 0)).toBe("low");
+
   });
 });
