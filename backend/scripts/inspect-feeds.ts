@@ -356,9 +356,6 @@ async function probe(c: FeedCandidate): Promise<FeedReport> {
 }
 
 async function main(): Promise<void> {
-  const sampleArg = process.argv.find((a) => a.startsWith('--sample'));
-  if (sampleArg) console.log(`(note: --sample only truncates display; decoding is whole-feed)`);
-
   console.log('Probing candidate Prasarana GTFS-realtime feeds...');
   for (const c of candidateFeeds()) {
     try {
@@ -368,7 +365,6 @@ async function main(): Promise<void> {
       console.log(`\n=== ${c.label} ===\nURL: ${c.url}\nstatus: error — ${err}`);
     }
   }
-  console.log('\nDone. Findings summary captured in docs/feed-inspection.md.');
 }
 
 // Run only when invoked directly as a script (not when imported by tests).
