@@ -367,7 +367,6 @@ async function main(): Promise<void> {
       console.log(`\n=== ${c.label} ===\nURL: ${c.url}\nstatus: error — ${err}`);
     }
   }
-  console.log('\nDone. Findings summary captured in docs/feed-inspection.md.');
 }
 
 // Run only when invoked directly as a script (not when imported by tests).
