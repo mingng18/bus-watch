@@ -71,6 +71,7 @@
 ## 2025-01-26 - Add inline loading states to async buttons
 **Learning:** In SwiftUI, `Button` actions that trigger system permission dialogues (like notification authorization) or await async work can leave the UI feeling unresponsive during the delay, potentially leading to duplicate taps.
 **Action:** Always maintain an `isLoading` state and conditionally swap the button's `Label` for a `ProgressView()` while applying `.disabled()` to provide immediate visual feedback and prevent duplicate interactions.
+
 ## 2025-01-23 - Add accessibility hints to icon-only toolbar buttons
 **Learning:** In SwiftUI, icon-only toolbar buttons have terse labels. VoiceOver users may need more context about what action the button performs, especially for generic icons like lists or chevrons.
 **Action:** Always provide an `.accessibilityHint` to icon-only toolbar buttons to explain the consequence of the action (e.g., "Returns to the nearby stops list.").
