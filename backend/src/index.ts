@@ -506,12 +506,16 @@ app.get('/alerts', async (c) => {
 
 app.get('/route/:routeId', async (c) => {
   const routeId = c.req.param('routeId');
-  const allRoutes = await getAllRoutes(c.env.KV);
-  // Optimization: Turn O(N) linear search into O(1) Map lookup
-  const { map, shortNameMap } = await getRoutesMaps(c.env.KV);
-  let route = map.get(routeId) || shortNameMap.get(routeId);
 
-  const { buses: prasaranaBuses } = await getPrasaranaBuses(c.env.KV);
+  // Performance optimization: Group independent KV/external fetches concurrently
+  // via Promise.all to avoid linear latency compounding.
+  // The unused allRoutes fetch is removed.
+  const [{ map, shortNameMap }, { buses: prasaranaBuses }] = await Promise.all([
+    getRoutesMaps(c.env.KV),
+    getPrasaranaBuses(c.env.KV)
+  ]);
+
+  let route = map.get(routeId) || shortNameMap.get(routeId);
 
   if (!route) {
     const hasPrasarana = prasaranaBuses.some(b => b.route === routeId || b.route === routeId + '0');
@@ -519,8 +523,12 @@ app.get('/route/:routeId', async (c) => {
     route = { id: routeId, shortName: routeId, longName: '', type: 3 } as any;
   }
 
-  // Get active buses
-  const vehicles = await getRealtimeVehicles(c.env.KV);
+  // Performance optimization: Second concurrent block for data needed only for valid routes.
+  const [vehicles, allTrips, allShapes] = await Promise.all([
+    getRealtimeVehicles(c.env.KV),
+    getAllTrips(c.env.KV),
+    getAllShapes(c.env.KV)
+  ]);
 
   const gtfsBuses: Array<{ routeId: string; routeShortName: string; destination: string; minutes: number; tripId: string; lat: number; lon: number; }> = [];
   const routeShortName = route!.shortName || route!.longName || '';
@@ -560,9 +568,6 @@ app.get('/route/:routeId', async (c) => {
   }
 
   const mergedBuses = mergeBusRoutes(gtfsBuses, pBuses);
-
-  const allTrips = await getAllTrips(c.env.KV);
-  const allShapes = await getAllShapes(c.env.KV);
 
   // Performance optimization: Avoid intermediate array allocations from .filter().map()
   // and Array.from(new Set()) by using standard loops to collect unique shape IDs
