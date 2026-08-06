@@ -48,6 +48,26 @@
 **Learning:** In Cloudflare Workers where execution time and CPU cycles are highly constrained, large loops (e.g., iterating through thousands of bus stops or vehicles) that calculate geographic distance using the Haversine formula can be a significant bottleneck due to expensive trigonometric math (`Math.sin`, `Math.cos`, `Math.atan2`).
 **Action:** When filtering objects by geographic radius, implement a spatial pre-filter using a fast bounding box approximation before invoking the precise distance calculation. Use simple float comparisons (`<`, `>`) to aggressively prune out-of-bounds coordinates early, drastically reducing trigonometric overhead.
 
+## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for inner loops
+**Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop`) can reintroduce the trigonometric bottleneck of `haversineDistance`.
+**Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
+
+## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for inner loops
+**Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop` or evaluating historical passages) can reintroduce the trigonometric bottleneck of `haversineDistance`.
+**Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
+
+## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for nearest point searches
+**Learning:** When performing O(N) array scans to find the nearest point (like `nearestFromStopOnRoute`), recalculating the precise `haversineDistance` for every single coordinate introduces significant trigonometric overhead. Additionally, calling generic bounding box helpers inside the loop repeats constant calculations (like `Math.cos(lat)`).
+**Action:** When finding a nearest point in a loop, pre-calculate the constants outside the loop, initialize a bounding box with the first point's distance, and dynamically shrink the bounding box limits (`minLat`, `maxLat`, `minLon`, `maxLon`) every time a closer point is found. This progressively and aggressively prunes outer coordinates with cheap arithmetic checks before falling back to `haversineDistance`.
+
+## 2025-02-18 - Prasarana Map Allocation Optimization
+**Learning:** In the `findNearbyPrasaranaBuses` function which processes external bus arrivals, `routeNameMap` (to map between Prasarana short names and GTFS routes) was being instantiated dynamically on every single HTTP request (e.g. `/nearby`). Since there are hundreds of routes, initializing Map instances dynamically causes unnecessary garbage collection and CPU overhead.
+**Action:** Replaced dynamic `routeNameMap` allocation inside the nearby request handler with the module-cached `shortNameMap` exported from `getRoutesMaps` in `index.ts`. Passed it as an optional parameter (`pShortNameMap`) down to `findNearbyPrasaranaBuses`. This ensures O(1) route lookups using a globally cached map across subsequent requests, bypassing per-request memory allocation entirely.
+
+## 2025-02-23 - Concurrent Data Fetching on Valid Paths
+**Learning:** Sequential async lookups (like `getRoutesMaps` and `getPrasaranaBuses`) compound latency linearly. However, grouping ALL fetches (like `getRealtimeVehicles`, `getAllTrips`, `getAllShapes`) into a single `Promise.all` block before validating parameters (e.g. checking if `route` exists) causes unnecessary database/KV reads for invalid requests (like 404s), wasting I/O resources on error paths.
+**Action:** When migrating sequential `await`s to concurrent `Promise.all` blocks in endpoints, split the requests into logical phases. Fetch the minimal data required for validation in the first `Promise.all`, perform the validation (early return on 404), and fetch the remaining heavy data in a second `Promise.all` block to preserve fast/cheap error paths while maximizing concurrency on the happy path.
+
 ## 2025-02-28 - [Performance] ⚡ Array to Map Lookup caching in Cloudflare workers
 **Learning:** O(N) array scans inside heavily accessed routes (like schedule lookups fetching multiple stops per request) scale poorly and cause high CPU spikes. Replacing `array.find(x => x.id === target)` with pre-computed `Map.get(target)` lookups reduces execution time by ~99% on typical workloads (e.g. 1800ms to 17ms for 10000 lookups).
 **Action:** When working on heavily accessed functions that do repetitive lookups on static/cached lists (like GTFS stops, trips, routes), always pass a cached `Map` or create one locally rather than iterating over array items using `find` or `findIndex`.
