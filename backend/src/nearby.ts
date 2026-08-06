@@ -17,6 +17,25 @@ import { haversineDistance, getBoundingBox } from "./haversine";
 import { toKlLocal } from "./time-kl";
 import { expandTripsForStop } from "./frequency";
 
+function buildEntityMap<T, K extends keyof T>(
+  items: T[],
+  keyField: K,
+  existingMap?: Map<string, T>
+): Map<string, T> {
+  const map = existingMap || new Map<string, T>();
+  if (!existingMap) {
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const key = item[keyField] as unknown as string;
+      if (!map.has(key)) {
+        map.set(key, item);
+      }
+    }
+  }
+  return map;
+}
+
+
 export interface FindNearbyStopsContext {
   stops: Stop[];
   routes: Route[];
@@ -69,18 +88,8 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
 
   // Performance optimization: Precompute map to avoid O(N^2) lookups in loop
   // and use standard loops instead of array mapping to avoid intermediate allocations
-  const tripMap = ctx.tripMap || new Map<string, Trip>();
-  if (!ctx.tripMap) {
-    for (let i = 0; i < trips.length; i++) {
-      tripMap.set(trips[i].id, trips[i]);
-    }
-  }
-  const routeMap = ctx.routeMap || new Map<string, Route>();
-  if (!ctx.routeMap) {
-    for (let i = 0; i < routes.length; i++) {
-      routeMap.set(routes[i].id, routes[i]);
-    }
-  }
+  const tripMap = buildEntityMap(trips, "id", ctx.tripMap);
+  const routeMap = buildEntityMap(routes, "id", ctx.routeMap);
 
   return nearby.map(({ stop, distance }) => {
     const arrivals: Arrival[] = [];
@@ -163,20 +172,10 @@ export function findNearbyBusRoutes(
   pRouteMap?: Map<string, Route>,
   pTripMap?: Map<string, Trip>,
 ): BusRouteEntry[] {
-  const routeMap = pRouteMap || new Map<string, Route>();
-  if (!pRouteMap) {
-    for (let i = 0; i < routes.length; i++) {
-      routeMap.set(routes[i].id, routes[i]);
-    }
-  }
+  const routeMap = buildEntityMap(routes, "id", pRouteMap);
   // Performance optimization: Precompute map to avoid O(N^2) lookups in loop
   // and use standard loops instead of array mapping to avoid intermediate allocations
-  const tripMap = pTripMap || new Map<string, Trip>();
-  if (!pTripMap) {
-    for (let i = 0; i < trips.length; i++) {
-      tripMap.set(trips[i].id, trips[i]);
-    }
-  }
+  const tripMap = buildEntityMap(trips, "id", pTripMap);
   const results: BusRouteEntry[] = [];
   const seen = new Set<string>();
   const box = getBoundingBox(lat, lon, radiusM);
@@ -225,27 +224,11 @@ export function findNearbyPrasaranaBuses(
   pShortNameMap?: Map<string, Route>,
 ): BusRouteEntry[] {
   // Performance optimization: Precompute map to avoid O(N^2) lookups in loop
-  const routeTripMap = pRouteTripMap || new Map<string, Trip>();
-  if (!pRouteTripMap) {
-    for (let i = 0; i < trips.length; i++) {
-      const t = trips[i];
-      if (!routeTripMap.has(t.routeId)) {
-        routeTripMap.set(t.routeId, t);
-      }
-    }
-  }
+  const routeTripMap = buildEntityMap(trips, "routeId", pRouteTripMap);
 
   // Performance optimization: Use cached shortNameMap across requests instead of allocating
   // routeNameMap dynamically per request, which reduces object allocation overhead.
-  const shortNameMap = pShortNameMap || new Map<string, Route>();
-  if (!pShortNameMap) {
-    for (let i = 0; i < routes.length; i++) {
-      const r = routes[i];
-      if (!shortNameMap.has(r.shortName)) {
-        shortNameMap.set(r.shortName, r);
-      }
-    }
-  }
+  const shortNameMap = buildEntityMap(routes, "shortName", pShortNameMap);
 
   const results: BusRouteEntry[] = [];
   const box = getBoundingBox(lat, lon, radiusM);
