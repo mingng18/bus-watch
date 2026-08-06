@@ -64,6 +64,14 @@
 **Learning:** In SwiftUI, `Map` views expose all internal markers to VoiceOver by default, creating a fragmented screen reader experience where every marker is read individually, often with unhelpful or overly technical details.
 **Action:** Apply `.accessibilityElement(children: .ignore)` to the map and add a unified `.accessibilityLabel` to summarize the map's contents instead.
 
-## 2025-01-23 - Prevent watchOS navigation title truncation
-**Learning:** In watchOS SwiftUI apps, `Label` components inside `ToolbarItem`s without a defined label style may cause the navigation title to truncate due to limited screen real estate, even if the label text is short.
-**Action:** Always apply `.labelStyle(.iconOnly)` to `Label` components inside `ToolbarItem`s (e.g., back buttons) to conserve small screen real estate and prevent navigation title truncation, while still retaining the text label for VoiceOver users.
+## 2025-01-22 - Graceful Fallbacks for Empty Route Identifiers
+**Learning:** Transit APIs can sometimes return empty strings for route or line identifiers (e.g. `routeShortName` or `line`), which can cause completely blank text fields in headers or lists, and result in confusing, broken VoiceOver strings (like " to Sentul, 5 minutes" or "Live location of bus ").
+**Action:** Always provide generic, localized fallback text (such as "Live bus" or "Service") when rendering transit route identifiers, and use these same fallbacks in constructed `accessibilityLabel` phrases.
+
+## 2025-01-26 - Add inline loading states to async buttons
+**Learning:** In SwiftUI, `Button` actions that trigger system permission dialogues (like notification authorization) or await async work can leave the UI feeling unresponsive during the delay, potentially leading to duplicate taps.
+**Action:** Always maintain an `isLoading` state and conditionally swap the button's `Label` for a `ProgressView()` while applying `.disabled()` to provide immediate visual feedback and prevent duplicate interactions.
+
+## 2025-01-23 - Pair empty state text with an appropriate icon
+**Learning:** Text-only empty states in lists (like "No Active Disruptions") can feel unpolished and lack visual grounding, leaving users scanning for meaning.
+**Action:** Always pair empty state text with a context-appropriate, secondary-styled SF Symbol (like `checkmark.seal.fill` or `mappin.slash`) and mark the icon as `.accessibilityHidden(true)` to improve visual glanceability and polish without cluttering VoiceOver.

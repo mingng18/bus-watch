@@ -22,6 +22,7 @@ struct AlertsView: View {
             case .empty:
                 VStack(spacing: 8) {
                     Image(systemName: "checkmark.seal.fill")
+                        .accessibilityHidden(true)
                         .font(.title2)
                         .foregroundStyle(.green)
                         .accessibilityHidden(true)
@@ -32,6 +33,7 @@ struct AlertsView: View {
             case .error(let message):
                 VStack(spacing: 12) {
                     Image(systemName: "exclamationmark.triangle")
+                        .accessibilityHidden(true)
                         .font(.title2)
                         .foregroundStyle(.red)
                         .accessibilityHidden(true)

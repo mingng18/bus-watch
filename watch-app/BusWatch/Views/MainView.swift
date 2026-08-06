@@ -80,6 +80,7 @@ struct MainView: View {
     private var noLocationView: some View {
         VStack(spacing: 12) {
             Image(systemName: "location.slash")
+                .accessibilityHidden(true)
                 .font(.title2)
                 .accessibilityHidden(true)
             Text("Location access needed")
@@ -113,6 +114,7 @@ struct MainView: View {
     private func errorView(message: String) -> some View {
         VStack(spacing: 12) {
             Image(systemName: "exclamationmark.triangle")
+                .accessibilityHidden(true)
                 .font(.title2)
                 .foregroundStyle(.red)
                 .accessibilityHidden(true)

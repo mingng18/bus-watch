@@ -26,6 +26,7 @@ struct DeparturesTowardView: View {
                 if schedule.departures.isEmpty {
                     HStack(spacing: 6) {
                         Image(systemName: "bus.slash")
+                            .accessibilityHidden(true)
                             .foregroundStyle(.secondary)
                             .accessibilityHidden(true)
                         Text("No departures toward \(destinationName)")
@@ -39,7 +40,7 @@ struct DeparturesTowardView: View {
                                 .fill(dep.minutesUntil <= 3 ? Color.green : Color.blue)
                                 .frame(width: 8, height: 8)
                             VStack(alignment: .leading) {
-                                Text(dep.line)
+                                Text(dep.line.isEmpty ? "Service" : dep.line)
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
                                 Text("→ \(dep.destination)")
@@ -69,6 +70,7 @@ struct DeparturesTowardView: View {
     private func departureLabel(_ dep: Departure) -> String {
         let urgency = dep.minutesUntil <= 3 ? ", arriving soon" : ""
         let minText = dep.minutesUntil == 1 ? "1 minute" : "\(dep.minutesUntil) minutes"
-        return "\(dep.line) to \(dep.destination), \(minText)\(urgency)"
+        let lineName = dep.line.isEmpty ? "Service" : dep.line
+        return "\(lineName) to \(dep.destination), \(minText)\(urgency)"
     }
 }
