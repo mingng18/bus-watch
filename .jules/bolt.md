@@ -110,3 +110,7 @@
 ## 2024-08-05 - [Testing] 🧪 Missing tests for getBoundingBox
 **Learning:** Addressed missing tests for purely mathematical functions like `getBoundingBox` by asserting simple numerical boundaries for different latitudes.
 **Action:** Implemented a new describe block `getBoundingBox` in `haversine.test.ts` to evaluate coordinate deltas at the equator, 60 degrees, and poles. Checked edge cases for clamping cosine values using `vitest` assertions like `toBeCloseTo`.
+
+## 2025-02-23 - Concurrent Data Fetching on Valid Paths
+**Learning:** Sequential async lookups (like `getRoutesMaps` and `getPrasaranaBuses`) compound latency linearly. However, grouping ALL fetches (like `getRealtimeVehicles`, `getAllTrips`, `getAllShapes`) into a single `Promise.all` block before validating parameters (e.g. checking if `route` exists) causes unnecessary database/KV reads for invalid requests (like 404s), wasting I/O resources on error paths.
+**Action:** When migrating sequential `await`s to concurrent `Promise.all` blocks in endpoints, split the requests into logical phases. Fetch the minimal data required for validation in the first `Promise.all`, perform the validation (early return on 404), and fetch the remaining heavy data in a second `Promise.all` block to preserve fast/cheap error paths while maximizing concurrency on the happy path.
