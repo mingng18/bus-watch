@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { createMiddleware } from 'hono/factory';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
 import { timingSafeEqual } from 'hono/utils/buffer';
@@ -70,11 +71,7 @@ function validateLatLon(lat: number, lon: number): string | null {
   return null;
 }
 
-// POST because /refresh mutates state (re-ingests GTFS into KV). GET would be
-// CSRF/prefetch-prone (browsers prefetch links, prefetch robots hit URLs found
-// in HTML, image preloaders have historically fired GETs on linked URLs).
-// See issue #131.
-app.post('/refresh', async (c) => {
+const requireAdminToken = createMiddleware<{ Bindings: Env }>(async (c, next) => {
   const authHeader = c.req.header('Authorization');
   const expectedToken = `Bearer ${c.env.ADMIN_TOKEN}`;
   if (!c.env.ADMIN_TOKEN || !authHeader) {
@@ -86,6 +83,15 @@ app.post('/refresh', async (c) => {
   if (!isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
+
+  await next();
+});
+
+// POST because /refresh mutates state (re-ingests GTFS into KV). GET would be
+// CSRF/prefetch-prone (browsers prefetch links, prefetch robots hit URLs found
+// in HTML, image preloaders have historically fired GETs on linked URLs).
+// See issue #131.
+app.post('/refresh', requireAdminToken, async (c) => {
   await refreshStaticData(c.env.KV);
   return c.json({ status: 'refreshed' });
 });
@@ -442,18 +448,7 @@ app.get('/rail/schedule', async (c) => {
   return c.json(result);
 });
 
-app.post('/rail/ingest', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  const expectedToken = `Bearer ${c.env.ADMIN_TOKEN}`;
-  if (!c.env.ADMIN_TOKEN || !authHeader) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-  const compareStr = authHeader.length === expectedToken.length ? authHeader : expectedToken;
-  const isMatch = await timingSafeEqual(compareStr, expectedToken) && authHeader.length === expectedToken.length;
-
-  if (!isMatch) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
+app.post('/rail/ingest', requireAdminToken, async (c) => {
   try {
     const result = await ingestRailTimetables(c.env);
     return c.json({ status: 'ok', inserted: result.inserted });
