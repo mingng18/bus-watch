@@ -30,7 +30,7 @@ struct BusProgressView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text(progress.routeShortName.isEmpty ? "Live bus" : progress.routeShortName)
+                    Text(progress.routeShortName)
                         .font(.headline)
                         .accessibilityAddTraits(.isHeader)
                     Spacer()
@@ -140,7 +140,7 @@ private struct RealtimeBusLocationMap: View {
         .onAppear(perform: recenter)
         .onChange(of: model) { _, _ in recenter() }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Live location of \(model.routeShortName.isEmpty ? "bus" : "bus " + model.routeShortName)")
+        .accessibilityLabel("Live location of bus \(model.routeShortName)")
     }
 
     private func recenter() {

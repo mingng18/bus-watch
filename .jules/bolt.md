@@ -86,11 +86,3 @@
 ## 2024-07-25 - Group sequential async Cloudflare KV lookups
 **Learning:** Sequential async lookups to remote stores like Cloudflare KV (e.g. `await getA(); await getB();`) compound latency linearly (e.g., 6 lookups at 50ms = 300ms delay).
 **Action:** Group independent data fetches into concurrent `Promise.all` blocks to bound the total execution time to the single slowest request, dramatically improving endpoint response times.
-
-## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for Haversine Calculations
-**Learning:** In Cloudflare Workers where execution time and CPU cycles are highly constrained, large loops (e.g., iterating through thousands of bus stops or vehicles) that calculate geographic distance using the Haversine formula can be a significant bottleneck due to expensive trigonometric math (`Math.sin`, `Math.cos`, `Math.atan2`). When calculating distances in large loops, implement a spatial pre-filter using a bounding box. Use simple arithmetic comparisons to skip out-of-bounds coordinates early. However, be cautious when calculating thresholds based on longitude, as the distance represented by 1 degree of longitude shrinks as you move away from the equator (`distance ≈ 111.32km * cos(latitude)`). Hardcoding thresholds for longitude without accounting for latitude differences can lead to spatial bugs in higher latitudes.
-**Action:** When filtering objects by geographic radius, implement a spatial pre-filter using a fast bounding box approximation before invoking the precise distance calculation. Use dynamically calculated thresholds to safely reject far-away points.
-
-## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for inner loops
-**Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop`) can reintroduce the trigonometric bottleneck of `haversineDistance`.
-**Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.

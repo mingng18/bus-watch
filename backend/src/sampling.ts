@@ -272,20 +272,6 @@ export function detectStopPassages(
     // Only test against the next expected stop. This enforces in-order
     // passage and makes a far-ahead outlier unable to skip stops.
     const target = stops[stopIdx];
-
-    // Fast-fail bounding box check to avoid expensive haversine calculation.
-    // 1 degree latitude is approx 111,320m.
-    // 1 degree longitude shrinks away from the equator (distance ≈ 111,320m * cos(lat)).
-    // We derive the thresholds dynamically from STOP_PASSAGE_RADIUS_M to ensure safety if it changes.
-    // We use a generous 3x multiplier for longitude to safely cover up to ~70 degrees latitude.
-    // Note: This simple subtraction does not handle crossing the 180th meridian (dateline),
-    // but KL transit data is nowhere near it.
-    const latThreshold = STOP_PASSAGE_RADIUS_M / 111000;
-    const lonThreshold = (STOP_PASSAGE_RADIUS_M / 111000) * 3;
-    const latDiff = Math.abs(s.lat - target.lat);
-    const lonDiff = Math.abs(s.lon - target.lon);
-    if (latDiff > latThreshold || lonDiff > lonThreshold) continue;
-
     const d = haversineDistance(s.lat, s.lon, target.lat, target.lon);
     if (d > STOP_PASSAGE_RADIUS_M) continue;
 
