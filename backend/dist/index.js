@@ -11417,6 +11417,9 @@ var Hono2 = class extends Hono {
   }
 };
 
+// node_modules/.pnpm/hono@4.12.26/node_modules/hono/dist/helper/factory/index.js
+var createMiddleware = /* @__PURE__ */ __name((middleware) => middleware, "createMiddleware");
+
 // node_modules/.pnpm/hono@4.12.26/node_modules/hono/dist/middleware/cors/index.js
 var cors = /* @__PURE__ */ __name((options) => {
   const opts = {
@@ -12561,6 +12564,20 @@ function expandTripsForStop(stopId, trips, tripStops, routes, calendar, frequenc
 __name(expandTripsForStop, "expandTripsForStop");
 
 // src/nearby.ts
+function buildEntityMap(items, keyField, existingMap) {
+  const map = existingMap || /* @__PURE__ */ new Map();
+  if (!existingMap) {
+    for (let i2 = 0; i2 < items.length; i2++) {
+      const item = items[i2];
+      const key = item[keyField];
+      if (!map.has(key)) {
+        map.set(key, item);
+      }
+    }
+  }
+  return map;
+}
+__name(buildEntityMap, "buildEntityMap");
 function findNearbyStops(ctx) {
   const {
     stops,
@@ -12588,18 +12605,8 @@ function findNearbyStops(ctx) {
     }
   }
   nearby.sort((a, b) => a.distance - b.distance);
-  const tripMap = ctx.tripMap || /* @__PURE__ */ new Map();
-  if (!ctx.tripMap) {
-    for (let i2 = 0; i2 < trips.length; i2++) {
-      tripMap.set(trips[i2].id, trips[i2]);
-    }
-  }
-  const routeMap = ctx.routeMap || /* @__PURE__ */ new Map();
-  if (!ctx.routeMap) {
-    for (let i2 = 0; i2 < routes.length; i2++) {
-      routeMap.set(routes[i2].id, routes[i2]);
-    }
-  }
+  const tripMap = buildEntityMap(trips, "id", ctx.tripMap);
+  const routeMap = buildEntityMap(routes, "id", ctx.routeMap);
   return nearby.map(({ stop, distance }) => {
     const arrivals = [];
     if (stop.type === "bus") {
@@ -12660,18 +12667,8 @@ function findNearbyStops(ctx) {
 }
 __name(findNearbyStops, "findNearbyStops");
 function findNearbyBusRoutes(routes, trips, vehicles, lat, lon, radiusM = 1e3, pRouteMap, pTripMap) {
-  const routeMap = pRouteMap || /* @__PURE__ */ new Map();
-  if (!pRouteMap) {
-    for (let i2 = 0; i2 < routes.length; i2++) {
-      routeMap.set(routes[i2].id, routes[i2]);
-    }
-  }
-  const tripMap = pTripMap || /* @__PURE__ */ new Map();
-  if (!pTripMap) {
-    for (let i2 = 0; i2 < trips.length; i2++) {
-      tripMap.set(trips[i2].id, trips[i2]);
-    }
-  }
+  const routeMap = buildEntityMap(routes, "id", pRouteMap);
+  const tripMap = buildEntityMap(trips, "id", pTripMap);
   const results = [];
   const seen = /* @__PURE__ */ new Set();
   const box = getBoundingBox(lat, lon, radiusM);
@@ -12700,25 +12697,13 @@ function findNearbyBusRoutes(routes, trips, vehicles, lat, lon, radiusM = 1e3, p
   return results;
 }
 __name(findNearbyBusRoutes, "findNearbyBusRoutes");
-function findNearbyPrasaranaBuses(buses, routes, trips, lat, lon, radiusM = 1e3, pRouteTripMap) {
-  const routeTripMap = pRouteTripMap || /* @__PURE__ */ new Map();
-  if (!pRouteTripMap) {
-    for (const t of trips) {
-      if (!routeTripMap.has(t.routeId)) {
-        routeTripMap.set(t.routeId, t);
-      }
-    }
-  }
-  const routeNameMap = /* @__PURE__ */ new Map();
-  for (const r of routes) {
-    if (!routeNameMap.has(r.shortName)) {
-      const trip = routeTripMap.get(r.id);
-      routeNameMap.set(r.shortName, { route: r, trip });
-    }
-  }
+function findNearbyPrasaranaBuses(buses, routes, trips, lat, lon, radiusM = 1e3, pRouteTripMap, pShortNameMap) {
+  const routeTripMap = buildEntityMap(trips, "routeId", pRouteTripMap);
+  const shortNameMap = buildEntityMap(routes, "shortName", pShortNameMap);
   const results = [];
   const box = getBoundingBox(lat, lon, radiusM);
-  for (const b of buses) {
+  for (let i2 = 0; i2 < buses.length; i2++) {
+    const b = buses[i2];
     if (b.trip_rev_kind === "01" || b.trip_rev_kind === "03" || b.trip_rev_kind === "05")
       continue;
     if (b.latitude < box.minLat || b.latitude > box.maxLat || b.longitude < box.minLon || b.longitude > box.maxLon) {
@@ -12727,12 +12712,13 @@ function findNearbyPrasaranaBuses(buses, routes, trips, lat, lon, radiusM = 1e3,
     const d = haversineDistance(lat, lon, b.latitude, b.longitude);
     if (d > radiusM) continue;
     const routeCode = normalizeRouteCode(b.route);
-    const gtfsMatch = routeNameMap.get(routeCode);
-    const destination = gtfsMatch?.trip?.headsign || "";
+    const gtfsRoute = shortNameMap.get(routeCode);
+    const gtfsTrip = gtfsRoute ? routeTripMap.get(gtfsRoute.id) : void 0;
+    const destination = gtfsTrip?.headsign || "";
     const roadDist = d * 1.4;
     const minutes = b.speed > 0 ? Math.max(1, Math.round(roadDist / (b.speed * 16.67))) : Math.max(1, Math.round(roadDist / 250));
     results.push({
-      routeId: gtfsMatch?.route.id || routeCode,
+      routeId: gtfsRoute?.id || routeCode,
       routeShortName: routeCode,
       destination,
       minutes,
@@ -13772,7 +13758,7 @@ function validateLatLon(lat, lon) {
   return null;
 }
 __name(validateLatLon, "validateLatLon");
-app.post("/refresh", async (c) => {
+var requireAdminToken = createMiddleware(async (c, next) => {
   const authHeader = c.req.header("Authorization");
   const expectedToken = `Bearer ${c.env.ADMIN_TOKEN}`;
   if (!c.env.ADMIN_TOKEN || !authHeader) {
@@ -13783,6 +13769,9 @@ app.post("/refresh", async (c) => {
   if (!isMatch) {
     return c.json({ error: "Unauthorized" }, 401);
   }
+  await next();
+});
+app.post("/refresh", requireAdminToken, async (c) => {
   await refreshStaticData(c.env.KV);
   return c.json({ status: "refreshed" });
 });
@@ -13798,7 +13787,7 @@ app.get("/nearby", async (c) => {
     allStops,
     allRoutes,
     allTrips,
-    { map: routeMap },
+    { map: routeMap, shortNameMap },
     { tripMap, routeTripMap },
     allTripStops,
     allCalendar,
@@ -13831,7 +13820,7 @@ app.get("/nearby", async (c) => {
   });
   const busRoutes = findNearbyBusRoutes(allRoutes, allTrips, vehicles, lat, lon, 1e3, routeMap, tripMap);
   const { buses: prasaranaBuses } = await getPrasaranaBuses(c.env.KV);
-  const prasaranaNearby = findNearbyPrasaranaBuses(prasaranaBuses, allRoutes, allTrips, lat, lon, Math.max(radius, 1e3), routeTripMap);
+  const prasaranaNearby = findNearbyPrasaranaBuses(prasaranaBuses, allRoutes, allTrips, lat, lon, Math.max(radius, 1e3), routeTripMap, shortNameMap);
   const mergedBusRoutes = mergeBusRoutes(busRoutes, prasaranaNearby);
   const queries = [];
   const seenQueries = /* @__PURE__ */ new Map();
@@ -14078,17 +14067,7 @@ app.get("/rail/schedule", async (c) => {
   if (!result) return c.json({ error: "Station not found" }, 404);
   return c.json(result);
 });
-app.post("/rail/ingest", async (c) => {
-  const authHeader = c.req.header("Authorization");
-  const expectedToken = `Bearer ${c.env.ADMIN_TOKEN}`;
-  if (!c.env.ADMIN_TOKEN || !authHeader) {
-    return c.json({ error: "Unauthorized" }, 401);
-  }
-  const compareStr = authHeader.length === expectedToken.length ? authHeader : expectedToken;
-  const isMatch = await timingSafeEqual(compareStr, expectedToken) && authHeader.length === expectedToken.length;
-  if (!isMatch) {
-    return c.json({ error: "Unauthorized" }, 401);
-  }
+app.post("/rail/ingest", requireAdminToken, async (c) => {
   try {
     const result = await ingestRailTimetables(c.env);
     return c.json({ status: "ok", inserted: result.inserted });
@@ -14132,16 +14111,21 @@ app.get("/alerts", async (c) => {
 });
 app.get("/route/:routeId", async (c) => {
   const routeId = c.req.param("routeId");
-  const allRoutes = await getAllRoutes(c.env.KV);
-  const { map, shortNameMap } = await getRoutesMaps(c.env.KV);
+  const [{ map, shortNameMap }, { buses: prasaranaBuses }] = await Promise.all([
+    getRoutesMaps(c.env.KV),
+    getPrasaranaBuses(c.env.KV)
+  ]);
   let route = map.get(routeId) || shortNameMap.get(routeId);
-  const { buses: prasaranaBuses } = await getPrasaranaBuses(c.env.KV);
   if (!route) {
     const hasPrasarana = prasaranaBuses.some((b) => b.route === routeId || b.route === routeId + "0");
     if (!hasPrasarana) return c.json({ error: "Route not found" }, 404);
     route = { id: routeId, shortName: routeId, longName: "", type: 3 };
   }
-  const vehicles = await getRealtimeVehicles(c.env.KV);
+  const [vehicles, allTrips, allShapes] = await Promise.all([
+    getRealtimeVehicles(c.env.KV),
+    getAllTrips(c.env.KV),
+    getAllShapes(c.env.KV)
+  ]);
   const gtfsBuses = [];
   const routeShortName = route.shortName || route.longName || "";
   const tgtRouteId = route.id;
@@ -14178,8 +14162,6 @@ app.get("/route/:routeId", async (c) => {
     }
   }
   const mergedBuses = mergeBusRoutes(gtfsBuses, pBuses);
-  const allTrips = await getAllTrips(c.env.KV);
-  const allShapes = await getAllShapes(c.env.KV);
   const shapeIds = /* @__PURE__ */ new Set();
   const tgtRouteIdForShapes = route.id;
   for (let i2 = 0, len = allTrips.length; i2 < len; i2++) {
