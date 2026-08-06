@@ -71,3 +71,7 @@
 ## 2025-01-26 - Add inline loading states to async buttons
 **Learning:** In SwiftUI, `Button` actions that trigger system permission dialogues (like notification authorization) or await async work can leave the UI feeling unresponsive during the delay, potentially leading to duplicate taps.
 **Action:** Always maintain an `isLoading` state and conditionally swap the button's `Label` for a `ProgressView()` while applying `.disabled()` to provide immediate visual feedback and prevent duplicate interactions.
+
+## 2025-01-26 - Explicit navigation indicators for custom buttons
+**Learning:** In watchOS, lists built with `Button` (to trigger state-based navigation) do not automatically receive the `chevron.right` accessory that `NavigationLink` provides, making their navigability ambiguous and inconsistent.
+**Action:** Always append `Image(systemName: "chevron.right")` with secondary styling to the trailing edge of navigable list rows built with `Button` to provide a consistent, native-feeling visual affordance.
