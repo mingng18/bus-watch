@@ -12607,12 +12607,21 @@ function findNearbyStops(ctx) {
   nearby.sort((a, b) => a.distance - b.distance);
   const tripMap = buildEntityMap(trips, "id", ctx.tripMap);
   const routeMap = buildEntityMap(routes, "id", ctx.routeMap);
+  const combinedBox = getBoundingBox(lat, lon, radiusM + 500);
+  const nearbyVehicles = [];
+  for (let i2 = 0; i2 < vehicles.length; i2++) {
+    const v = vehicles[i2];
+    if (v.lat >= combinedBox.minLat && v.lat <= combinedBox.maxLat && v.lon >= combinedBox.minLon && v.lon <= combinedBox.maxLon) {
+      nearbyVehicles.push(v);
+    }
+  }
   return nearby.map(({ stop, distance }) => {
     const arrivals = [];
     if (stop.type === "bus") {
       const seen = /* @__PURE__ */ new Set();
       const stopBox = getBoundingBox(stop.lat, stop.lon, 500);
-      for (const v of vehicles) {
+      for (let i2 = 0; i2 < nearbyVehicles.length; i2++) {
+        const v = nearbyVehicles[i2];
         if (v.lat < stopBox.minLat || v.lat > stopBox.maxLat || v.lon < stopBox.minLon || v.lon > stopBox.maxLon) {
           continue;
         }
