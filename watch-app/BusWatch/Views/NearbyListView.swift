@@ -121,6 +121,9 @@ struct NearbyListView: View {
                         .foregroundStyle(.secondary)
                         .contentTransition(.numericText())
                         .animation(.default, value: stop.distanceM)
+                    Image(systemName: "chevron.right")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
                 }
 
                 if let first = stop.arrivals.first {
