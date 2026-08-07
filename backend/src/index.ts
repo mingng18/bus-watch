@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { createMiddleware } from 'hono/factory';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
 import { timingSafeEqual } from 'hono/utils/buffer';
@@ -70,11 +71,7 @@ function validateLatLon(lat: number, lon: number): string | null {
   return null;
 }
 
-// POST because /refresh mutates state (re-ingests GTFS into KV). GET would be
-// CSRF/prefetch-prone (browsers prefetch links, prefetch robots hit URLs found
-// in HTML, image preloaders have historically fired GETs on linked URLs).
-// See issue #131.
-app.post('/refresh', async (c) => {
+const requireAdminToken = createMiddleware<{ Bindings: Env }>(async (c, next) => {
   const authHeader = c.req.header('Authorization');
   const expectedToken = `Bearer ${c.env.ADMIN_TOKEN}`;
   if (!c.env.ADMIN_TOKEN || !authHeader) {
@@ -86,6 +83,15 @@ app.post('/refresh', async (c) => {
   if (!isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
+
+  await next();
+});
+
+// POST because /refresh mutates state (re-ingests GTFS into KV). GET would be
+// CSRF/prefetch-prone (browsers prefetch links, prefetch robots hit URLs found
+// in HTML, image preloaders have historically fired GETs on linked URLs).
+// See issue #131.
+app.post('/refresh', requireAdminToken, async (c) => {
   await refreshStaticData(c.env.KV);
   return c.json({ status: 'refreshed' });
 });
@@ -107,7 +113,7 @@ app.get('/nearby', async (c) => {
     allStops,
     allRoutes,
     allTrips,
-    { map: routeMap },
+    { map: routeMap, shortNameMap },
     { tripMap, routeTripMap },
     allTripStops,
     allCalendar,
@@ -143,7 +149,7 @@ app.get('/nearby', async (c) => {
 
   // Merge Prasarana Socket.IO bus data (covers routes not in GTFS like T816)
   const { buses: prasaranaBuses } = await getPrasaranaBuses(c.env.KV);
-  const prasaranaNearby = findNearbyPrasaranaBuses(prasaranaBuses, allRoutes, allTrips, lat, lon, Math.max(radius, 1000), routeTripMap);
+  const prasaranaNearby = findNearbyPrasaranaBuses(prasaranaBuses, allRoutes, allTrips, lat, lon, Math.max(radius, 1000), routeTripMap, shortNameMap);
   const mergedBusRoutes = mergeBusRoutes(busRoutes, prasaranaNearby);
 
   // Enrich bus arrivals with historical ETA when available
@@ -205,8 +211,11 @@ app.get('/nearby', async (c) => {
 app.get('/bus/trip/:tripId/progress', async (c) => {
   const tripId = c.req.param('tripId');
   try {
-    const allRoutes = await getAllRoutes(c.env.KV);
-    const vehicles = await getRealtimeVehicles(c.env.KV);
+    const [allRoutes, vehicles, allTripStops] = await Promise.all([
+      getAllRoutes(c.env.KV),
+      getRealtimeVehicles(c.env.KV),
+      getAllTripStops(c.env.KV)
+    ]);
     // Optimization: Prevent lambda allocation in hot path
     let vehicle = null;
     for (let i = 0, len = vehicles.length; i < len; i++) {
@@ -215,7 +224,6 @@ app.get('/bus/trip/:tripId/progress', async (c) => {
         break;
       }
     }
-    const allTripStops = await getAllTripStops(c.env.KV);
     const routeMap = new Map<string, Route>();
     for (const r of allRoutes) routeMap.set(r.id, r);
     const result = getBusTripProgress(tripId, routeMap, allTripStops, vehicle);
@@ -442,18 +450,7 @@ app.get('/rail/schedule', async (c) => {
   return c.json(result);
 });
 
-app.post('/rail/ingest', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  const expectedToken = `Bearer ${c.env.ADMIN_TOKEN}`;
-  if (!c.env.ADMIN_TOKEN || !authHeader) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-  const compareStr = authHeader.length === expectedToken.length ? authHeader : expectedToken;
-  const isMatch = await timingSafeEqual(compareStr, expectedToken) && authHeader.length === expectedToken.length;
-
-  if (!isMatch) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
+app.post('/rail/ingest', requireAdminToken, async (c) => {
   try {
     const result = await ingestRailTimetables(c.env);
     return c.json({ status: 'ok', inserted: result.inserted });
@@ -506,29 +503,29 @@ app.get('/alerts', async (c) => {
 
 app.get('/route/:routeId', async (c) => {
   const routeId = c.req.param('routeId');
-  const allRoutes = await getAllRoutes(c.env.KV);
-  // Optimization: Turn O(N) linear search into O(1) Map lookup
-  const { map, shortNameMap } = await getRoutesMaps(c.env.KV);
+
+  // Performance optimization: Group independent KV/external fetches concurrently
+  // via Promise.all to avoid linear latency compounding.
+  // The unused allRoutes fetch is removed.
+  const [{ map, shortNameMap }, { buses: prasaranaBuses }] = await Promise.all([
+    getRoutesMaps(c.env.KV),
+    getPrasaranaBuses(c.env.KV)
+  ]);
+
   let route = map.get(routeId) || shortNameMap.get(routeId);
 
-  const { buses: prasaranaBuses } = await getPrasaranaBuses(c.env.KV);
-
   if (!route) {
-    let hasPrasarana = false;
-    const target2 = routeId + '0';
-    for (let i = 0, len = prasaranaBuses.length; i < len; i++) {
-      const r = prasaranaBuses[i].route;
-      if (r === routeId || r === target2) {
-        hasPrasarana = true;
-        break;
-      }
-    }
+    const hasPrasarana = prasaranaBuses.some(b => b.route === routeId || b.route === routeId + '0');
     if (!hasPrasarana) return c.json({ error: 'Route not found' }, 404);
     route = { id: routeId, shortName: routeId, longName: '', type: 3 } as any;
   }
 
-  // Get active buses
-  const vehicles = await getRealtimeVehicles(c.env.KV);
+  // Performance optimization: Second concurrent block for data needed only for valid routes.
+  const [vehicles, allTrips, allShapes] = await Promise.all([
+    getRealtimeVehicles(c.env.KV),
+    getAllTrips(c.env.KV),
+    getAllShapes(c.env.KV)
+  ]);
 
   const gtfsBuses: Array<{ routeId: string; routeShortName: string; destination: string; minutes: number; tripId: string; lat: number; lon: number; }> = [];
   const routeShortName = route!.shortName || route!.longName || '';
@@ -568,9 +565,6 @@ app.get('/route/:routeId', async (c) => {
   }
 
   const mergedBuses = mergeBusRoutes(gtfsBuses, pBuses);
-
-  const allTrips = await getAllTrips(c.env.KV);
-  const allShapes = await getAllShapes(c.env.KV);
 
   // Performance optimization: Avoid intermediate array allocations from .filter().map()
   // and Array.from(new Set()) by using standard loops to collect unique shape IDs
