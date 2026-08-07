@@ -121,10 +121,15 @@ struct NearbyListView: View {
                         .foregroundStyle(.secondary)
                         .contentTransition(.numericText())
                         .animation(.default, value: stop.distanceM)
+                    Image(systemName: "chevron.right")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
                 }
 
                 if let first = stop.arrivals.first {
-                    Text("\(arrivalPrefix(first))\(first.line ?? first.route ?? "") → \(first.destination) — \(arrivalMinutesText(first))")
+                    let route = first.line ?? first.route ?? ""
+                    let displayRoute = route.isEmpty ? "Service" : route
+                    Text("\(arrivalPrefix(first))\(displayRoute) → \(first.destination) — \(arrivalMinutesText(first))")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .contentTransition(.numericText())
@@ -176,13 +181,14 @@ struct NearbyListView: View {
         var parts = [stop.name, "\(distText) away"]
         if let first = stop.arrivals.first {
             let route = first.line ?? first.route ?? ""
+            let spokenRoute = route.isEmpty ? "Service" : route
             // VoiceOver reads the full qualifier: "scheduled" / "live", plus
             // "approximate" + the uncertainty window when confidence is medium
             // or low, so a rider knows not to trust a weak estimate tightly.
             let source = arrivalSpokenSource(first)
             let approx = arrivalSpokenApprox(first)
             let minText = first.minutes == 1 ? "1 minute" : "\(first.minutes) minutes"
-            parts.append("\(source)\(route) to \(first.destination), \(approx)\(minText)")
+            parts.append("\(source)\(spokenRoute) to \(first.destination), \(approx)\(minText)")
         }
         if AppFeatureFlags.favoritesAndHome, let favorites {
             if favorites.isHome(stop.id) { parts.append("home stop") }

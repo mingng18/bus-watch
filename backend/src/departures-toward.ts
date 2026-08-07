@@ -23,14 +23,7 @@ export function getDeparturesTowardDestination(
   limit = 5,
   pRouteMap?: Map<string, Route>
 ): StationScheduleResponse {
-  // Performance optimization: Replace .find with an inline loop to avoid allocating a lambda per request
-  let stop: Stop | undefined;
-  for (let i = 0; i < stops.length; i++) {
-    if (stops[i].id === stopId) {
-      stop = stops[i];
-      break;
-    }
-  }
+  const stop = stops.find(s => s.id === stopId);
   if (!stop) throw new Error(`Stop not found: ${stopId}`);
 
   const routeMap = pRouteMap || new Map<string, Route>();
