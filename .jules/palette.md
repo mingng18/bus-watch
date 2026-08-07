@@ -72,6 +72,10 @@
 **Learning:** In SwiftUI, `Button` actions that trigger system permission dialogues (like notification authorization) or await async work can leave the UI feeling unresponsive during the delay, potentially leading to duplicate taps.
 **Action:** Always maintain an `isLoading` state and conditionally swap the button's `Label` for a `ProgressView()` while applying `.disabled()` to provide immediate visual feedback and prevent duplicate interactions.
 
+## 2025-02-12 - watchOS Navigation Chevrons
+**Learning:** In watchOS SwiftUI, list rows built with `Button` (for state-based navigation) lack the default `chevron.right` accessory provided by `NavigationLink`.
+**Action:** Manually append `Image(systemName: "chevron.right")` with secondary styling to the trailing edge of the button's content to provide consistent visual navigation affordances.
+
 ## 2025-01-23 - Pair empty state text with an appropriate icon
 **Learning:** Text-only empty states in lists (like "No Active Disruptions") can feel unpolished and lack visual grounding, leaving users scanning for meaning.
 **Action:** Always pair empty state text with a context-appropriate, secondary-styled SF Symbol (like `checkmark.seal.fill` or `mappin.slash`) and mark the icon as `.accessibilityHidden(true)` to improve visual glanceability and polish without cluttering VoiceOver.
