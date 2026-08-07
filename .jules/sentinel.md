@@ -87,7 +87,3 @@
 **Vulnerability:** Unbounded extraction of untrusted ZIP archives in `backend/src/gtfs-static.ts` via `fflate`'s `unzipSync` without a strict allowlist. Extracting everything, even with a total size limit, leaves the application exposed to extracting an extremely large number of tiny files (a form of Zip Bomb) and wastes resources decompressing unused files.
 **Learning:** Extracting untrusted ZIP archives must not only restrict total extracted size, but also enforce a strict allowlist of explicitly required specification files (such as `stops.txt`, `routes.txt`, `trips.txt`, `stop_times.txt`, `calendar.txt`, `agency.txt`, `calendar_dates.txt`, and `shapes.txt`).
 **Prevention:** Always combine `file.originalSize` limit tracking with a specific file allowlist (`!ALLOWED_FILES.has(fileName)`) in extraction filters to mitigate Zip Bomb attacks effectively and prevent functional regressions.
-## 2025-02-28 - Token Comparison Timing Attack (Update)
-**Vulnerability:** A previous mitigation attempted to manual string padding/length checking alongside `timingSafeEqual`.
-**Learning:** `timingSafeEqual` in `hono/utils/buffer` internally hashes inputs and securely handles strings of differing lengths without throwing. Manual workarounds are unnecessary and potentially insecure.
-**Prevention:** Rely on the built-in properties of robust cryptographic comparison functions (like Hono's `timingSafeEqual`) without attempting manual length-matching workarounds or redundant hashing.
