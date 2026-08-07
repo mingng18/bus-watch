@@ -360,9 +360,9 @@ async function main(): Promise<void> {
   for (const c of candidateFeeds()) {
     try {
       const report = await probe(c);
-      console.log(formatReport(c, report));
+      console.info(formatReport(c, report));
     } catch (err) {
-      console.log(`\n=== ${c.label} ===\nURL: ${c.url}\nstatus: error — ${err}`);
+      console.error(`\n=== ${c.label} ===\nURL: ${c.url}\nstatus: error — ${err}`);
     }
   }
 }
