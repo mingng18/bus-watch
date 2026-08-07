@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import * as railIngest from '../src/rail-ingest';
-import worker from '../src/index';
+import worker, { validateLatLon } from '../src/index';
 import * as nearby from '../src/nearby';
 import * as alerts from '../src/alerts';
 
@@ -131,6 +131,38 @@ describe('Not-found routes return clean 404 (issue #128)', () => {
 });
 
 describe('Input-validation hardening (issue #131)', () => {
+  describe('validateLatLon directly', () => {
+    it('returns null for valid lat/lon (e.g. equator)', () => {
+      expect(validateLatLon(0, 0)).toBeNull();
+    });
+
+    it('returns null for valid positive/negative lat/lon', () => {
+      expect(validateLatLon(3.14, 101.68)).toBeNull();
+      expect(validateLatLon(-90, -180)).toBeNull();
+      expect(validateLatLon(90, 180)).toBeNull();
+    });
+
+    it('rejects non-finite lat/lon with specific error message', () => {
+      const expected = 'lat and lon must be finite numbers';
+      expect(validateLatLon(NaN, 101.68)).toBe(expected);
+      expect(validateLatLon(3.14, NaN)).toBe(expected);
+      expect(validateLatLon(Infinity, 101.68)).toBe(expected);
+      expect(validateLatLon(3.14, -Infinity)).toBe(expected);
+    });
+
+    it('rejects lat out of bounds with specific error message', () => {
+      const expected = 'lat must be in [-90, 90]';
+      expect(validateLatLon(-91, 101.68)).toBe(expected);
+      expect(validateLatLon(91, 101.68)).toBe(expected);
+    });
+
+    it('rejects lon out of bounds with specific error message', () => {
+      const expected = 'lon must be in [-180, 180]';
+      expect(validateLatLon(3.14, -181)).toBe(expected);
+      expect(validateLatLon(3.14, 181)).toBe(expected);
+    });
+  });
+
   // Empty KV: getAll* return [], so the routes/handlers short-circuit or return
   // trivially after the guard. We only care the guard rejects bad input with 400.
   const emptyKv = {

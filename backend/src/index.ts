@@ -62,7 +62,7 @@ app.get('/', (c) => c.json({ status: 'ok', service: 'bus-watch' }));
  * Returns an error message string when invalid, or null when valid.
  * See issue #131.
  */
-function validateLatLon(lat: number, lon: number): string | null {
+export function validateLatLon(lat: number, lon: number): string | null {
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
     return 'lat and lon must be finite numbers';
   }
