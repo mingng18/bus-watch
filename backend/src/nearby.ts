@@ -91,6 +91,22 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
   const tripMap = buildEntityMap(trips, "id", ctx.tripMap);
   const routeMap = buildEntityMap(routes, "id", ctx.routeMap);
 
+  // Performance optimization: Pre-filter vehicles to the outer combined bounding box
+  // before checking them against individual stops, drastically reducing inner loop iterations.
+  const combinedBox = getBoundingBox(lat, lon, radiusM + 500);
+  const nearbyVehicles: VehiclePosition[] = [];
+  for (let i = 0; i < vehicles.length; i++) {
+    const v = vehicles[i];
+    if (
+      v.lat >= combinedBox.minLat &&
+      v.lat <= combinedBox.maxLat &&
+      v.lon >= combinedBox.minLon &&
+      v.lon <= combinedBox.maxLon
+    ) {
+      nearbyVehicles.push(v);
+    }
+  }
+
   return nearby.map(({ stop, distance }) => {
     const arrivals: Arrival[] = [];
 
@@ -101,7 +117,8 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
       // Additionally, apply a bounding box pre-filter to bypass expensive trigonometric
       // functions for vehicles that are clearly out of range.
       const stopBox = getBoundingBox(stop.lat, stop.lon, 500);
-      for (const v of vehicles) {
+      for (let i = 0; i < nearbyVehicles.length; i++) {
+        const v = nearbyVehicles[i];
         if (
           v.lat < stopBox.minLat ||
           v.lat > stopBox.maxLat ||
