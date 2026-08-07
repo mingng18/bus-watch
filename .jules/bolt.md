@@ -110,6 +110,12 @@
 ## 2025-02-23 - Concurrent Data Fetching on Valid Paths
 **Learning:** Sequential async lookups (like `getRoutesMaps` and `getPrasaranaBuses`) compound latency linearly. However, grouping ALL fetches (like `getRealtimeVehicles`, `getAllTrips`, `getAllShapes`) into a single `Promise.all` block before validating parameters (e.g. checking if `route` exists) causes unnecessary database/KV reads for invalid requests (like 404s), wasting I/O resources on error paths.
 **Action:** When migrating sequential `await`s to concurrent `Promise.all` blocks in endpoints, split the requests into logical phases. Fetch the minimal data required for validation in the first `Promise.all`, perform the validation (early return on 404), and fetch the remaining heavy data in a second `Promise.all` block to preserve fast/cheap error paths while maximizing concurrency on the happy path.
+
+## 2024-08-05 - Bounding Box Pre-filtering outside nested loops
+**Learning:** In nested loops dealing with geographic data (e.g., checking every `stop` against every `vehicle`), applying a bounding box filter inside the inner loop is better than raw Haversine, but still requires evaluating thousands of out-of-bounds items iteratively.
+**Action:** When finding items within a radius of a central point across nested relationships (e.g. stops and vehicles), compute a combined outer bounding box (`searchRadius + innerRadius`) and pre-filter the secondary dataset (vehicles) *outside* the outer loop. This changes the execution from $O(S \times V)$ to $O(V + S \times V_{nearby})$, dropping execution times drastically (e.g., from ~360ms to ~38ms).
+**Learning:** In hot code paths in TypeScript, chaining array methods like `.map().reduce()` and `.filter()` creates intermediate arrays and closure allocations which cause garbage collection overhead.
+
 **Learning:** In hot code paths in TypeScript, chaining array methods like `.map().reduce()` and `.filter()` creates intermediate arrays and closure allocations which cause garbage collection overhead.
 
 **Learning:** In hot code paths in TypeScript, chaining array methods like `.map().reduce()` and `.filter()` creates intermediate arrays and closure allocations which cause garbage collection overhead.
