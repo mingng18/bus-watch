@@ -77,8 +77,7 @@ const requireAdminToken = createMiddleware<{ Bindings: Env }>(async (c, next) =>
   if (!c.env.ADMIN_TOKEN || !authHeader) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
-  const compareStr = authHeader.length === expectedToken.length ? authHeader : expectedToken;
-  const isMatch = await timingSafeEqual(compareStr, expectedToken) && authHeader.length === expectedToken.length;
+  const isMatch = await timingSafeEqual(authHeader, expectedToken);
 
   if (!isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
