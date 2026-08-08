@@ -75,3 +75,6 @@
 ## 2025-02-12 - watchOS Navigation Chevrons
 **Learning:** In watchOS SwiftUI, list rows built with `Button` (for state-based navigation) lack the default `chevron.right` accessory provided by `NavigationLink`.
 **Action:** Manually append `Image(systemName: "chevron.right")` with secondary styling to the trailing edge of the button's content to provide consistent visual navigation affordances.
+## 2025-01-26 - Pull-to-refresh loading state bypass
+**Learning:** In SwiftUI, when using `.refreshable` on a list to provide native pull-to-refresh functionality, replacing the main view with a full-screen loading state (e.g., `ProgressView`) during the refresh event will abruptly interrupt and cancel the native refresh spinner animation.
+**Action:** Conditionally bypass full-screen loading state changes during native `.refreshable` actions to preserve smooth built-in animations.
