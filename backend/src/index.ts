@@ -291,12 +291,10 @@ app.get('/bus/eta', async (c) => {
     // route_id, so match by shortName as a fallback.
     let fromStopId: string | null = null;
     if (busLat !== null && busLon !== null) {
-      const [allTrips, allTripStops, allRoutes] = await Promise.all([
-        getAllTrips(c.env.KV),
-        getAllTripStops(c.env.KV),
+      const [allRoutes, seqs] = await Promise.all([
         getAllRoutes(c.env.KV),
+        getCanonicalStopSequences(c.env.KV),
       ]);
-      const seqs = canonicalStopSequencesByRoute(allTrips, allTripStops);
       let stops = routeIdForSeq ? seqs.get(routeIdForSeq) : undefined;
       if (!stops) {
         // Fallback: match by route short name (prasarana codes).
@@ -727,6 +725,18 @@ async function getAllTripStops(kv: KVNamespace) {
   return promise;
 }
 
+let cachedSeqsPromise: { promise: Promise<Map<string, any[]>>, expires: number } | null = null;
+async function getCanonicalStopSequences(kv: KVNamespace) {
+  const now = Date.now();
+  if (cachedSeqsPromise && cachedSeqsPromise.expires > now) return cachedSeqsPromise.promise;
+  const promise = Promise.all([
+    getAllTrips(kv),
+    getAllTripStops(kv)
+  ]).then(([allTrips, allTripStops]) => canonicalStopSequencesByRoute(allTrips, allTripStops));
+  cachedSeqsPromise = { promise, expires: now + CACHE_TTL_MS };
+  return promise;
+}
+
 let cachedCalendarPromise: { promise: Promise<any[]>, expires: number } | null = null;
 async function getAllCalendar(kv: KVNamespace) {
   const now = Date.now();
@@ -851,11 +861,7 @@ export default {
         // already happening here.
         let stopSeqs = new Map();
         try {
-          const [allTrips, allTripStops] = await Promise.all([
-            getAllTrips(env.KV),
-            getAllTripStops(env.KV),
-          ]);
-          stopSeqs = canonicalStopSequencesByRoute(allTrips, allTripStops);
+          stopSeqs = await getCanonicalStopSequences(env.KV);
         } catch (err) {
           console.error('Failed to load stop sequences for aggregation:', err);
         }
