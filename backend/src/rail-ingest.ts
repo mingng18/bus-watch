@@ -60,7 +60,14 @@ async function fetchAndParseGtfsData() {
   }
 
   const getFile = (name: string): string => {
-    const key = Object.keys(files).find(k => k.endsWith(name));
+    // Performance optimization: Avoid Object.keys array allocation and inline lambda
+    let key;
+    for (const k in files) {
+      if (k.endsWith(name)) {
+        key = k;
+        break;
+      }
+    }
     return key ? new TextDecoder().decode(files[key]) : '';
   };
 
