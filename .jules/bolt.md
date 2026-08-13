@@ -114,3 +114,7 @@
 ## 2024-08-05 - Bounding Box Pre-filtering outside nested loops
 **Learning:** In nested loops dealing with geographic data (e.g., checking every `stop` against every `vehicle`), applying a bounding box filter inside the inner loop is better than raw Haversine, but still requires evaluating thousands of out-of-bounds items iteratively.
 **Action:** When finding items within a radius of a central point across nested relationships (e.g. stops and vehicles), compute a combined outer bounding box (`searchRadius + innerRadius`) and pre-filter the secondary dataset (vehicles) *outside* the outer loop. This changes the execution from $O(S \times V)$ to $O(V + S \times V_{nearby})$, dropping execution times drastically (e.g., from ~360ms to ~38ms).
+
+## 2025-02-24 - Avoid Object.keys allocation in file lookups
+**Learning:** Using `Object.keys(dict).find(...)` for dictionary key lookups creates an unnecessary intermediate array and lambda closure.
+**Action:** When finding a key in a dictionary object based on string conditions (like `.endsWith`), use a standard `for (const k in dict)` loop to avoid O(N) array allocation overhead.
