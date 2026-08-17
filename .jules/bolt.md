@@ -114,3 +114,7 @@
 ## 2024-08-05 - Bounding Box Pre-filtering outside nested loops
 **Learning:** In nested loops dealing with geographic data (e.g., checking every `stop` against every `vehicle`), applying a bounding box filter inside the inner loop is better than raw Haversine, but still requires evaluating thousands of out-of-bounds items iteratively.
 **Action:** When finding items within a radius of a central point across nested relationships (e.g. stops and vehicles), compute a combined outer bounding box (`searchRadius + innerRadius`) and pre-filter the secondary dataset (vehicles) *outside* the outer loop. This changes the execution from $O(S \times V)$ to $O(V + S \times V_{nearby})$, dropping execution times drastically (e.g., from ~360ms to ~38ms).
+
+## 2024-10-25 - Avoid localeCompare for strict ASCII strings
+**Learning:** Using `String.prototype.localeCompare` to sort strictly formatted ASCII strings (like `HH:MM:SS` times in GTFS departures) applies complex internationalization collation rules that introduce noticeable performance overhead (~58% slower in a tight loop of 100k sorts).
+**Action:** When sorting strictly formatted data like times where lexicographical sorting is sufficient, use simple comparison operators (`a < b ? -1 : a > b ? 1 : 0`) instead of `localeCompare` to reduce execution time.
