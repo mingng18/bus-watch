@@ -87,3 +87,8 @@
 **Vulnerability:** Unbounded extraction of untrusted ZIP archives in `backend/src/gtfs-static.ts` via `fflate`'s `unzipSync` without a strict allowlist. Extracting everything, even with a total size limit, leaves the application exposed to extracting an extremely large number of tiny files (a form of Zip Bomb) and wastes resources decompressing unused files.
 **Learning:** Extracting untrusted ZIP archives must not only restrict total extracted size, but also enforce a strict allowlist of explicitly required specification files (such as `stops.txt`, `routes.txt`, `trips.txt`, `stop_times.txt`, `calendar.txt`, `agency.txt`, `calendar_dates.txt`, and `shapes.txt`).
 **Prevention:** Always combine `file.originalSize` limit tracking with a specific file allowlist (`!ALLOWED_FILES.has(fileName)`) in extraction filters to mitigate Zip Bomb attacks effectively and prevent functional regressions.
+
+## $(date +%Y-%m-%d) - Enforce Strict Content Security Policy on JSON API
+**Vulnerability:** The backend JSON API lacked a strict Content Security Policy (CSP), potentially allowing execution of malicious scripts (XSS) if a client inadvertently rendered an API response as an HTML document (e.g., due to missing or ignored `Content-Type` headers).
+**Learning:** Even for APIs that are not designed to serve HTML, applying a strict CSP is a crucial defense-in-depth measure. Relying solely on `Content-Type: application/json` is sometimes insufficient if client browsers or proxies mishandle the response.
+**Prevention:** Always configure security headers middleware (like Hono's `secureHeaders`) with `default-src 'none'` for backend APIs. This guarantees that no scripts, images, or external resources can be loaded or executed if the payload is ever interpreted as HTML.
