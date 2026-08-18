@@ -75,3 +75,7 @@
 ## 2025-02-12 - watchOS Navigation Chevrons
 **Learning:** In watchOS SwiftUI, list rows built with `Button` (for state-based navigation) lack the default `chevron.right` accessory provided by `NavigationLink`.
 **Action:** Manually append `Image(systemName: "chevron.right")` with secondary styling to the trailing edge of the button's content to provide consistent visual navigation affordances.
+
+## 2025-02-12 - Pull-to-refresh on lists with empty/error states
+**Learning:** In SwiftUI, native pull-to-refresh (`.refreshable`) requires a scrollable container (e.g., `List` or `ScrollView`). When presenting non-scrollable `.empty` or `.error` states (like a `VStack`), provide a manual 'Refresh' or 'Retry' `Button` to ensure users can still trigger data updates. Also, when refreshing, avoid replacing the main list with a full-screen loading state, as this will abruptly cancel the native pull-to-refresh spinner.
+**Action:** Always provide a manual fallback refresh mechanism in non-scrollable empty states, and bypass resetting states to `.loading` if triggered by a native refresh action to keep animations smooth.
