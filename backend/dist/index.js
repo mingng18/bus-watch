@@ -13122,10 +13122,17 @@ function aggregateSamples(samples) {
   }
   const out = [];
   for (const arr of groups.values()) {
-    const cleaned = rejectOutliers(arr.map((s) => s.seconds));
-    if (cleaned.length === 0) continue;
-    const avg = cleaned.reduce((a, b) => a + b, 0) / cleaned.length;
-    const mad = cleaned.reduce((a, b) => a + Math.abs(b - avg), 0) / cleaned.length;
+    const seconds = new Array(arr.length);
+    for (let i2 = 0; i2 < arr.length; i2++) seconds[i2] = arr[i2].seconds;
+    const cleaned = rejectOutliers(seconds);
+    const len = cleaned.length;
+    if (len === 0) continue;
+    let sum = 0;
+    for (let i2 = 0; i2 < len; i2++) sum += cleaned[i2];
+    const avg = sum / len;
+    let madSum = 0;
+    for (let i2 = 0; i2 < len; i2++) madSum += Math.abs(cleaned[i2] - avg);
+    const mad = madSum / len;
     const first = arr[0];
     out.push({
       route: first.route,
@@ -13149,10 +13156,20 @@ function rejectOutliers(values, threshold = 3) {
   if (values.length <= 3) return values;
   const sorted = [...values].sort((a, b) => a - b);
   const median = sorted[Math.floor(sorted.length / 2)];
-  const devs = values.map((v) => Math.abs(v - median));
-  const mad = devs.reduce((a, b) => a + b, 0) / devs.length;
+  let totalDev = 0;
+  for (let i2 = 0; i2 < values.length; i2++) {
+    totalDev += Math.abs(values[i2] - median);
+  }
+  const mad = totalDev / values.length;
   if (mad === 0) return values;
-  return values.filter((_, i2) => devs[i2] <= threshold * mad);
+  const result = [];
+  const maxDev = threshold * mad;
+  for (let i2 = 0; i2 < values.length; i2++) {
+    if (Math.abs(values[i2] - median) <= maxDev) {
+      result.push(values[i2]);
+    }
+  }
+  return result;
 }
 __name(rejectOutliers, "rejectOutliers");
 function canonicalStopSequencesByRoute(trips, tripStops) {
@@ -13736,7 +13753,11 @@ var SELANGOR_AGENCIES = ["selangor-mobility"];
 var REALTIME_AGENCIES = ["rapid-bus-kl", "rapid-bus-mrtfeeder"];
 var AGENCIES = [...REALTIME_AGENCIES, ...SELANGOR_AGENCIES];
 var app = new Hono2();
-app.use("*", secureHeaders());
+app.use("*", secureHeaders({
+  contentSecurityPolicy: {
+    defaultSrc: ["'none'"]
+  }
+}));
 app.use("*", cors({ origin: /* @__PURE__ */ __name((origin, c) => c.env.FRONTEND_URL ?? null, "origin") }));
 app.use("*", async (c, next) => {
   if (c.req.path.length > 256) {
