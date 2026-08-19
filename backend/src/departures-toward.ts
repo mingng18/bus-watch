@@ -85,9 +85,7 @@ export function getDeparturesTowardDestination(
     });
   }
 
-  // Performance optimization: Avoid using localeCompare for strictly formatted ASCII strings
-  // (like HH:MM:SS) to bypass complex internationalization collation rules and reduce overhead.
-  departures.sort((a, b) => a.departureTime < b.departureTime ? -1 : a.departureTime > b.departureTime ? 1 : 0);
+  departures.sort((a, b) => a.departureTime.localeCompare(b.departureTime));
 
   return {
     stopId,
