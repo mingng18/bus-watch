@@ -1,2 +1,2 @@
 
-<!-- Closed PR: Duplicate implementation of getBoundingBox, feature was already present in base branch. -->
+<!-- Closed PR: Feature was already integrated into base branch in #333 and #353 -->
