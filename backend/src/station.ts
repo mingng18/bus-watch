@@ -61,7 +61,9 @@ export function getStationSchedule(
     });
   }
 
-  departures.sort((a, b) => a.departureTime.localeCompare(b.departureTime));
+  // Performance optimization: Replaced localeCompare with standard operators for faster sorting
+  // of strictly formatted ASCII strings (HH:MM:SS), avoiding internationalization overhead.
+  departures.sort((a, b) => a.departureTime < b.departureTime ? -1 : (a.departureTime > b.departureTime ? 1 : 0));
 
   return {
     stopId,
