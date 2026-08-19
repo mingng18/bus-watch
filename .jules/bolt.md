@@ -114,6 +114,10 @@
 ## 2024-08-05 - Bounding Box Pre-filtering outside nested loops
 **Learning:** In nested loops dealing with geographic data (e.g., checking every `stop` against every `vehicle`), applying a bounding box filter inside the inner loop is better than raw Haversine, but still requires evaluating thousands of out-of-bounds items iteratively.
 **Action:** When finding items within a radius of a central point across nested relationships (e.g. stops and vehicles), compute a combined outer bounding box (`searchRadius + innerRadius`) and pre-filter the secondary dataset (vehicles) *outside* the outer loop. This changes the execution from $O(S \times V)$ to $O(V + S \times V_{nearby})$, dropping execution times drastically (e.g., from ~360ms to ~38ms).
+
+## 2025-02-28 - Avoid array chaining overhead in hot paths
+**Learning:** Chaining array methods like `.map().reduce()` and `.map().filter()` inside heavily executed hot loops (such as `aggregateSamples` and `rejectOutliers` in `backend/src/sampling.ts`) forces the engine to allocate new intermediate arrays for every step. In tests, a manual standard `for` loop approach that combines array extraction, average, and spread computation in a single structure performed measurably faster and avoided memory pressure compared to naive array chaining.
+**Action:** When performing mathematical aggregations (like averages or MAD calculations) within tight loops, avoid chaining `.map()`, `.reduce()`, or `.filter()`. Use manual index-based `for` loops and accumulator variables to extract data and calculate values sequentially without allocating intermediary closure or array structures.
 ## 2024-07-28 - [Testing] 🧪 Add tests for CountdownSnapshot
 **Learning:** The watch-app project uses XcodeGen (`project.yml`). When adding new test files to an existing test directory (like `BusWatchTests`), they are automatically included via directory configuration in `project.yml`, meaning no manual `xcodeproj` parsing or project file modification is necessary.
 **Action:** Created `CountdownSnapshotTests.swift` directly in the filesystem and relied on the existing project configuration for it to be included in test targets.
