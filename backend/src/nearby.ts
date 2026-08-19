@@ -80,14 +80,15 @@ function filterAndSortNearbyStops(
 
 function getLiveBusArrivals(
   stop: Stop,
-  vehicles: VehiclePosition[],
+  nearbyVehicles: VehiclePosition[],
   tripMap: Map<string, Trip>,
   routeMap: Map<string, Route>
 ): Arrival[] {
   const arrivals: Arrival[] = [];
   const seen = new Set<string>();
   const stopBox = getBoundingBox(stop.lat, stop.lon, 500);
-  for (const v of vehicles) {
+  for (let i = 0; i < nearbyVehicles.length; i++) {
+    const v = nearbyVehicles[i];
     if (
       v.lat < stopBox.minLat ||
       v.lat > stopBox.maxLat ||
@@ -164,13 +165,9 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
 
   const nearby = filterAndSortNearbyStops(stops, lat, lon, radiusM);
 
-  // Performance optimization: Precompute map to avoid O(N^2) lookups in loop
-  // and use standard loops instead of array mapping to avoid intermediate allocations
   const tripMap = buildEntityMap(trips, "id", ctx.tripMap);
   const routeMap = buildEntityMap(routes, "id", ctx.routeMap);
 
-  // Performance optimization: Pre-filter vehicles to the outer combined bounding box
-  // before checking them against individual stops, drastically reducing inner loop iterations.
   const combinedBox = getBoundingBox(lat, lon, radiusM + 500);
   const nearbyVehicles: VehiclePosition[] = [];
   for (let i = 0; i < vehicles.length; i++) {
@@ -190,7 +187,6 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
 
     if (stop.type === "bus") {
       arrivals = getLiveBusArrivals(stop, nearbyVehicles, tripMap, routeMap);
-
     } else {
       arrivals = getScheduledArrivals(stop, trips, tripStops, routes, calendar, frequencies, now);
     }
