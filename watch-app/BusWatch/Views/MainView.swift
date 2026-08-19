@@ -111,21 +111,27 @@ struct MainView: View {
 
     @ViewBuilder
     private func errorView(message: String) -> some View {
-        VStack(spacing: 12) {
-            Image(systemName: "exclamationmark.triangle")
-                .font(.title2)
-                .foregroundStyle(.red)
-                .accessibilityHidden(true)
-            Text(message)
-                .font(.caption)
-                .multilineTextAlignment(.center)
-            Button {
-                engine.start()
-            } label: {
-                Label("Retry", systemImage: "arrow.clockwise")
+        List {
+            VStack(spacing: 12) {
+                Image(systemName: "exclamationmark.triangle")
+                    .font(.title2)
+                    .foregroundStyle(.red)
+                    .accessibilityHidden(true)
+                Text(message)
+                    .font(.caption)
+                    .multilineTextAlignment(.center)
+                Button {
+                    engine.start()
+                } label: {
+                    Label("Retry", systemImage: "arrow.clockwise")
+                }
+                .buttonStyle(.bordered)
             }
-            .buttonStyle(.bordered)
+            .frame(maxWidth: .infinity)
+            .listRowBackground(Color.clear)
         }
+        .listStyle(.plain)
+        .refreshable { engine.start() }
     }
 
 }

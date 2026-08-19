@@ -75,6 +75,10 @@
 ## 2025-02-12 - watchOS Navigation Chevrons
 **Learning:** In watchOS SwiftUI, list rows built with `Button` (for state-based navigation) lack the default `chevron.right` accessory provided by `NavigationLink`.
 **Action:** Manually append `Image(systemName: "chevron.right")` with secondary styling to the trailing edge of the button's content to provide consistent visual navigation affordances.
+
+## 2025-02-12 - Fallbacks for empty route identifiers in Complications
+**Learning:** Empty string fallbacks for missing route identifiers (like `line.isEmpty ? "Service" : line`) implemented in the main app views weren't carried over to the WatchOS complications, causing visually broken states (e.g. " → Destination") and awkward VoiceOver phrasing on the watch face.
+**Action:** When implementing generic fallbacks for transit identifiers, proactively review and update corresponding complication/widget views to ensure the watch face matches the main app's gracefully degraded experience.
 ## 2025-01-26 - Pull-to-refresh loading state bypass
 **Learning:** In SwiftUI, when using `.refreshable` on a list to provide native pull-to-refresh functionality, replacing the main view with a full-screen loading state (e.g., `ProgressView`) during the refresh event will abruptly interrupt and cancel the native refresh spinner animation.
 **Action:** Conditionally bypass full-screen loading state changes during native `.refreshable` actions to preserve smooth built-in animations.

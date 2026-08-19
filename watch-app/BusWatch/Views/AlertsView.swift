@@ -20,43 +20,31 @@ struct AlertsView: View {
             case .loading:
                 ProgressView("Loading alerts...")
             case .empty:
-                List {
-                    VStack(spacing: 8) {
-                        Image(systemName: "checkmark.seal.fill")
-                            .font(.title2)
-                            .foregroundStyle(.green)
-                            .accessibilityHidden(true)
-                        Text("No active disruptions")
-                            .font(.caption)
-                            .multilineTextAlignment(.center)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .listRowBackground(Color.clear)
+                VStack(spacing: 8) {
+                    Image(systemName: "checkmark.seal.fill")
+                        .font(.title2)
+                        .foregroundStyle(.green)
+                        .accessibilityHidden(true)
+                    Text("No active disruptions")
+                        .font(.caption)
+                        .multilineTextAlignment(.center)
                 }
-                .listStyle(.plain)
-                .refreshable { await load(isRefresh: true) }
             case .error(let message):
-                List {
-                    VStack(spacing: 12) {
-                        Image(systemName: "exclamationmark.triangle")
-                            .font(.title2)
-                            .foregroundStyle(.red)
-                            .accessibilityHidden(true)
-                        Text(message)
-                            .font(.caption2)
-                            .multilineTextAlignment(.center)
-                        Button {
-                            Task { await load() }
-                        } label: {
-                            Label("Retry", systemImage: "arrow.clockwise")
-                        }
-                        .buttonStyle(.bordered)
+                VStack(spacing: 12) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.title2)
+                        .foregroundStyle(.red)
+                        .accessibilityHidden(true)
+                    Text(message)
+                        .font(.caption2)
+                        .multilineTextAlignment(.center)
+                    Button {
+                        Task { await load() }
+                    } label: {
+                        Label("Retry", systemImage: "arrow.clockwise")
                     }
-                    .frame(maxWidth: .infinity)
-                    .listRowBackground(Color.clear)
+                    .buttonStyle(.bordered)
                 }
-                .listStyle(.plain)
-                .refreshable { await load(isRefresh: true) }
             case .loaded(let alerts):
                 List {
                     ForEach(alerts) { alert in
@@ -64,7 +52,6 @@ struct AlertsView: View {
                     }
                 }
                 .listStyle(.plain)
-                .refreshable { await load(isRefresh: true) }
             }
         }
         .navigationTitle("Alerts")
@@ -112,10 +99,8 @@ struct AlertsView: View {
         }
     }
 
-    private func load(isRefresh: Bool = false) async {
-        if !isRefresh {
-            await MainActor.run { loadState = .loading }
-        }
+    private func load() async {
+        await MainActor.run { loadState = .loading }
         do {
             let response = try await api.fetchAlerts()
             await MainActor.run {
