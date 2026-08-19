@@ -88,6 +88,9 @@ const requireAdminToken = createMiddleware<{ Bindings: Env }>(async (c, next) =>
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
+  // Security: Prevent caching of authenticated admin responses
+  c.header('Cache-Control', 'no-store');
+
   await next();
 });
 
