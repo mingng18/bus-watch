@@ -24,11 +24,7 @@ const REALTIME_AGENCIES = ['rapid-bus-kl', 'rapid-bus-mrtfeeder'];
 const AGENCIES = [...REALTIME_AGENCIES, ...SELANGOR_AGENCIES];
 
 const app = new Hono<{ Bindings: Env }>();
-app.use('*', secureHeaders({
-  contentSecurityPolicy: {
-    defaultSrc: ["'none'"],
-  },
-}));
+app.use('*', secureHeaders());
 app.use('*', cors({ origin: (origin, c) => c.env.FRONTEND_URL ?? null }));
 
 // Security: Global input length validation to prevent DoS via excessively large payloads

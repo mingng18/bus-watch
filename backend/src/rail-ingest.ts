@@ -46,13 +46,9 @@ async function fetchAndParseGtfsData() {
         const fileName = file.name.split('/').pop() || file.name;
         if (!ALLOWED_FILES.has(fileName)) return false;
 
-        if (file.originalSize > MAX_SIZE) {
-          throw new Error('Zip bomb detected: individual file extracted size exceeds 50MB limit');
-        }
-
         totalSize += file.originalSize;
         if (totalSize > MAX_SIZE) {
-          throw new Error('Zip bomb detected: total extracted size exceeds 50MB limit');
+          throw new Error('Zip bomb detected: extracted size exceeds 50MB limit');
         }
         return true;
       }
