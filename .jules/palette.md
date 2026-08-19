@@ -76,6 +76,10 @@
 **Learning:** In watchOS SwiftUI, list rows built with `Button` (for state-based navigation) lack the default `chevron.right` accessory provided by `NavigationLink`.
 **Action:** Manually append `Image(systemName: "chevron.right")` with secondary styling to the trailing edge of the button's content to provide consistent visual navigation affordances.
 
+## 2025-02-12 - Fallbacks for empty route identifiers in Complications
+**Learning:** Empty string fallbacks for missing route identifiers (like `line.isEmpty ? "Service" : line`) implemented in the main app views weren't carried over to the WatchOS complications, causing visually broken states (e.g. " → Destination") and awkward VoiceOver phrasing on the watch face.
+**Action:** When implementing generic fallbacks for transit identifiers, proactively review and update corresponding complication/widget views to ensure the watch face matches the main app's gracefully degraded experience.
+
 ## 2025-01-23 - Pair empty state text with an appropriate icon
 **Learning:** Text-only empty states in lists (like "No Active Disruptions") can feel unpolished and lack visual grounding, leaving users scanning for meaning.
 **Action:** Always pair empty state text with a context-appropriate, secondary-styled SF Symbol (like `checkmark.seal.fill` or `mappin.slash`) and mark the icon as `.accessibilityHidden(true)` to improve visual glanceability and polish without cluttering VoiceOver.
