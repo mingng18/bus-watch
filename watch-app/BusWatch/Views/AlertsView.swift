@@ -52,9 +52,6 @@ struct AlertsView: View {
                     }
                 }
                 .listStyle(.plain)
-                .refreshable {
-                    await load(isRefresh: true)
-                }
             }
         }
         .navigationTitle("Alerts")
@@ -102,19 +99,15 @@ struct AlertsView: View {
         }
     }
 
-    private func load(isRefresh: Bool = false) async {
-        if !isRefresh {
-            await MainActor.run { loadState = .loading }
-        }
+    private func load() async {
+        await MainActor.run { loadState = .loading }
         do {
             let response = try await api.fetchAlerts()
             await MainActor.run {
                 loadState = response.alerts.isEmpty ? .empty : .loaded(response.alerts)
             }
         } catch {
-            if !isRefresh {
-                await MainActor.run { loadState = .error(error.localizedDescription) }
-            }
+            await MainActor.run { loadState = .error(error.localizedDescription) }
         }
     }
 }
