@@ -118,3 +118,7 @@
 ## 2024-08-20 - Fast ASCII String Sorting
 **Learning:** Using `String.prototype.localeCompare` to sort strictly formatted ASCII strings (like `HH:MM:SS` times) applies complex internationalization collation rules that introduce noticeable performance overhead.
 **Action:** Instead, use simple comparison operators (`a < b ? -1 : a > b ? 1 : 0`) for much faster lexicographical sorting when the string format guarantees ASCII correctness.
+
+## 2025-02-28 - Avoid array chaining overhead in hot paths
+**Learning:** Chaining array methods like `.map().reduce()` and `.map().filter()` inside heavily executed hot loops (such as `aggregateSamples` and `rejectOutliers` in `backend/src/sampling.ts`) forces the engine to allocate new intermediate arrays for every step. In tests, a manual standard `for` loop approach that combines array extraction, average, and spread computation in a single structure performed measurably faster and avoided memory pressure compared to naive array chaining.
+**Action:** When performing mathematical aggregations (like averages or MAD calculations) within tight loops, avoid chaining `.map()`, `.reduce()`, or `.filter()`. Use manual index-based `for` loops and accumulator variables to extract data and calculate values sequentially without allocating intermediary closure or array structures.
