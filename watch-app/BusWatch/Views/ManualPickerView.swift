@@ -82,11 +82,6 @@ struct ManualPickerView: View {
                         .foregroundStyle(.yellow)
                         .accessibilityHidden(true)
                 }
-                if stop.type == "rail" {
-                    Image(systemName: "chevron.right")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
             }
         }
         .disabled(stop.type != "rail")

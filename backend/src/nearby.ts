@@ -17,25 +17,6 @@ import { haversineDistance, getBoundingBox } from "./haversine";
 import { toKlLocal } from "./time-kl";
 import { expandTripsForStop } from "./frequency";
 
-function buildEntityMap<T, K extends keyof T>(
-  items: T[],
-  keyField: K,
-  existingMap?: Map<string, T>
-): Map<string, T> {
-  const map = existingMap || new Map<string, T>();
-  if (!existingMap) {
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      const key = item[keyField] as unknown as string;
-      if (!map.has(key)) {
-        map.set(key, item);
-      }
-    }
-  }
-  return map;
-}
-
-
 export interface FindNearbyStopsContext {
   stops: Stop[];
   routes: Route[];
@@ -88,22 +69,16 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
 
   // Performance optimization: Precompute map to avoid O(N^2) lookups in loop
   // and use standard loops instead of array mapping to avoid intermediate allocations
-  const tripMap = buildEntityMap(trips, "id", ctx.tripMap);
-  const routeMap = buildEntityMap(routes, "id", ctx.routeMap);
-
-  // Performance optimization: Pre-filter vehicles to the outer combined bounding box
-  // before checking them against individual stops, drastically reducing inner loop iterations.
-  const combinedBox = getBoundingBox(lat, lon, radiusM + 500);
-  const nearbyVehicles: VehiclePosition[] = [];
-  for (let i = 0; i < vehicles.length; i++) {
-    const v = vehicles[i];
-    if (
-      v.lat >= combinedBox.minLat &&
-      v.lat <= combinedBox.maxLat &&
-      v.lon >= combinedBox.minLon &&
-      v.lon <= combinedBox.maxLon
-    ) {
-      nearbyVehicles.push(v);
+  const tripMap = ctx.tripMap || new Map<string, Trip>();
+  if (!ctx.tripMap) {
+    for (let i = 0; i < trips.length; i++) {
+      tripMap.set(trips[i].id, trips[i]);
+    }
+  }
+  const routeMap = ctx.routeMap || new Map<string, Route>();
+  if (!ctx.routeMap) {
+    for (let i = 0; i < routes.length; i++) {
+      routeMap.set(routes[i].id, routes[i]);
     }
   }
 
@@ -117,8 +92,7 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
       // Additionally, apply a bounding box pre-filter to bypass expensive trigonometric
       // functions for vehicles that are clearly out of range.
       const stopBox = getBoundingBox(stop.lat, stop.lon, 500);
-      for (let i = 0; i < nearbyVehicles.length; i++) {
-        const v = nearbyVehicles[i];
+      for (const v of vehicles) {
         if (
           v.lat < stopBox.minLat ||
           v.lat > stopBox.maxLat ||
@@ -189,10 +163,20 @@ export function findNearbyBusRoutes(
   pRouteMap?: Map<string, Route>,
   pTripMap?: Map<string, Trip>,
 ): BusRouteEntry[] {
-  const routeMap = buildEntityMap(routes, "id", pRouteMap);
+  const routeMap = pRouteMap || new Map<string, Route>();
+  if (!pRouteMap) {
+    for (let i = 0; i < routes.length; i++) {
+      routeMap.set(routes[i].id, routes[i]);
+    }
+  }
   // Performance optimization: Precompute map to avoid O(N^2) lookups in loop
   // and use standard loops instead of array mapping to avoid intermediate allocations
-  const tripMap = buildEntityMap(trips, "id", pTripMap);
+  const tripMap = pTripMap || new Map<string, Trip>();
+  if (!pTripMap) {
+    for (let i = 0; i < trips.length; i++) {
+      tripMap.set(trips[i].id, trips[i]);
+    }
+  }
   const results: BusRouteEntry[] = [];
   const seen = new Set<string>();
   const box = getBoundingBox(lat, lon, radiusM);
@@ -238,20 +222,32 @@ export function findNearbyPrasaranaBuses(
   lon: number,
   radiusM: number = 1000,
   pRouteTripMap?: Map<string, Trip>,
-  pShortNameMap?: Map<string, Route>,
 ): BusRouteEntry[] {
   // Performance optimization: Precompute map to avoid O(N^2) lookups in loop
-  const routeTripMap = buildEntityMap(trips, "routeId", pRouteTripMap);
+  const routeTripMap = pRouteTripMap || new Map<string, Trip>();
+  if (!pRouteTripMap) {
+    for (const t of trips) {
+      if (!routeTripMap.has(t.routeId)) {
+        routeTripMap.set(t.routeId, t);
+      }
+    }
+  }
 
-  // Performance optimization: Use cached shortNameMap across requests instead of allocating
-  // routeNameMap dynamically per request, which reduces object allocation overhead.
-  const shortNameMap = buildEntityMap(routes, "shortName", pShortNameMap);
+  const routeNameMap = new Map<
+    string,
+    { route: Route; trip: Trip | undefined }
+  >();
+  for (const r of routes) {
+    if (!routeNameMap.has(r.shortName)) {
+      const trip = routeTripMap.get(r.id);
+      routeNameMap.set(r.shortName, { route: r, trip });
+    }
+  }
 
   const results: BusRouteEntry[] = [];
   const box = getBoundingBox(lat, lon, radiusM);
 
-  for (let i = 0; i < buses.length; i++) {
-    const b = buses[i];
+  for (const b of buses) {
     if (
       b.trip_rev_kind === "01" ||
       b.trip_rev_kind === "03" ||
@@ -273,9 +269,8 @@ export function findNearbyPrasaranaBuses(
     const routeCode = normalizeRouteCode(b.route);
 
     // Match with GTFS route for destination
-    const gtfsRoute = shortNameMap.get(routeCode);
-    const gtfsTrip = gtfsRoute ? routeTripMap.get(gtfsRoute.id) : undefined;
-    const destination = gtfsTrip?.headsign || "";
+    const gtfsMatch = routeNameMap.get(routeCode);
+    const destination = gtfsMatch?.trip?.headsign || "";
 
     // Road distance factor ~1.4 for urban KL
     const roadDist = d * 1.4;
@@ -285,7 +280,7 @@ export function findNearbyPrasaranaBuses(
         : Math.max(1, Math.round(roadDist / 250));
 
     results.push({
-      routeId: gtfsRoute?.id || routeCode,
+      routeId: gtfsMatch?.route.id || routeCode,
       routeShortName: routeCode,
       destination,
       minutes,
@@ -433,9 +428,6 @@ export async function getBatchedHistoricalETAs(
  * bus most recently passed (the from-stop for an ETA to a downstream stop).
  * Used by /bus/eta to resolve the from-stop key the audit flagged as missing.
  */
-const TO_RAD = Math.PI / 180;
-const CONST_111000 = 111000;
-
 export function nearestFromStopOnRoute(
   busLat: number,
   busLon: number,
@@ -444,39 +436,11 @@ export function nearestFromStopOnRoute(
   if (stops.length === 0) return null;
   let best = stops[0];
   let bestD = haversineDistance(busLat, busLon, best.lat, best.lon);
-
-  // Performance optimization: Pre-calculate the longitude divisor to avoid
-  // executing Math.cos(busLat) in every loop iteration, and dynamically
-  // shrink the bounding box on every closer stop found to prune outer stops quickly.
-  const lonDivisor = CONST_111000 * Math.max(0.0001, Math.cos(busLat * TO_RAD));
-
-  let latDelta = bestD / CONST_111000;
-  let lonDelta = bestD / lonDivisor;
-  let minLat = busLat - latDelta;
-  let maxLat = busLat + latDelta;
-  let minLon = busLon - lonDelta;
-  let maxLon = busLon + lonDelta;
-
   for (let i = 1; i < stops.length; i++) {
-    const stop = stops[i];
-    if (
-      stop.lat < minLat ||
-      stop.lat > maxLat ||
-      stop.lon < minLon ||
-      stop.lon > maxLon
-    ) {
-      continue;
-    }
-    const d = haversineDistance(busLat, busLon, stop.lat, stop.lon);
+    const d = haversineDistance(busLat, busLon, stops[i].lat, stops[i].lon);
     if (d < bestD) {
       bestD = d;
-      best = stop;
-      latDelta = bestD / CONST_111000;
-      lonDelta = bestD / lonDivisor;
-      minLat = busLat - latDelta;
-      maxLat = busLat + latDelta;
-      minLon = busLon - lonDelta;
-      maxLon = busLon + lonDelta;
+      best = stops[i];
     }
   }
   return best;
