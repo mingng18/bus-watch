@@ -356,13 +356,14 @@ export function aggregateSamples(
     const cleaned = rejectOutliers(arr, (s) => s.seconds);
     if (cleaned.length === 0) continue;
 
+    const len = cleaned.length;
     let sum = 0;
-    for (let i = 0; i < cleaned.length; i++) sum += cleaned[i].seconds;
-    const avg = sum / cleaned.length;
+    for (let i = 0; i < len; i++) sum += cleaned[i].seconds;
+    const avg = sum / len;
 
     let sumDev = 0;
-    for (let i = 0; i < cleaned.length; i++) sumDev += Math.abs(cleaned[i].seconds - avg);
-    const mad = sumDev / cleaned.length;
+    for (let i = 0; i < len; i++) sumDev += Math.abs(cleaned[i].seconds - avg);
+    const mad = sumDev / len;
     const first = arr[0];
     out.push({
       route: first.route,
@@ -399,7 +400,6 @@ function rejectOutliers<T>(items: T[], getValue: (item: T) => number, threshold 
   // Sort for median using a copy
   const sorted = new Float64Array(values).sort();
   const median = sorted[Math.floor(sorted.length / 2)];
-
   // Calculate MAD
   let sumDevs = 0;
   for (let i = 0; i < values.length; i++) {
@@ -409,8 +409,16 @@ function rejectOutliers<T>(items: T[], getValue: (item: T) => number, threshold 
 
   if (mad === 0) return items; // all values identical or near-median
 
-  const limit = threshold * mad;
-  return items.filter((_, i) => Math.abs(values[i] - median) <= limit);
+  // Replace array .filter() with manual result array population
+  // to avoid closure overhead.
+  const result: T[] = [];
+  const maxDev = threshold * mad;
+  for (let i = 0; i < items.length; i++) {
+    if (Math.abs(values[i] - median) <= maxDev) {
+      result.push(items[i]);
+    }
+  }
+  return result;
 }
 
 /**
