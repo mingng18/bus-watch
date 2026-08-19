@@ -52,9 +52,6 @@ struct AlertsView: View {
                     }
                 }
                 .listStyle(.plain)
-            .refreshable {
-                await load(showLoadingState: false)
-            }
             }
         }
         .navigationTitle("Alerts")
@@ -102,10 +99,8 @@ struct AlertsView: View {
         }
     }
 
-    private func load(showLoadingState: Bool = true) async {
-        if showLoadingState {
-            await MainActor.run { loadState = .loading }
-        }
+    private func load() async {
+        await MainActor.run { loadState = .loading }
         do {
             let response = try await api.fetchAlerts()
             await MainActor.run {
