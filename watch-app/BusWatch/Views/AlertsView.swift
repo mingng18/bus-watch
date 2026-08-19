@@ -28,12 +28,6 @@ struct AlertsView: View {
                     Text("No active disruptions")
                         .font(.caption)
                         .multilineTextAlignment(.center)
-                    Button {
-                        Task { await load(isRefresh: true) }
-                    } label: {
-                        Label("Refresh", systemImage: "arrow.clockwise")
-                    }
-                    .buttonStyle(.bordered)
                 }
             case .error(let message):
                 VStack(spacing: 12) {
@@ -58,9 +52,6 @@ struct AlertsView: View {
                     }
                 }
                 .listStyle(.plain)
-                .refreshable {
-                    await load(isRefresh: true)
-                }
             }
         }
         .navigationTitle("Alerts")
@@ -108,10 +99,8 @@ struct AlertsView: View {
         }
     }
 
-    private func load(isRefresh: Bool = false) async {
-        if !isRefresh {
-            await MainActor.run { loadState = .loading }
-        }
+    private func load() async {
+        await MainActor.run { loadState = .loading }
         do {
             let response = try await api.fetchAlerts()
             await MainActor.run {

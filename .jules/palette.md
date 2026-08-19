@@ -75,10 +75,6 @@
 ## 2025-02-12 - watchOS Navigation Chevrons
 **Learning:** In watchOS SwiftUI, list rows built with `Button` (for state-based navigation) lack the default `chevron.right` accessory provided by `NavigationLink`.
 **Action:** Manually append `Image(systemName: "chevron.right")` with secondary styling to the trailing edge of the button's content to provide consistent visual navigation affordances.
-## 2025-02-12 - Prevent refreshable loading state conflicts
-**Learning:** In SwiftUI, when using `.refreshable` on a list to provide native pull-to-refresh functionality, conditionally bypass replacing the main view with a full-screen loading state (e.g., `ProgressView`) during the refresh event. Otherwise, the immediate full-screen state change will abruptly interrupt and cancel the native refresh spinner animation.
-**Action:** Add an `isRefresh` flag to loading functions (e.g. `func load(isRefresh: Bool = false)`) and conditionally bypass setting the loading state to `.loading` if `isRefresh` is true.
-
-## 2025-02-12 - Fallback refresh for non-scrollable states
-**Learning:** In SwiftUI, native pull-to-refresh (`.refreshable`) requires a scrollable container (e.g., `List` or `ScrollView`). When presenting non-scrollable `.empty` or `.error` states (like a `VStack`), provide a manual 'Refresh' or 'Retry' `Button` to ensure users can still trigger data updates.
-**Action:** Always include a manual refresh button inside non-scrollable empty or error state views when implementing `.refreshable` on the populated list.
+## 2025-02-12 - Explicit labels for external links
+**Learning:** In watchOS SwiftUI apps, VoiceOver riders need clear indications when a button action will jump them out of the current app and into a completely different environment (like an external website or settings app), which can be disorienting.
+**Action:** When using `Link` or triggering `openSettingsURLString`, always provide an explicit `.accessibilityLabel` that includes phrases like "(opens in browser)" or "(opens in settings)" to manage rider expectations before the interaction occurs.
