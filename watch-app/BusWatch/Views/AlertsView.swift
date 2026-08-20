@@ -20,7 +20,7 @@ struct AlertsView: View {
             case .loading:
                 ProgressView("Loading alerts...")
             case .empty:
-                VStack(spacing: 8) {
+                VStack(spacing: 12) {
                     Image(systemName: "checkmark.seal.fill")
                         .font(.title2)
                         .foregroundStyle(.green)
@@ -28,6 +28,12 @@ struct AlertsView: View {
                     Text("No active disruptions")
                         .font(.caption)
                         .multilineTextAlignment(.center)
+                    Button {
+                        Task { await load() }
+                    } label: {
+                        Label("Refresh", systemImage: "arrow.clockwise")
+                    }
+                    .buttonStyle(.bordered)
                 }
             case .error(let message):
                 VStack(spacing: 12) {
@@ -52,6 +58,9 @@ struct AlertsView: View {
                     }
                 }
                 .listStyle(.plain)
+                .refreshable {
+                    await load(isRefresh: true)
+                }
             }
         }
         .navigationTitle("Alerts")
@@ -99,8 +108,10 @@ struct AlertsView: View {
         }
     }
 
-    private func load() async {
-        await MainActor.run { loadState = .loading }
+    private func load(isRefresh: Bool = false) async {
+        if !isRefresh {
+            await MainActor.run { loadState = .loading }
+        }
         do {
             let response = try await api.fetchAlerts()
             await MainActor.run {
