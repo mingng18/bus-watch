@@ -85,7 +85,7 @@ export function getDeparturesTowardDestination(
     });
   }
 
-  departures.sort((a, b) => a.departureTime.localeCompare(b.departureTime));
+  departures.sort((a, b) => a.departureTime < b.departureTime ? -1 : a.departureTime > b.departureTime ? 1 : 0);
 
   return {
     stopId,
