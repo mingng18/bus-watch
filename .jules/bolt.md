@@ -118,3 +118,7 @@
 ## 2025-02-28 - Avoid array chaining overhead in hot paths
 **Learning:** Chaining array methods like `.map().reduce()` and `.map().filter()` inside heavily executed hot loops (such as `aggregateSamples` and `rejectOutliers` in `backend/src/sampling.ts`) forces the engine to allocate new intermediate arrays for every step. In tests, a manual standard `for` loop approach that combines array extraction, average, and spread computation in a single structure performed measurably faster and avoided memory pressure compared to naive array chaining.
 **Action:** When performing mathematical aggregations (like averages or MAD calculations) within tight loops, avoid chaining `.map()`, `.reduce()`, or `.filter()`. Use manual index-based `for` loops and accumulator variables to extract data and calculate values sequentially without allocating intermediary closure or array structures.
+
+## 2025-03-01 - Avoid duplicate string allocations in iterative parsing
+**Learning:** Extracting string chunks using `.slice()` and performing `.toLowerCase()` inside an inner function when iteratively parsing a large XML document causes massive, redundant memory allocations. Each block extraction and case conversion creates temporary string objects that pressure the garbage collector.
+**Action:** When extracting multiple tokens from a large text blob (like a sitemap), convert the entire document to lowercase once. Use `indexOf` iteratively with start indices on the lowercased copy to find block boundaries, and use `.substring()` on the original document to extract final values.
