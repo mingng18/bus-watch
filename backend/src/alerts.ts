@@ -142,41 +142,55 @@ interface SitemapEntry {
 /** Extract <url> blocks' <loc> + <lastmod>. Tolerant of malformed XML. */
 function extractUrlEntries(xml: string): SitemapEntry[] {
   const entries: SitemapEntry[] = [];
-  const startRe = /<url\b[^>]*>/gi;
-  const endRe = /<\/url>/gi;
+  let searchIdx = 0;
+  // Performance optimization: Avoid allocating repeated substring blocks and lowercased
+  // string copies for every URL in the sitemap by performing the search iteratively
+  // on a single lowercased copy of the entire XML document.
+  const lowerXml = xml.toLowerCase();
 
-  let m: RegExpExecArray | null;
-  while ((m = startRe.exec(xml)) !== null) {
-    endRe.lastIndex = startRe.lastIndex;
-    const endMatch = endRe.exec(xml);
-    if (!endMatch) {
-      break; // Stop parsing if there's no closing tag
+  while (true) {
+    const plainIdx = lowerXml.indexOf('<url>', searchIdx);
+    const attrIdx = lowerXml.indexOf('<url ', searchIdx);
+
+    if (plainIdx === -1 && attrIdx === -1) break;
+
+    let urlStart;
+    if (plainIdx !== -1 && (attrIdx === -1 || plainIdx < attrIdx)) {
+      urlStart = plainIdx + 5;
+    } else {
+      const urlEndAttr = lowerXml.indexOf('>', attrIdx);
+      if (urlEndAttr === -1) break;
+      urlStart = urlEndAttr + 1;
     }
-    const block = xml.slice(startRe.lastIndex, endMatch.index);
-    startRe.lastIndex = endRe.lastIndex; // Advance start search beyond the closing tag
 
-    const loc = extractTagContent(block, 'loc');
-    if (!loc) continue;
+    const urlEnd = lowerXml.indexOf('</url>', urlStart);
+    if (urlEnd === -1) break;
 
-    const lastmod = extractTagContent(block, 'lastmod');
+    const loc = extractTagContent(xml, lowerXml, '<loc>', '</loc>', urlStart, urlEnd);
+    if (!loc) {
+      searchIdx = urlEnd + 6;
+      continue;
+    }
+
+    const lastmod = extractTagContent(xml, lowerXml, '<lastmod>', '</lastmod>', urlStart, urlEnd);
     entries.push({ loc, lastmod: lastmod || null });
+
+    searchIdx = urlEnd + 6;
   }
+
   return entries;
 }
 
 /** Extract tag contents robustly. */
-function extractTagContent(block: string, tag: string): string | undefined {
-  const lowerBlock = block.toLowerCase();
-  const startTag = `<${tag}>`;
-  const endTag = `</${tag}>`;
+function extractTagContent(xml: string, lowerXml: string, startTag: string, endTag: string, blockStart: number, blockEnd: number): string | undefined {
+  const startIdx = lowerXml.indexOf(startTag, blockStart);
+  if (startIdx === -1 || startIdx >= blockEnd) return undefined;
 
-  const startIdx = lowerBlock.indexOf(startTag);
-  if (startIdx === -1) return undefined;
+  const contentStart = startIdx + startTag.length;
+  const endIdx = lowerXml.indexOf(endTag, contentStart);
+  if (endIdx === -1 || endIdx > blockEnd) return undefined;
 
-  const endIdx = lowerBlock.indexOf(endTag, startIdx + startTag.length);
-  if (endIdx === -1) return undefined;
-
-  return block.slice(startIdx + startTag.length, endIdx).trim();
+  return xml.substring(contentStart, endIdx).trim();
 }
 
 /** Slugs that do NOT represent service disruptions and must be excluded. */
