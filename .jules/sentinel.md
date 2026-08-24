@@ -92,3 +92,8 @@
 **Vulnerability:** The backend JSON API lacked a strict Content Security Policy (CSP), leaving it potentially vulnerable to XSS if a client browser accidentally rendered a JSON response as HTML.
 **Learning:** Even though the backend primarily serves JSON via an API, applying a strict CSP (`default-src 'none'`) acts as a crucial defense-in-depth layer. Hono's `secureHeaders` middleware requires this configuration to be explicitly provided.
 **Prevention:** Always configure security headers middleware on API endpoints with strict defaults (`default-src 'none'`) to prevent unintended script execution if the content type is misinterpreted by the client.
+
+## 2024-05-15 - Cache-Control for Authenticated Endpoints
+**Vulnerability:** Authenticated/administrative endpoints missing cache-control headers can leak sensitive data via browser or intermediate caching.
+**Learning:** Security pattern requires `Cache-Control: no-store` header on responses from these endpoints.
+**Prevention:** Apply `Cache-Control: no-store` header to authenticated endpoints using middleware.
