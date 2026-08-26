@@ -79,3 +79,11 @@
 ## 2025-02-12 - Fallbacks for empty route identifiers in Complications
 **Learning:** Empty string fallbacks for missing route identifiers (like `line.isEmpty ? "Service" : line`) implemented in the main app views weren't carried over to the WatchOS complications, causing visually broken states (e.g. " → Destination") and awkward VoiceOver phrasing on the watch face.
 **Action:** When implementing generic fallbacks for transit identifiers, proactively review and update corresponding complication/widget views to ensure the watch face matches the main app's gracefully degraded experience.
+
+## 2024-02-12 - Prevent Pull-to-Refresh Animation Cancellation
+**Learning:** In SwiftUI, when using `.refreshable` on a list to provide native pull-to-refresh functionality, replacing the main view with a full-screen loading state (e.g., `ProgressView`) during the refresh event immediately interrupts and cancels the native refresh spinner animation.
+**Action:** Conditionally bypass full-screen loading states (e.g., via an `isRefresh` parameter) when the load is triggered by a pull-to-refresh action, allowing the native spinner to handle the visual feedback gracefully.
+
+## 2024-02-12 - Manual Refresh for Non-Scrollable Empty States
+**Learning:** Native pull-to-refresh (`.refreshable`) in SwiftUI requires a scrollable container (e.g., `List` or `ScrollView`). When presenting non-scrollable `.empty` or `.error` states (like a `VStack`), users lose the ability to trigger data updates.
+**Action:** Always provide a manual "Refresh" or "Retry" `Button` (e.g., using a recognizable icon like `arrow.clockwise`) in non-scrollable empty/error states to ensure users can still manually trigger data updates.
