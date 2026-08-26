@@ -38,6 +38,27 @@ export function klDayOfWeek(date: Date): number {
 }
 
 /**
+ * ⚡ Bolt Performance Optimization:
+ * Fast math-based day-of-week calculation from unix timestamp.
+ * Avoids slow `new Date()` allocations in hot paths.
+ */
+export function klDayOfWeekFromUnix(timestampSecs: number): number {
+  // Epoch starts on a Thursday (day 4)
+  // KL offset is +8 hours (28800 seconds)
+  return Math.floor((timestampSecs + 28800) / 86400 + 4) % 7;
+}
+
+/**
+ * ⚡ Bolt Performance Optimization:
+ * Fast math-based hour-of-day calculation from unix timestamp.
+ * Avoids slow `new Date()` allocations in hot paths.
+ */
+export function klHourOfDayFromUnix(timestampSecs: number): number {
+  // KL offset is +8 hours (28800 seconds)
+  return Math.floor(((timestampSecs + 28800) % 86400) / 3600);
+}
+
+/**
  * Returns the KL-local calendar date as a `YYYYMMDD` string, matching the
  * `start_date`/`end_date` format used by GTFS `calendar.txt`.
  */
