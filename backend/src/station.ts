@@ -61,7 +61,10 @@ export function getStationSchedule(
     });
   }
 
-  departures.sort((a, b) => a.departureTime.localeCompare(b.departureTime));
+  // Performance optimization: Avoid using `String.prototype.localeCompare` to sort strictly formatted
+  // ASCII strings (like GTFS `HH:MM:SS` times). It applies complex internationalization rules that
+  // introduce noticeable overhead. Instead, use simple comparison operators for faster sorting.
+  departures.sort((a, b) => a.departureTime < b.departureTime ? -1 : a.departureTime > b.departureTime ? 1 : 0);
 
   return {
     stopId,
