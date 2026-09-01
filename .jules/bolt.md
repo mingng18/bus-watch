@@ -119,6 +119,10 @@
 **Learning:** Chaining array methods like `.map().reduce()` and `.map().filter()` inside heavily executed hot loops (such as `aggregateSamples` and `rejectOutliers` in `backend/src/sampling.ts`) forces the engine to allocate new intermediate arrays for every step. In tests, a manual standard `for` loop approach that combines array extraction, average, and spread computation in a single structure performed measurably faster and avoided memory pressure compared to naive array chaining.
 **Action:** When performing mathematical aggregations (like averages or MAD calculations) within tight loops, avoid chaining `.map()`, `.reduce()`, or `.filter()`. Use manual index-based `for` loops and accumulator variables to extract data and calculate values sequentially without allocating intermediary closure or array structures.
 
+## 2024-10-24 - Optimize array allocations when processing raw GTFS sets
+**Learning:** Chaining `.filter().map()` inside array to `Set` instantiations in data ingest paths (like `rail-ingest.ts`) causes the engine to allocate intermediate array structures. A standard `for` loop pushing directly to the `Set` reduces execution time and garbage collection pressure on large datasets.
+**Action:** Replace functional `.filter().map()` chains with standard `for` loops when instantiating `Set` objects from large arrays.
+
 ## 2025-02-28 - Optimize String sorting overhead for strictly formatted strings
 **Learning:** `String.prototype.localeCompare` is significantly slower than standard string comparison operators (`<`, `>`) because it applies complex internationalization rules and collations. For strictly formatted ASCII strings (like GTFS `HH:MM:SS` departure times), this processing overhead is entirely unnecessary and causes slower sorting in hot arrays.
 **Action:** Always replace `.sort((a, b) => a.localeCompare(b))` with standard string operators (`.sort((a, b) => a < b ? -1 : a > b ? 1 : 0)`) when sorting strict ASCII formats like times, UUIDs, or IDs to substantially boost sort performance and reduce CPU usage.
