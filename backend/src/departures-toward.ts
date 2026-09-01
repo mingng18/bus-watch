@@ -85,9 +85,7 @@ export function getDeparturesTowardDestination(
     });
   }
 
-  // ⚡ Bolt Performance Optimization: Use simple comparison for strictly formatted ASCII time strings
-  // to avoid the noticeable overhead of localeCompare's complex internationalization rules.
-  departures.sort((a, b) => a.departureTime < b.departureTime ? -1 : a.departureTime > b.departureTime ? 1 : 0);
+  departures.sort((a, b) => a.departureTime.localeCompare(b.departureTime));
 
   return {
     stopId,
