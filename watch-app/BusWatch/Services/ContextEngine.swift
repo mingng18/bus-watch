@@ -3,7 +3,7 @@ import CoreLocation
 import Combine
 
 enum AppState {
-    case loading
+    case loading(String)
     case station(NearbyStop, StationScheduleResponse, isOffline: Bool)
     case onBus(BusProgressResponse)
     case nearby(NearbyResponse)
@@ -21,7 +21,7 @@ enum AppState {
 }
 
 class ContextEngine: ObservableObject {
-    @Published var state: AppState = .loading
+    @Published var state: AppState = .loading("Locating...")
     @Published var nearbyStops: NearbyResponse?
 
     private let api = APIClient.shared
@@ -95,6 +95,7 @@ class ContextEngine: ObservableObject {
 
     func selectStation(_ stop: NearbyStop) {
         Task {
+            await MainActor.run { self.setState(.loading("Loading...")) }
             do {
                 let schedule = try await api.fetchStationSchedule(stopId: stop.id)
                 // Network succeeded — refresh the on-device cache for offline
@@ -115,6 +116,7 @@ class ContextEngine: ObservableObject {
 
     func selectBusTrip(_ tripId: String) {
         Task {
+            await MainActor.run { self.setState(.loading("Loading...")) }
             do {
                 let progress = try await api.fetchBusProgress(tripId: tripId)
                 await MainActor.run { self.setState(.onBus(progress)) }
