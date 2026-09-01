@@ -29,7 +29,11 @@ struct AlertsView: View {
                         .font(.caption)
                         .multilineTextAlignment(.center)
                     Button {
+<<<<<<< HEAD
+                        Task { await load() }
+=======
                         Task { await load(isRefresh: true) }
+>>>>>>> 15065f5 (🎨 Palette: Add pull-to-refresh and manual refresh to AlertsView)
                     } label: {
                         Label("Refresh", systemImage: "arrow.clockwise")
                     }
