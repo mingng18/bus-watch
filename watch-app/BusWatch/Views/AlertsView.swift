@@ -59,7 +59,7 @@ struct AlertsView: View {
                 }
                 .listStyle(.plain)
                 .refreshable {
-                    await load(isRefreshing: true)
+                    await load(isRefresh: true)
                 }
             }
         }
@@ -108,8 +108,8 @@ struct AlertsView: View {
         }
     }
 
-    private func load(isRefreshing: Bool = false) async {
-        if !isRefreshing {
+    private func load(isRefresh: Bool = false) async {
+        if !isRefresh {
             await MainActor.run { loadState = .loading }
         }
         do {
