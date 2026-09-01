@@ -149,18 +149,26 @@ function extractUrlEntries(xml: string): SitemapEntry[] {
   const lowerXml = xml.toLowerCase();
 
   while (true) {
-    const plainIdx = lowerXml.indexOf('<url>', searchIdx);
-    const attrIdx = lowerXml.indexOf('<url ', searchIdx);
+    const urlIdx = lowerXml.indexOf('<url', searchIdx);
+    if (urlIdx === -1) break;
 
-    if (plainIdx === -1 && attrIdx === -1) break;
+    // Verify word boundary equivalent to \b: either '>' or whitespace
+    const nextChar = lowerXml.charCodeAt(urlIdx + 4);
+    let urlStart = -1;
 
-    let urlStart;
-    if (plainIdx !== -1 && (attrIdx === -1 || plainIdx < attrIdx)) {
-      urlStart = plainIdx + 5;
-    } else {
-      const urlEndAttr = lowerXml.indexOf('>', attrIdx);
-      if (urlEndAttr === -1) break;
-      urlStart = urlEndAttr + 1;
+    if (nextChar === 62) { // '>'
+      urlStart = urlIdx + 5;
+    } else if (nextChar === 32 || nextChar === 9 || nextChar === 10 || nextChar === 13) {
+      // whitespace: ' ', '\t', '\n', '\r'
+      const urlEndAttr = lowerXml.indexOf('>', urlIdx + 5);
+      if (urlEndAttr !== -1) {
+        urlStart = urlEndAttr + 1;
+      }
+    }
+
+    if (urlStart === -1) {
+      searchIdx = urlIdx + 4;
+      continue;
     }
 
     const urlEnd = lowerXml.indexOf('</url>', urlStart);

@@ -166,6 +166,29 @@ describe("parseAlerts — robustness", () => {
     expect(alerts).toHaveLength(1);
     expect(alerts[0].id).toBe("info-gangguan-trafik-laluan-777-1");
   });
+
+  it("handles <url> tags with various whitespace boundaries and attributes", () => {
+    const xml = `
+      <urlset>
+        <url><loc>https://myrapid.com.my/info-gangguan-trafik-laluan-101-1/</loc></url>
+        <url ><loc>https://myrapid.com.my/info-gangguan-trafik-laluan-102-1/</loc></url>
+        <url	attr="val"><loc>https://myrapid.com.my/info-gangguan-trafik-laluan-103-1/</loc></url>
+        <url
+        attr="val"><loc>https://myrapid.com.my/info-gangguan-trafik-laluan-104-1/</loc></url>
+        <urlset><url><loc>https://myrapid.com.my/info-gangguan-trafik-laluan-105-1/</loc></url></urlset>
+      </urlset>
+    `;
+    const alerts = parseAlerts(xml);
+    expect(alerts).toHaveLength(5);
+    const ids = alerts.map(a => a.id).sort();
+    expect(ids).toEqual([
+      "info-gangguan-trafik-laluan-101-1",
+      "info-gangguan-trafik-laluan-102-1",
+      "info-gangguan-trafik-laluan-103-1",
+      "info-gangguan-trafik-laluan-104-1",
+      "info-gangguan-trafik-laluan-105-1"
+    ]);
+  });
 });
 
 
