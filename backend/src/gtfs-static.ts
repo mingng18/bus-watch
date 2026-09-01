@@ -163,7 +163,7 @@ export async function fetchAndParseAgency(agency: string): Promise<AgencyData> {
     // to avoid intermediate O(N) array allocation from Object.keys() when searching for matching files.
     let key: string | undefined;
     for (const k in files) {
-      if (k.endsWith(name)) {
+      if (Object.hasOwn(files, k) && k.endsWith(name)) {
         key = k;
         break;
       }
