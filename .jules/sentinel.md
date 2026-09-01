@@ -93,7 +93,12 @@
 **Learning:** Even though the backend primarily serves JSON via an API, applying a strict CSP (`default-src 'none'`) acts as a crucial defense-in-depth layer. Hono's `secureHeaders` middleware requires this configuration to be explicitly provided.
 **Prevention:** Always configure security headers middleware on API endpoints with strict defaults (`default-src 'none'`) to prevent unintended script execution if the content type is misinterpreted by the client.
 
-## 2025-02-23 - Prevent Cached Authenticated API Responses
-**Vulnerability:** Authenticated administrative endpoints (like `/refresh`) lacked anti-caching headers.
-**Learning:** Even with robust token validation in a middleware (`requireAdminToken`), omitting `Cache-Control: no-store` allows intermediate proxies, CDNs, or the user's browser to cache sensitive responses or state-mutating request results.
-**Prevention:** Apply `Cache-Control: no-store` securely within the authorization middleware immediately before `await next()` to ensure all downstream handlers inherit the strict caching policy.
+## 2025-02-28 - Missing Cache-Control on Authenticated Endpoints
+**Vulnerability:** Authenticated/administrative endpoints lacked a `Cache-Control: no-store` header, allowing responses (including errors or sensitive data) to potentially be cached by browsers, proxies, or CDNs.
+**Learning:** Even if an endpoint requires authentication, intermediate caches might still store the response if caching directives are not explicitly set, exposing sensitive operations or data.
+**Prevention:** Always apply a `Cache-Control: no-store` header (e.g., via middleware) to responses from authenticated or administrative API endpoints to prevent sensitive data leakage through browser or intermediate caching.
+
+## 2025-02-23 - Strict Content Security Policy Headers
+**Vulnerability:** Weak or permissive `secureHeaders` configuration that does not prevent clickjacking or strictly control framing.
+**Learning:** Even when `defaultSrc: ["'none'"]` is used, the CSP should also explicitly enforce `frameAncestors: ["'none'"]` and headers like `xFrameOptions: 'DENY'` and `xContentTypeOptions: 'nosniff'` should be set in Hono middleware to prevent content sniffing and clickjacking, effectively securing a purely JSON API.
+**Prevention:** Always configure `secureHeaders` explicitly with both a restrictive CSP (including `frameAncestors`) and companion HTTP security headers.
