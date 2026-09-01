@@ -61,7 +61,8 @@ export function getStationSchedule(
     });
   }
 
-  departures.sort((a, b) => a.departureTime.localeCompare(b.departureTime));
+  // ⚡ Bolt Performance Optimization: Replace localeCompare with fast lexicographical operators
+  departures.sort((a, b) => a.departureTime < b.departureTime ? -1 : a.departureTime > b.departureTime ? 1 : 0);
 
   return {
     stopId,
