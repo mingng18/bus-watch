@@ -91,21 +91,31 @@ async function mapAndInsertGtfsData(
 
   try {
     // 3. Filter: only keep rail route types (0=tram, 1=subway, 2=rail)
-    const railRouteIds = new Set(
-      rawRoutes
-        .filter(r => ['0', '1', '2'].includes(r.route_type))
-        .map(r => r.route_id)
-    );
-    const railTripIds = new Set(
-      rawTrips
-        .filter(t => railRouteIds.has(t.route_id))
-        .map(t => t.trip_id)
-    );
-    const railStopIds = new Set(
-      rawStopTimes
-        .filter(st => railTripIds.has(st.trip_id))
-        .map(st => st.stop_id)
-    );
+    // Performance optimization: Avoid intermediate array allocations from .filter().map()
+    // by using standard loops to directly populate the Sets.
+    const railRouteIds = new Set<string>();
+    for (let i = 0; i < rawRoutes.length; i++) {
+      const r = rawRoutes[i];
+      if (r.route_type === '0' || r.route_type === '1' || r.route_type === '2') {
+        railRouteIds.add(r.route_id);
+      }
+    }
+
+    const railTripIds = new Set<string>();
+    for (let i = 0; i < rawTrips.length; i++) {
+      const t = rawTrips[i];
+      if (railRouteIds.has(t.route_id)) {
+        railTripIds.add(t.trip_id);
+      }
+    }
+
+    const railStopIds = new Set<string>();
+    for (let i = 0; i < rawStopTimes.length; i++) {
+      const st = rawStopTimes[i];
+      if (railTripIds.has(st.trip_id)) {
+        railStopIds.add(st.stop_id);
+      }
+    }
 
     // 4. Upsert rail_stops
     const stopPrepStmt = env.DB.prepare(
