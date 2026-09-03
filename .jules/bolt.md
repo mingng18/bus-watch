@@ -122,3 +122,7 @@
 ## 2024-10-24 - Optimize array allocations when processing raw GTFS sets
 **Learning:** Chaining `.filter().map()` inside array to `Set` instantiations in data ingest paths (like `rail-ingest.ts`) causes the engine to allocate intermediate array structures. A standard `for` loop pushing directly to the `Set` reduces execution time and garbage collection pressure on large datasets.
 **Action:** Replace functional `.filter().map()` chains with standard `for` loops when instantiating `Set` objects from large arrays.
+
+## 2025-03-03 - Avoid `Object.keys().find()` for dictionary key lookups
+**Learning:** Using `Object.keys(dict).find(condition)` to search for a key in an object dynamically allocates an intermediate array of keys in memory. In hot paths or large objects, this causes unnecessary garbage collection pressure and slower execution.
+**Action:** Replace `Object.keys(dict).find(...)` with a standard `for...in` loop to iterate keys directly without intermediate array allocation.
