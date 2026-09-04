@@ -87,3 +87,7 @@
 ## 2025-02-12 - Manual refresh for non-scrollable empty states
 **Learning:** In SwiftUI, native pull-to-refresh (`.refreshable`) only functions on scrollable containers like `List` or `ScrollView`. When a view is in a non-scrollable `.empty` state (like a `VStack`), users cannot trigger the native gesture.
 **Action:** Always provide an explicit, manual "Refresh" or "Retry" `Button` when presenting non-scrollable empty states, ensuring users have an accessible way to re-fetch data.
+
+## 2025-02-18 - Replace string abstractions with systemImage in SwiftUI Label/Text
+**Learning:** Returning `Text` containing `\(Image(systemName: "clock"))` from a helper function, and combining it via `+` concatenation inside an explicit outer `Text(...)` block (e.g. `(arrivalPrefix(first) + Text("..."))`) is a robust pattern for embedding SF Symbols in dynamically generated arrival string sequences. It prevents messy `String` vs `Text` compilation type errors at caller sites that previously expected a plain text string abbreviation.
+**Action:** Use this SwiftUI `Text` concatenation technique `(Text("\(Image...)") + Text("..."))` instead of simple `String` returns when migrating raw text abbreviations (like "sched") to inclusive SF Symbols inside data lists.
