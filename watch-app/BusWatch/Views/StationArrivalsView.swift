@@ -75,10 +75,9 @@ struct StationArrivalsView: View {
                 }
 
                 if !stop.arrivals.contains(where: { $0.isRealtime }) {
-                    Text("sched")
+                    Label("Scheduled", systemImage: "clock")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
-                        .accessibilityLabel("Scheduled arrivals")
                 }
 
                 if AppFeatureFlags.arrivalNotifications {
