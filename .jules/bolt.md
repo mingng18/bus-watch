@@ -122,3 +122,7 @@
 ## 2024-10-24 - Optimize array allocations when processing raw GTFS sets
 **Learning:** Chaining `.filter().map()` inside array to `Set` instantiations in data ingest paths (like `rail-ingest.ts`) causes the engine to allocate intermediate array structures. A standard `for` loop pushing directly to the `Set` reduces execution time and garbage collection pressure on large datasets.
 **Action:** Replace functional `.filter().map()` chains with standard `for` loops when instantiating `Set` objects from large arrays.
+
+## 2025-02-14 - Optimize XML Sitemap Parsing
+**Learning:** Iteratively slicing XML strings and calling `.toLowerCase()` on each chunk inside a loop creates massive redundant string allocations and GC pressure.
+**Action:** Convert the entire XML document to lowercase once outside the loop. Use iterative `indexOf` searches on the lowercased copy to find tag boundaries, and use `.substring()` on the original document to extract values.
