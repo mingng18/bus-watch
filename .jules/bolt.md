@@ -122,3 +122,6 @@
 ## 2024-10-24 - Optimize array allocations when processing raw GTFS sets
 **Learning:** Chaining `.filter().map()` inside array to `Set` instantiations in data ingest paths (like `rail-ingest.ts`) causes the engine to allocate intermediate array structures. A standard `for` loop pushing directly to the `Set` reduces execution time and garbage collection pressure on large datasets.
 **Action:** Replace functional `.filter().map()` chains with standard `for` loops when instantiating `Set` objects from large arrays.
+## 2024-05-18 - Avoid localeCompare for strictly formatted ASCII strings
+**Learning:** In V8 (Node.js), `String.prototype.localeCompare` applies complex internationalization and collation rules which introduces significant performance overhead, especially in hot paths like sorting arrays.
+**Action:** When sorting strictly formatted ASCII strings (like `HH:MM:SS` times or ISO dates) where simple lexicographical order is sufficient, always use basic comparison operators (`a < b ? -1 : a > b ? 1 : 0`). It provides the exact same output much faster.
