@@ -61,7 +61,8 @@ export function getStationSchedule(
     });
   }
 
-  departures.sort((a, b) => a.departureTime.localeCompare(b.departureTime));
+  // perf: Avoid using String.prototype.localeCompare for strictly formatted ASCII time strings to eliminate internationalization collation overhead.
+  departures.sort((a, b) => a.departureTime < b.departureTime ? -1 : a.departureTime > b.departureTime ? 1 : 0);
 
   return {
     stopId,
