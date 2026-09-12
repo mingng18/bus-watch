@@ -1,6 +1,6 @@
 import { Env, VehiclePosition, PrasaranaBus, TripStopEntry } from "./types";
 import { haversineDistance, getBoundingBox } from "./haversine";
-import { klDayOfWeek } from "./time-kl";
+import { klDayOfWeekFast, klHourOfDayFast } from "./time-kl";
 
 interface LastPosition {
   bus_no: string;
@@ -299,8 +299,8 @@ export function detectStopPassages(
           to_lat: target.lat,
           to_lon: target.lon,
           seconds,
-          day_of_week: klDayOfWeek(new Date(lastPassageTs * 1000)),
-          time_bucket: klHourOfDay(new Date(lastPassageTs * 1000)),
+          day_of_week: klDayOfWeekFast(lastPassageTs),
+          time_bucket: klHourOfDayFast(lastPassageTs),
         });
       }
       // A seconds gap outside [0, MAX] is treated as noise / out-of-service:
@@ -316,13 +316,6 @@ export function detectStopPassages(
   }
 
   return results;
-}
-
-/** KL-local hour (0..23). Local equivalent of klDayOfWeek in time-kl.ts. */
-function klHourOfDay(date: Date): number {
-  // toKlLocal shifts so UTC fields hold KL wall-clock; read UTC hours.
-  const klOffsetMs = 8 * 60 * 60 * 1000;
-  return new Date(date.getTime() + klOffsetMs).getUTCHours();
 }
 
 /**

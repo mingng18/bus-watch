@@ -38,6 +38,29 @@ export function klDayOfWeek(date: Date): number {
 }
 
 /**
+ * ⚡ Bolt Performance Optimization:
+ * Fast, zero-allocation extraction of KL-local hour directly from a Unix timestamp.
+ * Avoids repeated `new Date(timestamp)` allocations in hot aggregation loops.
+ */
+export function klHourOfDayFast(tsSeconds: number): number {
+  const localTs = tsSeconds + 28800; // 8 * 3600 (KL offset)
+  return Math.floor((((localTs % 86400) + 86400) % 86400) / 3600);
+}
+
+/**
+ * ⚡ Bolt Performance Optimization:
+ * Fast, zero-allocation extraction of KL-local day-of-week directly from a Unix timestamp.
+ * Avoids repeated `new Date(timestamp)` allocations in hot aggregation loops.
+ */
+export function klDayOfWeekFast(tsSeconds: number): number {
+  const localTs = tsSeconds + 28800; // 8 * 3600
+  const daysSinceEpoch = Math.floor(localTs / 86400);
+  // Jan 1, 1970 was a Thursday (4)
+  const dow = (daysSinceEpoch + 4) % 7;
+  return dow < 0 ? dow + 7 : dow;
+}
+
+/**
  * Returns the KL-local calendar date as a `YYYYMMDD` string, matching the
  * `start_date`/`end_date` format used by GTFS `calendar.txt`.
  */
