@@ -142,41 +142,56 @@ interface SitemapEntry {
 /** Extract <url> blocks' <loc> + <lastmod>. Tolerant of malformed XML. */
 function extractUrlEntries(xml: string): SitemapEntry[] {
   const entries: SitemapEntry[] = [];
-  const startRe = /<url\b[^>]*>/gi;
-  const endRe = /<\/url>/gi;
+  const lowerXml = xml.toLowerCase();
+  let searchIdx = 0;
 
-  let m: RegExpExecArray | null;
-  while ((m = startRe.exec(xml)) !== null) {
-    endRe.lastIndex = startRe.lastIndex;
-    const endMatch = endRe.exec(xml);
-    if (!endMatch) {
-      break; // Stop parsing if there's no closing tag
+  while (true) {
+    // Some sitemaps might have attributes like <url ...> but `indexOf` looks for exactly `<url>`.
+    // The previous implementation used `/<url\b[^>]*>/gi` which handles attributes.
+    // To match the previous regex logic and maintain exact functionality,
+    // we need to find `<url` then find the closing `>`.
+    const urlTagStart = lowerXml.indexOf('<url', searchIdx);
+    if (urlTagStart === -1) break;
+
+    // Ensure the character after `<url` is a boundary (space, tab, newline, or `>`)
+    const nextChar = lowerXml.charCodeAt(urlTagStart + 4);
+    if (nextChar !== 62 && nextChar !== 32 && nextChar !== 9 && nextChar !== 10 && nextChar !== 13) {
+      searchIdx = urlTagStart + 4;
+      continue;
     }
-    const block = xml.slice(startRe.lastIndex, endMatch.index);
-    startRe.lastIndex = endRe.lastIndex; // Advance start search beyond the closing tag
 
-    const loc = extractTagContent(block, 'loc');
+    const urlTagEnd = lowerXml.indexOf('>', urlTagStart);
+    if (urlTagEnd === -1) break;
+
+    const urlEnd = lowerXml.indexOf('</url>', urlTagEnd);
+    if (urlEnd === -1) break;
+
+    searchIdx = urlEnd + 6; // Advance for the next iteration
+
+    const locStart = lowerXml.indexOf('<loc>', urlTagEnd);
+    let loc: string | undefined = undefined;
+    if (locStart !== -1 && locStart < urlEnd) {
+      const locEnd = lowerXml.indexOf('</loc>', locStart + 5);
+      if (locEnd !== -1 && locEnd < urlEnd) {
+        loc = xml.substring(locStart + 5, locEnd).trim();
+      }
+    }
+
     if (!loc) continue;
 
-    const lastmod = extractTagContent(block, 'lastmod');
-    entries.push({ loc, lastmod: lastmod || null });
+    const lastmodStart = lowerXml.indexOf('<lastmod>', urlTagEnd);
+    let lastmod: string | null = null;
+    if (lastmodStart !== -1 && lastmodStart < urlEnd) {
+      const lastmodEnd = lowerXml.indexOf('</lastmod>', lastmodStart + 9);
+      if (lastmodEnd !== -1 && lastmodEnd < urlEnd) {
+        lastmod = xml.substring(lastmodStart + 9, lastmodEnd).trim();
+      }
+    }
+
+    entries.push({ loc, lastmod });
   }
+
   return entries;
-}
-
-/** Extract tag contents robustly. */
-function extractTagContent(block: string, tag: string): string | undefined {
-  const lowerBlock = block.toLowerCase();
-  const startTag = `<${tag}>`;
-  const endTag = `</${tag}>`;
-
-  const startIdx = lowerBlock.indexOf(startTag);
-  if (startIdx === -1) return undefined;
-
-  const endIdx = lowerBlock.indexOf(endTag, startIdx + startTag.length);
-  if (endIdx === -1) return undefined;
-
-  return block.slice(startIdx + startTag.length, endIdx).trim();
 }
 
 /** Slugs that do NOT represent service disruptions and must be excluded. */
