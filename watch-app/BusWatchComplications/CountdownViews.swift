@@ -45,7 +45,7 @@ struct CountdownRectangularView: View {
                         .font(.caption2)
                         .lineLimit(1)
                 }
-                Text("\(snapshot.line) → \(snapshot.destination)")
+                Text("\(snapshot.line.isEmpty ? "Service" : snapshot.line) → \(snapshot.destination)")
                     .font(.caption)
                     .lineLimit(1)
                 HStack(alignment: .firstTextBaseline, spacing: 2) {
@@ -58,7 +58,7 @@ struct CountdownRectangularView: View {
                 }
             }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel("\(snapshot.line) to \(snapshot.destination), \(snapshot.minutesUntil == 1 ? "1 minute" : "\(snapshot.minutesUntil) minutes"), from \(snapshot.stopName)")
+            .accessibilityLabel("\(snapshot.line.isEmpty ? "Service" : snapshot.line) to \(snapshot.destination), \(snapshot.minutesUntil == 1 ? "1 minute" : "\(snapshot.minutesUntil) minutes"), from \(snapshot.stopName)")
         } else {
             VStack(alignment: .leading, spacing: 2) {
                 Image(systemName: "star")
@@ -80,9 +80,9 @@ struct CountdownInlineView: View {
 
     var body: some View {
         if let snapshot {
-            Text("\(snapshot.line) · \(snapshot.minutesUntil) min · \(snapshot.stopName)")
+            Text("\(snapshot.line.isEmpty ? "Service" : snapshot.line) · \(snapshot.minutesUntil) min · \(snapshot.stopName)")
                 .contentTransition(.numericText())
-                .accessibilityLabel("\(snapshot.line), \(snapshot.minutesUntil == 1 ? "1 minute" : "\(snapshot.minutesUntil) minutes"), from \(snapshot.stopName)")
+                .accessibilityLabel("\(snapshot.line.isEmpty ? "Service" : snapshot.line), \(snapshot.minutesUntil == 1 ? "1 minute" : "\(snapshot.minutesUntil) minutes"), from \(snapshot.stopName)")
         } else {
             Text("BusWatch")
         }
