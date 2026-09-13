@@ -130,7 +130,7 @@ struct NearbyListView: View {
                 if let first = stop.arrivals.first {
                     let route = first.line ?? first.route ?? ""
                     let displayRoute = route.isEmpty ? "Service" : route
-                    Text("\(arrivalPrefix(first))\(displayRoute) → \(first.destination) — \(arrivalMinutesText(first))")
+                    (arrivalPrefix(first) + Text("\(displayRoute) → \(first.destination) — \(arrivalMinutesText(first))"))
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .contentTransition(.numericText())
@@ -201,10 +201,10 @@ struct NearbyListView: View {
     /// Visible prefix for the arrival line. Live arrivals show nothing; a
     /// historical/scheduled estimate shows "≈ " when we have an uncertainty
     /// window, otherwise the legacy "sched " tag.
-    private func arrivalPrefix(_ a: Arrival) -> String {
-        if a.isRealtime { return "" }
-        if a.uncertaintyMinutes != nil { return "≈ " }
-        return "sched "
+    private func arrivalPrefix(_ a: Arrival) -> Text {
+        if a.isRealtime { return Text("") }
+        if a.uncertaintyMinutes != nil { return Text("≈ ") }
+        return Text(Image(systemName: "clock")) + Text(" Scheduled ")
     }
 
     /// Visible minutes text. For a scheduled estimate with an uncertainty
