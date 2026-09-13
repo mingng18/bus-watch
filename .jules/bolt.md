@@ -125,3 +125,7 @@
 ## 2024-09-12 - String Sorting Optimization
 **Learning:** Using `String.prototype.localeCompare` to sort strictly formatted ASCII strings (like "HH:MM:SS") applies complex I18N collation rules that add noticeable performance overhead.
 **Action:** Use simple lexicographical comparison operators (`a < b ? -1 : a > b ? 1 : 0`) for much faster sorting when dealing with strictly formatted time strings.
+
+## 2024-05-18 - [Testing] 🧪 Direct testing of validateLatLon
+**Learning:** Testing functions that validate input internally within an endpoint is better done with direct unit tests than via full request tests, requiring the function to be exported. Direct unit tests cover more edge cases precisely without requiring mocking the entire `fetch` routing and environment.
+**Action:** Exported the `validateLatLon` function and tested it directly in `backend/test/index.test.ts`.
