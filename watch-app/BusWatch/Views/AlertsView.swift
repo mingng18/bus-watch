@@ -28,7 +28,6 @@ struct AlertsView: View {
                     Text("No active disruptions")
                         .font(.caption)
                         .multilineTextAlignment(.center)
-
                     Button {
                         Task { await load() }
                     } label: {
