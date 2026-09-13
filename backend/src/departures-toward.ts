@@ -85,10 +85,6 @@ export function getDeparturesTowardDestination(
     });
   }
 
-  // perf: Avoid String.prototype.localeCompare for strictly formatted ASCII time strings.
-  // It applies complex internationalization collation rules that introduce noticeable overhead.
-  // Using simple comparison operators is significantly faster for lexicographical sorting.
-  departures.sort((a, b) => (a.departureTime < b.departureTime ? -1 : a.departureTime > b.departureTime ? 1 : 0));
 
   return {
     stopId,
