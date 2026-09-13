@@ -356,7 +356,6 @@ async function probe(c: FeedCandidate): Promise<FeedReport> {
 }
 
 async function main(): Promise<void> {
-  console.log('Probing candidate Prasarana GTFS-realtime feeds...');
   for (const c of candidateFeeds()) {
     try {
       const report = await probe(c);
