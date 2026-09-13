@@ -90,3 +90,6 @@
 ## 2025-02-12 - Expand domain abbreviations for better UX
 **Learning:** Using raw text abbreviations like "sched" for domain-specific data states harms readability and accessibility.
 **Action:** Replace text abbreviations with `Label` components containing expanded text and standard SF Symbols (e.g., 'clock'). For dynamic text combinations, concatenate `Text` views directly with the `+` operator.
+## 2024-08-30 - Add loading state to async list interactions
+**Learning:** In SwiftUI, `Button` actions that trigger async operations (like network fetches for detailed views) without transitioning to a loading state leave the user looking at a static screen, wondering if their tap was registered.
+**Action:** When transitioning between major states via async network calls (e.g. tapping a bus stop to load its schedule), explicitly set the app state to `.loading(message)` immediately before the `await` to provide instant visual feedback.
