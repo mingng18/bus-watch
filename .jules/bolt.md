@@ -129,6 +129,6 @@
 **Learning:** Chaining `.filter().map()` inside large array ingestion paths (like `rail-ingest.ts`) causes the engine to allocate massive intermediate array structures before mapping, increasing memory pressure and GC spikes. A standard `for` loop pushing directly to the target array executes the filtering/mapping logic in a single fast pass per dataset.
 **Action:** Replace functional `.filter().map()` chains with standard `for` loops when parsing large CSV raw outputs in data ingestion scripts.
 
-## $(date +%Y-%m-%d) - [Refactoring] 🧪 Extracting KV Caching Logic
+## 2026-09-13 - [Refactoring] 🧪 Extracting KV Caching Logic
 **Learning:** When refactoring a large Cloudflare Worker file (like `index.ts`), extracting module-scoped variables (like `let cachedStopsPromise: ...`) into a separate module (e.g., `kv.ts`) perfectly preserves their state across warm invocations. The Node.js/V8 module system inherently ensures these variables act as singletons per isolate, keeping caching logic intact without needing complex dependency injection.
 **Action:** Extracted 160 lines of KV data helpers and their associated module-scoped cache maps from `index.ts` to `kv.ts` to improve file length and code readability.
