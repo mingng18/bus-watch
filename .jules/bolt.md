@@ -125,7 +125,6 @@
 ## 2024-09-12 - String Sorting Optimization
 **Learning:** Using `String.prototype.localeCompare` to sort strictly formatted ASCII strings (like "HH:MM:SS") applies complex I18N collation rules that add noticeable performance overhead.
 **Action:** Use simple lexicographical comparison operators (`a < b ? -1 : a > b ? 1 : 0`) for much faster sorting when dealing with strictly formatted time strings.
-
-## 2024-05-18 - [Performance Optimization: Replace intermediate array allocation and iteration with for...of loops]
-**Learning:** In modern JavaScript/TypeScript engines (e.g. V8), array methods like `.filter()` which iterate and allocate intermediate lambda memory may add garbage collection overhead. In some cases, performance can be optimized by using standard `for...of` loops, thereby reducing GC overhead, and removing lambda allocation, improving runtime performance without introducing complexity.
-**Action:** Replaced `.filter()` array allocation with a direct `for...of` loop which allocates values straight to the array for iterating `results` array in `backend/src/sampling.ts`.
+## 2025-05-23 - Optimize array allocations when processing raw GTFS sets in rail ingestion
+**Learning:** Chaining `.filter().map()` inside large array ingestion paths (like `rail-ingest.ts`) causes the engine to allocate massive intermediate array structures before mapping, increasing memory pressure and GC spikes. A standard `for` loop pushing directly to the target array executes the filtering/mapping logic in a single fast pass per dataset.
+**Action:** Replace functional `.filter().map()` chains with standard `for` loops when parsing large CSV raw outputs in data ingestion scripts.
