@@ -12905,7 +12905,7 @@ function getStationSchedule(stopId, stops, routes, trips, tripStops, calendar, p
       minutesUntil
     });
   }
-  departures.sort((a, b) => a.departureTime.localeCompare(b.departureTime));
+  departures.sort((a, b) => a.departureTime < b.departureTime ? -1 : a.departureTime > b.departureTime ? 1 : 0);
   return {
     stopId,
     stopName: stop.name,
@@ -13364,15 +13364,27 @@ __name(fetchAndParseGtfsData, "fetchAndParseGtfsData");
 async function mapAndInsertGtfsData(env, rawStops, rawRoutes, rawTrips, rawStopTimes) {
   let inserted = 0;
   try {
-    const railRouteIds = new Set(
-      rawRoutes.filter((r) => ["0", "1", "2"].includes(r.route_type)).map((r) => r.route_id)
-    );
-    const railTripIds = new Set(
-      rawTrips.filter((t) => railRouteIds.has(t.route_id)).map((t) => t.trip_id)
-    );
-    const railStopIds = new Set(
-      rawStopTimes.filter((st) => railTripIds.has(st.trip_id)).map((st) => st.stop_id)
-    );
+    const railRouteIds = /* @__PURE__ */ new Set();
+    for (let i2 = 0; i2 < rawRoutes.length; i2++) {
+      const r = rawRoutes[i2];
+      if (r.route_type === "0" || r.route_type === "1" || r.route_type === "2") {
+        railRouteIds.add(r.route_id);
+      }
+    }
+    const railTripIds = /* @__PURE__ */ new Set();
+    for (let i2 = 0; i2 < rawTrips.length; i2++) {
+      const t = rawTrips[i2];
+      if (railRouteIds.has(t.route_id)) {
+        railTripIds.add(t.trip_id);
+      }
+    }
+    const railStopIds = /* @__PURE__ */ new Set();
+    for (let i2 = 0; i2 < rawStopTimes.length; i2++) {
+      const st = rawStopTimes[i2];
+      if (railTripIds.has(st.trip_id)) {
+        railStopIds.add(st.stop_id);
+      }
+    }
     const stopPrepStmt = env.DB.prepare(
       `INSERT INTO rail_stops (stop_id, stop_name, lat, lon)
        VALUES (?, ?, ?, ?)
@@ -13550,7 +13562,7 @@ function getDeparturesTowardDestination(stopId, destinationStopId, stops, routes
       minutesUntil
     });
   }
-  departures.sort((a, b) => a.departureTime.localeCompare(b.departureTime));
+  departures.sort((a, b) => a.departureTime < b.departureTime ? -1 : a.departureTime > b.departureTime ? 1 : 0);
   return {
     stopId,
     stopName: stop.name,
@@ -13789,6 +13801,7 @@ function validateLatLon(lat, lon) {
 }
 __name(validateLatLon, "validateLatLon");
 var requireAdminToken = createMiddleware(async (c, next) => {
+  c.header("Cache-Control", "no-store");
   const authHeader = c.req.header("Authorization");
   const expectedToken = `Bearer ${c.env.ADMIN_TOKEN}`;
   if (!c.env.ADMIN_TOKEN || !authHeader) {
@@ -13799,6 +13812,7 @@ var requireAdminToken = createMiddleware(async (c, next) => {
   if (!isMatch) {
     return c.json({ error: "Unauthorized" }, 401);
   }
+  c.header("Cache-Control", "no-store");
   await next();
 });
 app.post("/refresh", requireAdminToken, async (c) => {

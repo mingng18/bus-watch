@@ -119,6 +119,14 @@
 **Learning:** Chaining array methods like `.map().reduce()` and `.map().filter()` inside heavily executed hot loops (such as `aggregateSamples` and `rejectOutliers` in `backend/src/sampling.ts`) forces the engine to allocate new intermediate arrays for every step. In tests, a manual standard `for` loop approach that combines array extraction, average, and spread computation in a single structure performed measurably faster and avoided memory pressure compared to naive array chaining.
 **Action:** When performing mathematical aggregations (like averages or MAD calculations) within tight loops, avoid chaining `.map()`, `.reduce()`, or `.filter()`. Use manual index-based `for` loops and accumulator variables to extract data and calculate values sequentially without allocating intermediary closure or array structures.
 
+## 2024-10-24 - Optimize array allocations when processing raw GTFS sets
+**Learning:** Chaining `.filter().map()` inside array to `Set` instantiations in data ingest paths (like `rail-ingest.ts`) causes the engine to allocate intermediate array structures. A standard `for` loop pushing directly to the `Set` reduces execution time and garbage collection pressure on large datasets.
+**Action:** Replace functional `.filter().map()` chains with standard `for` loops when instantiating `Set` objects from large arrays.
+
+## 2024-09-12 - String Sorting Optimization
+**Learning:** Using `String.prototype.localeCompare` to sort strictly formatted ASCII strings (like "HH:MM:SS") applies complex I18N collation rules that add noticeable performance overhead.
+**Action:** Use simple lexicographical comparison operators (`a < b ? -1 : a > b ? 1 : 0`) for much faster sorting when dealing with strictly formatted time strings.
+
 ## 2024-07-25 - Avoid O(N) map allocations per HTTP request
 **Learning:** Instantiating `Map` objects per HTTP request in hot endpoints (e.g., mapping large arrays like routes/trips) incurs significant allocation and garbage collection overhead in Cloudflare Workers.
 **Action:** Replaced dynamic routeMap construction (`const routeMap = new Map(); for (const r of allRoutes) routeMap.set(r.id, r);`) with a prebuilt cached map (`const { map: routeMap } = await getRoutesMaps(c.env.KV)`).
