@@ -129,3 +129,6 @@
 ## 2025-02-23 - Extract array transformation computations to global KV cache
 **Learning:** Re-computing stop sequences using `canonicalStopSequencesByRoute` dynamically during every endpoint hit for `/bus/eta` and periodically via `sampleBusPositions` requires iterating through `allTrips` and `allTripStops` redundantly. Even if `allTrips` and `allTripStops` are cached, the transformation itself requires allocations and iterations.
 **Action:** Extract the complex `canonicalStopSequencesByRoute` transformation directly into a promise-based KV cache block in the module scope with a TTL (e.g. `getCanonicalStopSequences`). This ensures the processed Map is retained in memory and bypasses redundant O(N) evaluations across subsequent requests/invocations.
+## 2025-05-23 - Optimize array allocations when processing raw GTFS sets in rail ingestion
+**Learning:** Chaining `.filter().map()` inside large array ingestion paths (like `rail-ingest.ts`) causes the engine to allocate massive intermediate array structures before mapping, increasing memory pressure and GC spikes. A standard `for` loop pushing directly to the target array executes the filtering/mapping logic in a single fast pass per dataset.
+**Action:** Replace functional `.filter().map()` chains with standard `for` loops when parsing large CSV raw outputs in data ingestion scripts.
