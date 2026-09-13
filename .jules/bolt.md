@@ -130,6 +130,11 @@
 **Learning:** Using `String.prototype.localeCompare` to sort strictly formatted ASCII strings (like "HH:MM:SS") applies complex I18N collation rules that add noticeable performance overhead.
 **Action:** Use simple lexicographical comparison operators (`a < b ? -1 : a > b ? 1 : 0`) for much faster sorting when dealing with strictly formatted time strings.
 
+## 2025-05-23 - Optimize array allocations when processing raw GTFS sets in rail ingestion
+**Learning:** Chaining `.filter().map()` inside large array ingestion paths (like `rail-ingest.ts`) causes the engine to allocate massive intermediate array structures before mapping, increasing memory pressure and GC spikes. A standard `for` loop pushing directly to the target array executes the filtering/mapping logic in a single fast pass per dataset.
+**Action:** Replace functional `.filter().map()` chains with standard `for` loops when parsing large CSV raw outputs in data ingestion scripts.
+
+
 ## 2025-02-18 - Optimize time-based deletions with an index
 **Learning:** Performing database deletions on large tables without an index on the filtered timestamp column causes full table scans, resulting in severe latency degradation (e.g., SQLite `DELETE` taking ~104ms for 1M rows).
 **Action:** Add an index on the `timestamp` column to enable efficient index scans for the `DELETE` query. This cuts execution time by over 86% (down to ~14.5ms) according to local benchmarks.
