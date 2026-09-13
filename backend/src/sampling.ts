@@ -267,21 +267,23 @@ export function detectStopPassages(
   let stopIdx = 0;
   let lastPassageTs: number | null = null; // timestamp the previous stop was hit
   let lastPassageStop: TripStopEntry | null = null;
-  let targetBox = getBoundingBox(stops[0].lat, stops[0].lon, STOP_PASSAGE_RADIUS_M);
-
   for (const s of ordered) {
     // Only test against the next expected stop. This enforces in-order
     // passage and makes a far-ahead outlier unable to skip stops.
     const target = stops[stopIdx];
 
-    if (
-      s.lat < targetBox.minLat ||
-      s.lat > targetBox.maxLat ||
-      s.lon < targetBox.minLon ||
-      s.lon > targetBox.maxLon
-    ) {
-      continue;
-    }
+    // Fast-fail bounding box check to avoid expensive haversine calculation.
+    // 1 degree latitude is approx 111,320m.
+    // 1 degree longitude shrinks away from the equator (distance ≈ 111,320m * cos(lat)).
+    // We derive the thresholds dynamically from STOP_PASSAGE_RADIUS_M to ensure safety if it changes.
+    // We use a generous 3x multiplier for longitude to safely cover up to ~70 degrees latitude.
+    // Note: This simple subtraction does not handle crossing the 180th meridian (dateline),
+    // but KL transit data is nowhere near it.
+    const latThreshold = STOP_PASSAGE_RADIUS_M / 111000;
+    const lonThreshold = (STOP_PASSAGE_RADIUS_M / 111000) * 3;
+    const latDiff = Math.abs(s.lat - target.lat);
+    const lonDiff = Math.abs(s.lon - target.lon);
+    if (latDiff > latThreshold || lonDiff > lonThreshold) continue;
 
     const d = haversineDistance(s.lat, s.lon, target.lat, target.lon);
     if (d > STOP_PASSAGE_RADIUS_M) continue;
@@ -312,7 +314,6 @@ export function detectStopPassages(
     lastPassageStop = target;
     stopIdx++;
     if (stopIdx >= stops.length) break; // reached the terminus
-    targetBox = getBoundingBox(stops[stopIdx].lat, stops[stopIdx].lon, STOP_PASSAGE_RADIUS_M);
   }
 
   return results;
@@ -353,11 +354,25 @@ export function aggregateSamples(
   const out: AggregatedTravelTime[] = [];
   for (const arr of groups.values()) {
     // Per-key MAD outlier rejection.
-    const cleaned = rejectOutliers(arr.map((s) => s.seconds));
-    if (cleaned.length === 0) continue;
-    const avg = cleaned.reduce((a, b) => a + b, 0) / cleaned.length;
-    const mad =
-      cleaned.reduce((a, b) => a + Math.abs(b - avg), 0) / cleaned.length;
+
+    // Performance optimization:
+    // Replaced chained .map() and .reduce() with manual loops
+    // to prevent intermediate array allocations in a hot aggregation path.
+    const seconds = new Array(arr.length);
+    for (let i = 0; i < arr.length; i++) seconds[i] = arr[i].seconds;
+    const cleaned = rejectOutliers(seconds);
+
+    const len = cleaned.length;
+    if (len === 0) continue;
+
+    let sum = 0;
+    for (let i = 0; i < len; i++) sum += cleaned[i];
+    const avg = sum / len;
+
+    let madSum = 0;
+    for (let i = 0; i < len; i++) madSum += Math.abs(cleaned[i] - avg);
+    const mad = madSum / len;
+
     const first = arr[0];
     out.push({
       route: first.route,
@@ -386,10 +401,28 @@ function rejectOutliers(values: number[], threshold = 3): number[] {
   if (values.length <= 3) return values;
   const sorted = [...values].sort((a, b) => a - b);
   const median = sorted[Math.floor(sorted.length / 2)];
-  const devs = values.map((v) => Math.abs(v - median));
-  const mad = devs.reduce((a, b) => a + b, 0) / devs.length;
+
+  // Performance optimization:
+  // Replaced devs.map() and devs.reduce() with standard loops
+  // to calculate total absolute deviation without closures or arrays.
+  let totalDev = 0;
+  for (let i = 0; i < values.length; i++) {
+    totalDev += Math.abs(values[i] - median);
+  }
+  const mad = totalDev / values.length;
+
   if (mad === 0) return values; // all values identical or near-median
-  return values.filter((_, i) => devs[i] <= threshold * mad);
+
+  // Replace array .filter() with manual result array population
+  // to avoid closure overhead.
+  const result: number[] = [];
+  const maxDev = threshold * mad;
+  for (let i = 0; i < values.length; i++) {
+    if (Math.abs(values[i] - median) <= maxDev) {
+      result.push(values[i]);
+    }
+  }
+  return result;
 }
 
 /**

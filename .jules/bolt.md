@@ -88,8 +88,8 @@
 **Action:** Group independent data fetches into concurrent `Promise.all` blocks to bound the total execution time to the single slowest request, dramatically improving endpoint response times.
 
 ## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for Haversine Calculations
-**Learning:** In Cloudflare Workers where execution time and CPU cycles are highly constrained, large loops (e.g., iterating through thousands of bus stops or vehicles) that calculate geographic distance using the Haversine formula can be a significant bottleneck due to expensive trigonometric math (`Math.sin`, `Math.cos`, `Math.atan2`).
-**Action:** When filtering objects by geographic radius, implement a spatial pre-filter using a fast bounding box approximation before invoking the precise distance calculation. Use simple float comparisons (`<`, `>`) to aggressively prune out-of-bounds coordinates early, drastically reducing trigonometric overhead.
+**Learning:** In Cloudflare Workers where execution time and CPU cycles are highly constrained, large loops (e.g., iterating through thousands of bus stops or vehicles) that calculate geographic distance using the Haversine formula can be a significant bottleneck due to expensive trigonometric math (`Math.sin`, `Math.cos`, `Math.atan2`). When calculating distances in large loops, implement a spatial pre-filter using a bounding box. Use simple arithmetic comparisons to skip out-of-bounds coordinates early. However, be cautious when calculating thresholds based on longitude, as the distance represented by 1 degree of longitude shrinks as you move away from the equator (`distance ≈ 111.32km * cos(latitude)`). Hardcoding thresholds for longitude without accounting for latitude differences can lead to spatial bugs in higher latitudes.
+**Action:** When filtering objects by geographic radius, implement a spatial pre-filter using a fast bounding box approximation before invoking the precise distance calculation. Use dynamically calculated thresholds to safely reject far-away points.
 
 ## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for inner loops
 **Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop`) can reintroduce the trigonometric bottleneck of `haversineDistance`.
@@ -114,3 +114,17 @@
 ## 2024-08-05 - Bounding Box Pre-filtering outside nested loops
 **Learning:** In nested loops dealing with geographic data (e.g., checking every `stop` against every `vehicle`), applying a bounding box filter inside the inner loop is better than raw Haversine, but still requires evaluating thousands of out-of-bounds items iteratively.
 **Action:** When finding items within a radius of a central point across nested relationships (e.g. stops and vehicles), compute a combined outer bounding box (`searchRadius + innerRadius`) and pre-filter the secondary dataset (vehicles) *outside* the outer loop. This changes the execution from $O(S \times V)$ to $O(V + S \times V_{nearby})$, dropping execution times drastically (e.g., from ~360ms to ~38ms).
+
+## 2025-02-28 - Avoid array chaining overhead in hot paths
+**Learning:** Chaining array methods like `.map().reduce()` and `.map().filter()` inside heavily executed hot loops (such as `aggregateSamples` and `rejectOutliers` in `backend/src/sampling.ts`) forces the engine to allocate new intermediate arrays for every step. In tests, a manual standard `for` loop approach that combines array extraction, average, and spread computation in a single structure performed measurably faster and avoided memory pressure compared to naive array chaining.
+**Action:** When performing mathematical aggregations (like averages or MAD calculations) within tight loops, avoid chaining `.map()`, `.reduce()`, or `.filter()`. Use manual index-based `for` loops and accumulator variables to extract data and calculate values sequentially without allocating intermediary closure or array structures.
+
+## 2024-10-24 - Optimize array allocations when processing raw GTFS sets
+**Learning:** Chaining `.filter().map()` inside array to `Set` instantiations in data ingest paths (like `rail-ingest.ts`) causes the engine to allocate intermediate array structures. A standard `for` loop pushing directly to the `Set` reduces execution time and garbage collection pressure on large datasets.
+**Action:** Replace functional `.filter().map()` chains with standard `for` loops when instantiating `Set` objects from large arrays.
+## 2024-09-12 - String Sorting Optimization
+**Learning:** Using `String.prototype.localeCompare` to sort strictly formatted ASCII strings (like "HH:MM:SS") applies complex I18N collation rules that add noticeable performance overhead.
+**Action:** Use simple lexicographical comparison operators (`a < b ? -1 : a > b ? 1 : 0`) for much faster sorting when dealing with strictly formatted time strings.
+## 2025-05-23 - Optimize array allocations when processing raw GTFS sets in rail ingestion
+**Learning:** Chaining `.filter().map()` inside large array ingestion paths (like `rail-ingest.ts`) causes the engine to allocate massive intermediate array structures before mapping, increasing memory pressure and GC spikes. A standard `for` loop pushing directly to the target array executes the filtering/mapping logic in a single fast pass per dataset.
+**Action:** Replace functional `.filter().map()` chains with standard `for` loops when parsing large CSV raw outputs in data ingestion scripts.
