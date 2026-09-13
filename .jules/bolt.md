@@ -107,6 +107,15 @@
 **Learning:** Sequential async lookups to remote stores (like `fetchPrasaranaBuses`) compound latency linearly. However, grouping ALL fetches (like `getRealtimeVehicles`, `getAllTrips`, `getAllShapes`) into a single `Promise.all` block before validating parameters (e.g. checking if `route` exists) causes unnecessary database/KV reads for invalid requests (like 404s), wasting I/O resources on error paths.
 **Action:** When migrating sequential `await`s to concurrent `Promise.all` blocks in endpoints, split the requests into logical phases. Fetch the minimal data required for validation in the first `Promise.all`, perform the validation (early return on 404), and fetch the remaining heavy data in a second `Promise.all` block to preserve fast/cheap error paths while maximizing concurrency on the happy path.
 
+<<<<<<< HEAD
+## 2024-08-05 - Bounding Box Pre-filtering outside nested loops
+**Learning:** In nested loops dealing with geographic data (e.g., checking every `stop` against every `vehicle`), applying a bounding box filter inside the inner loop is better than raw Haversine, but still requires evaluating thousands of out-of-bounds items iteratively.
+**Action:** When finding items within a radius of a central point across nested relationships (e.g. stops and vehicles), compute a combined outer bounding box (`searchRadius + innerRadius`) and pre-filter the secondary dataset (vehicles) *outside* the outer loop. This changes the execution from $O(S \times V)$ to $O(V + S \times V_{nearby})$, dropping execution times drastically (e.g., from ~360ms to ~38ms).
+
+## 2025-02-28 - Avoid array chaining overhead in hot paths
+**Learning:** Chaining array methods like `.map().reduce()` and `.map().filter()` inside heavily executed hot loops (such as `aggregateSamples` and `rejectOutliers` in `backend/src/sampling.ts`) forces the engine to allocate new intermediate arrays for every step. In tests, a manual standard `for` loop approach that combines array extraction, average, and spread computation in a single structure performed measurably faster and avoided memory pressure compared to naive array chaining.
+**Action:** When performing mathematical aggregations (like averages or MAD calculations) within tight loops, avoid chaining `.map()`, `.reduce()`, or `.filter()`. Use manual index-based `for` loops and accumulator variables to extract data and calculate values sequentially without allocating intermediary closure or array structures.
+=======
 ## 2024-05-18 - [Performance] ⚡ Stop Scan Optimization Cache Invalidation Bug
 **Learning:** Caching reference types (`stops` array) module-level to optimize `.find()` lookups using a `Map` must carefully consider cache invalidation in a long-lived environment (like Cloudflare Workers). If the data source triggers a refresh, but the worker isolate is kept alive, passing the *same* cached array reference to the handler will skip the Map rebuild, but the *contents* of the array might have mutated if the ingestion logic mutates in-place instead of swapping references.
 **Action:** Always ensure that data updates in long-lived environments swap the entire array reference, or implement a versioned/timestamp-based cache invalidation alongside the reference check (`if (cachedArray !== currentArray || currentVersion !== cachedVersion)`) when using module-level caches to guarantee data consistency.
@@ -114,3 +123,4 @@
 ## 2024-05-18 - [Performance] ⚡ Optimize Stop Array Scans
 **Learning:** To prevent per-request O(N) array scans (e.g., using `.find()`) in hot code paths where data arrays are occasionally refreshed, use a module-level reference cache. Store the previous array reference alongside a precomputed `Map`. Before looking up an item, check if the array reference has changed (`if (cachedArray !== currentArray)`); if so, rebuild the map using a standard `for` loop. This provides O(1) lookups across requests without memory leaks.
 **Action:** Implemented a module-level loop cache in `backend/src/station.ts` to replace the `stops.find(s => s.id === stopId)` call with a fast O(1) map lookup.
+>>>>>>> d12a963 (Optimize stop lookup in getStationSchedule)
