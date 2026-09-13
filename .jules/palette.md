@@ -87,6 +87,6 @@
 ## 2025-02-12 - Manual refresh for non-scrollable empty states
 **Learning:** In SwiftUI, native pull-to-refresh (`.refreshable`) only functions on scrollable containers like `List` or `ScrollView`. When a view is in a non-scrollable `.empty` state (like a `VStack`), users cannot trigger the native gesture.
 **Action:** Always provide an explicit, manual "Refresh" or "Retry" `Button` when presenting non-scrollable empty states, ensuring users have an accessible way to re-fetch data.
-## 2025-02-12 - Expand Abbreviations for Readability
-**Learning:** Raw text abbreviations (like "sched") for domain states decrease visual comprehension and are less accessible.
-**Action:** Use `Label` components with expanded text and standard SF Symbols (e.g. "clock") instead of abbreviations. When combining with text dynamically, prefer concatenating `Text` views using the `+` operator over standard string interpolation.
+## 2025-02-12 - Expand domain abbreviations for better UX
+**Learning:** Using raw text abbreviations like "sched" for domain-specific data states harms readability and accessibility.
+**Action:** Replace text abbreviations with `Label` components containing expanded text and standard SF Symbols (e.g., 'clock'). For dynamic text combinations, concatenate `Text` views directly with the `+` operator.
