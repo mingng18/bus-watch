@@ -125,6 +125,9 @@
 ## 2024-09-12 - String Sorting Optimization
 **Learning:** Using `String.prototype.localeCompare` to sort strictly formatted ASCII strings (like "HH:MM:SS") applies complex I18N collation rules that add noticeable performance overhead.
 **Action:** Use simple lexicographical comparison operators (`a < b ? -1 : a > b ? 1 : 0`) for much faster sorting when dealing with strictly formatted time strings.
+## 2025-05-23 - Optimize array allocations when processing raw GTFS sets in rail ingestion
+**Learning:** Chaining `.filter().map()` inside large array ingestion paths (like `rail-ingest.ts`) causes the engine to allocate massive intermediate array structures before mapping, increasing memory pressure and GC spikes. A standard `for` loop pushing directly to the target array executes the filtering/mapping logic in a single fast pass per dataset.
+**Action:** Replace functional `.filter().map()` chains with standard `for` loops when parsing large CSV raw outputs in data ingestion scripts.
 ## 2025-03-01 - Avoid duplicate string allocations in iterative parsing
 **Learning:** Extracting string chunks using `.slice()` and performing `.toLowerCase()` inside an inner function when iteratively parsing a large XML document causes massive, redundant memory allocations. Each block extraction and case conversion creates temporary string objects that pressure the garbage collector.
 **Action:** When extracting multiple tokens from a large text blob (like a sitemap), convert the entire document to lowercase once. Use `indexOf` iteratively with start indices on the lowercased copy to find block boundaries, and use `.substring()` on the original document to extract final values.
