@@ -75,7 +75,7 @@ struct StationArrivalsView: View {
                 }
 
                 if !stop.arrivals.contains(where: { $0.isRealtime }) {
-                    Label("Scheduled", systemImage: "clock")
+                    (Text(Image(systemName: "clock")) + Text(" Scheduled"))
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .accessibilityLabel("Scheduled arrivals")
