@@ -90,3 +90,7 @@
 ## 2025-02-12 - Expand domain abbreviations for better UX
 **Learning:** Using raw text abbreviations like "sched" for domain-specific data states harms readability and accessibility.
 **Action:** Replace text abbreviations with `Label` components containing expanded text and standard SF Symbols (e.g., 'clock'). For dynamic text combinations, concatenate `Text` views directly with the `+` operator.
+
+## 2025-09-01 - Avoid bare data state abbreviations
+**Learning:** Domain-specific data state abbreviations (like "sched" for scheduled arrivals) rendered as bare `Text` can be visually unappealing and less legible.
+**Action:** In SwiftUI, avoid using raw text abbreviations for domain-specific data states. Use `Label` components or concatenated `Text(Image(systemName: "clock")) + Text("...")` to improve visual comprehension and accessibility without taking up much more space.
