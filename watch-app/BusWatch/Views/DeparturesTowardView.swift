@@ -31,6 +31,7 @@ struct DeparturesTowardView: View {
                         Text("No departures toward \(destinationName)")
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
                     }
                 } else {
                     ForEach(schedule.departures) { dep in
