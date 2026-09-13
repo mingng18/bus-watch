@@ -119,6 +119,13 @@
 **Learning:** Chaining array methods like `.map().reduce()` and `.map().filter()` inside heavily executed hot loops (such as `aggregateSamples` and `rejectOutliers` in `backend/src/sampling.ts`) forces the engine to allocate new intermediate arrays for every step. In tests, a manual standard `for` loop approach that combines array extraction, average, and spread computation in a single structure performed measurably faster and avoided memory pressure compared to naive array chaining.
 **Action:** When performing mathematical aggregations (like averages or MAD calculations) within tight loops, avoid chaining `.map()`, `.reduce()`, or `.filter()`. Use manual index-based `for` loops and accumulator variables to extract data and calculate values sequentially without allocating intermediary closure or array structures.
 
+## 2024-10-24 - Optimize array allocations when processing raw GTFS sets
+**Learning:** Chaining `.filter().map()` inside array to `Set` instantiations in data ingest paths (like `rail-ingest.ts`) causes the engine to allocate intermediate array structures. A standard `for` loop pushing directly to the `Set` reduces execution time and garbage collection pressure on large datasets.
+**Action:** Replace functional `.filter().map()` chains with standard `for` loops when instantiating `Set` objects from large arrays.
+## 2024-09-12 - String Sorting Optimization
+**Learning:** Using `String.prototype.localeCompare` to sort strictly formatted ASCII strings (like "HH:MM:SS") applies complex I18N collation rules that add noticeable performance overhead.
+**Action:** Use simple lexicographical comparison operators (`a < b ? -1 : a > b ? 1 : 0`) for much faster sorting when dealing with strictly formatted time strings.
+
 ## 2025-02-12 - [Performance] ⚡ Optimize array allocations in sampling pipeline
 **Learning:** When writing performance-critical data aggregation pipelines (like processing GPS traces for ETAs), intermediate array allocations (e.g., using `Array.prototype.map`, `.filter`, or `.reduce`) in hot loops can cause severe garbage collection overhead. Furthermore, for purely numerical mathematical operations (like finding medians or Mean Absolute Deviations), using `Float64Array` provides massive CPU cache and memory locality benefits over standard V8 arrays.
 **Action:** Replaced chained array methods with standard `for` loops in hot loops. Migrated math functions handling internal extraction, sorting, and deviation summing to utilize pre-allocated `Float64Array`s instead of standard arrays, significantly reducing allocation and GC pauses.
