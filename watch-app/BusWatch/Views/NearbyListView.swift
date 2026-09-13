@@ -203,7 +203,7 @@ struct NearbyListView: View {
     private func arrivalPrefix(_ a: Arrival) -> Text {
         if a.isRealtime { return Text("") }
         if a.uncertaintyMinutes != nil { return Text("≈ ") }
-        return Text(Image(systemName: "clock")) + Text(" ")
+        return Text(Image(systemName: "clock")) + Text(" Scheduled ")
     }
 
     /// Visible minutes text. For a scheduled estimate with an uncertainty
