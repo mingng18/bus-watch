@@ -90,6 +90,7 @@
 ## 2025-02-12 - Expand domain abbreviations for better UX
 **Learning:** Using raw text abbreviations like "sched" for domain-specific data states harms readability and accessibility.
 **Action:** Replace text abbreviations with `Label` components containing expanded text and standard SF Symbols (e.g., 'clock'). For dynamic text combinations, concatenate `Text` views directly with the `+` operator.
+
 ## 2025-01-23 - Add accessibility hints to icon-only toolbar buttons
 **Learning:** In SwiftUI, icon-only toolbar buttons have terse labels. VoiceOver users may need more context about what action the button performs, especially for generic icons like lists or chevrons.
 **Action:** Always provide an `.accessibilityHint` to icon-only toolbar buttons to explain the consequence of the action (e.g., "Returns to the nearby stops list.").
