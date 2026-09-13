@@ -61,7 +61,6 @@ struct BusProgressView: View {
                         .foregroundStyle(.secondary)
                         .contentTransition(.numericText())
                         .animation(.default, value: remaining)
-                        .accessibilityLabel(remaining == 1 ? "1 stop remaining" : "\(remaining) stops remaining")
                 }
             }
             .padding()
