@@ -29,7 +29,7 @@ struct AlertsView: View {
                         .font(.caption)
                         .multilineTextAlignment(.center)
                     Button {
-                        Task { await load(isRefresh: true) }
+                        Task { await load() }
                     } label: {
                         Label("Refresh", systemImage: "arrow.clockwise")
                     }
