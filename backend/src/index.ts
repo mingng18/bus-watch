@@ -92,6 +92,9 @@ function validateLatLon(lat: number, lon: number): string | null {
 }
 
 const requireAdminToken = createMiddleware<{ Bindings: Env }>(async (c, next) => {
+  // Security: Prevent sensitive data leakage through browser or intermediate caching
+  c.header('Cache-Control', 'no-store');
+
   const authHeader = c.req.header('Authorization');
   const expectedToken = `Bearer ${c.env.ADMIN_TOKEN}`;
   if (!c.env.ADMIN_TOKEN || !authHeader) {
@@ -103,6 +106,8 @@ const requireAdminToken = createMiddleware<{ Bindings: Env }>(async (c, next) =>
   if (!isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
+
+  c.header('Cache-Control', 'no-store');
 
   await next();
 });
