@@ -122,7 +122,11 @@
 ## 2024-10-24 - Optimize array allocations when processing raw GTFS sets
 **Learning:** Chaining `.filter().map()` inside array to `Set` instantiations in data ingest paths (like `rail-ingest.ts`) causes the engine to allocate intermediate array structures. A standard `for` loop pushing directly to the `Set` reduces execution time and garbage collection pressure on large datasets.
 **Action:** Replace functional `.filter().map()` chains with standard `for` loops when instantiating `Set` objects from large arrays.
+## 2024-09-12 - String Sorting Optimization
+**Learning:** Using `String.prototype.localeCompare` to sort strictly formatted ASCII strings (like "HH:MM:SS") applies complex I18N collation rules that add noticeable performance overhead.
+**Action:** Use simple lexicographical comparison operators (`a < b ? -1 : a > b ? 1 : 0`) for much faster sorting when dealing with strictly formatted time strings.
 
 ## $(date +%Y-%m-%d) - Avoid repeated Date allocations in hot loops
 **Learning:** In hot paths (like aggregating time-series data or calculating bucket keys), repeated `new Date(timestamp)` allocations create significant memory pressure and garbage collection overhead.
 **Action:** Extract fixed time components (like hour-of-day or day-of-week) using direct modulo and division arithmetic on Unix timestamps instead of allocating Date objects.
+>>>>>>> b3a7d5b (wip)
