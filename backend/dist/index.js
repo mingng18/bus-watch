@@ -13390,7 +13390,13 @@ async function mapAndInsertGtfsData(env, rawStops, rawRoutes, rawTrips, rawStopT
        VALUES (?, ?, ?, ?)
        ON CONFLICT(stop_id) DO UPDATE SET stop_name=excluded.stop_name, lat=excluded.lat, lon=excluded.lon`
     );
-    const stopStmts = rawStops.filter((s) => railStopIds.has(s.stop_id)).map((s) => stopPrepStmt.bind(s.stop_id, s.stop_name, parseFloat(s.stop_lat), parseFloat(s.stop_lon)));
+    const stopStmts = [];
+    for (let i2 = 0; i2 < rawStops.length; i2++) {
+      const s = rawStops[i2];
+      if (railStopIds.has(s.stop_id)) {
+        stopStmts.push(stopPrepStmt.bind(s.stop_id, s.stop_name, parseFloat(s.stop_lat), parseFloat(s.stop_lon)));
+      }
+    }
     await batch(env.DB, stopStmts);
     inserted += stopStmts.length;
     const routePrepStmt = env.DB.prepare(
@@ -13398,7 +13404,13 @@ async function mapAndInsertGtfsData(env, rawStops, rawRoutes, rawTrips, rawStopT
        VALUES (?, ?, ?)
        ON CONFLICT(route_id) DO UPDATE SET route_short_name=excluded.route_short_name, route_long_name=excluded.route_long_name`
     );
-    const routeStmts = rawRoutes.filter((r) => railRouteIds.has(r.route_id)).map((r) => routePrepStmt.bind(r.route_id, r.route_short_name || "", r.route_long_name || ""));
+    const routeStmts = [];
+    for (let i2 = 0; i2 < rawRoutes.length; i2++) {
+      const r = rawRoutes[i2];
+      if (railRouteIds.has(r.route_id)) {
+        routeStmts.push(routePrepStmt.bind(r.route_id, r.route_short_name || "", r.route_long_name || ""));
+      }
+    }
     await batch(env.DB, routeStmts);
     inserted += routeStmts.length;
     const tripPrepStmt = env.DB.prepare(
@@ -13406,7 +13418,13 @@ async function mapAndInsertGtfsData(env, rawStops, rawRoutes, rawTrips, rawStopT
        VALUES (?, ?, ?, ?, ?)
        ON CONFLICT(trip_id) DO UPDATE SET route_id=excluded.route_id, service_id=excluded.service_id, headsign=excluded.headsign, direction=excluded.direction`
     );
-    const tripStmts = rawTrips.filter((t) => railTripIds.has(t.trip_id)).map((t) => tripPrepStmt.bind(t.trip_id, t.route_id, t.service_id, t.trip_headsign || "", parseInt(t.direction_id || "0") || 0));
+    const tripStmts = [];
+    for (let i2 = 0; i2 < rawTrips.length; i2++) {
+      const t = rawTrips[i2];
+      if (railTripIds.has(t.trip_id)) {
+        tripStmts.push(tripPrepStmt.bind(t.trip_id, t.route_id, t.service_id, t.trip_headsign || "", parseInt(t.direction_id || "0") || 0));
+      }
+    }
     await batch(env.DB, tripStmts);
     inserted += tripStmts.length;
     const stPrepStmt = env.DB.prepare(
@@ -13414,7 +13432,13 @@ async function mapAndInsertGtfsData(env, rawStops, rawRoutes, rawTrips, rawStopT
        VALUES (?, ?, ?, ?, ?)
        ON CONFLICT(trip_id, stop_seq) DO UPDATE SET stop_id=excluded.stop_id, arrival_time=excluded.arrival_time, departure_time=excluded.departure_time`
     );
-    const stStmts = rawStopTimes.filter((st) => railTripIds.has(st.trip_id)).map((st) => stPrepStmt.bind(st.trip_id, st.stop_id, parseInt(st.stop_sequence), st.arrival_time, st.departure_time || st.arrival_time));
+    const stStmts = [];
+    for (let i2 = 0; i2 < rawStopTimes.length; i2++) {
+      const st = rawStopTimes[i2];
+      if (railTripIds.has(st.trip_id)) {
+        stStmts.push(stPrepStmt.bind(st.trip_id, st.stop_id, parseInt(st.stop_sequence), st.arrival_time, st.departure_time || st.arrival_time));
+      }
+    }
     await batch(env.DB, stStmts);
     inserted += stStmts.length;
     return inserted;
