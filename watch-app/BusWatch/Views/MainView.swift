@@ -85,6 +85,7 @@ struct MainView: View {
             Text("Location access needed")
                 .font(.caption)
                 .multilineTextAlignment(.center)
+                .accessibilityAddTraits(.isHeader)
             #if canImport(UIKit) && !os(watchOS)
             Button {
                 if let url = URL(string: UIApplication.openSettingsURLString) {
@@ -119,6 +120,7 @@ struct MainView: View {
             Text(message)
                 .font(.caption)
                 .multilineTextAlignment(.center)
+                .accessibilityAddTraits(.isHeader)
             Button {
                 engine.start()
             } label: {

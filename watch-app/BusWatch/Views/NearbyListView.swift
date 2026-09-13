@@ -78,6 +78,7 @@ struct NearbyListView: View {
                         Text("No stops nearby")
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                            .accessibilityAddTraits(.isHeader)
                     }
                     .listRowBackground(Color.clear)
                 } else {

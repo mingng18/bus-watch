@@ -80,10 +80,6 @@
 **Learning:** Empty string fallbacks for missing route identifiers (like `line.isEmpty ? "Service" : line`) implemented in the main app views weren't carried over to the WatchOS complications, causing visually broken states (e.g. " → Destination") and awkward VoiceOver phrasing on the watch face.
 **Action:** When implementing generic fallbacks for transit identifiers, proactively review and update corresponding complication/widget views to ensure the watch face matches the main app's gracefully degraded experience.
 
-## 2025-02-12 - Pull-to-refresh list loading spinner collision
-**Learning:** In SwiftUI, when using `.refreshable` on a list to provide native pull-to-refresh functionality, setting the view state back to `.loading` (which replaces the list with a `ProgressView`) immediately aborts the pull-to-refresh event. This interrupts the native refresh spinner animation and abruptly flashes the screen.
-**Action:** Always pass an `isRefresh` flag from `.refreshable` actions down to the data loading method, and conditionally bypass the `.loading` full-screen state replacement if `isRefresh` is true.
-
-## 2025-02-12 - Missing refresh capability in non-scrollable empty states
-**Learning:** In SwiftUI, native `.refreshable` modifiers only work when attached to scrollable containers like `List` or `ScrollView`. If an async view replaces its scrollable content with a static empty/error `VStack`, users lose the ability to pull-to-refresh to fetch new data.
-**Action:** When designing `.empty` or `.error` states that replace a `.refreshable` list, always include a manual "Refresh" or "Retry" `Button` to ensure users can still re-trigger data loading.
+## 2025-02-12 - Empty state headers for VoiceOver
+**Learning:** In watchOS, empty states (like "No active disruptions", "Location access needed", "No stops nearby") are often the primary content on the screen. However, VoiceOver riders may try to navigate using the "Headings" rotor. If these messages aren't marked as headers, they might be skipped or harder to find, leaving the user confused about the screen's state.
+**Action:** Always append `.accessibilityAddTraits(.isHeader)` to the main text element in `.empty` or `.error` states to ensure screen reader users can efficiently discover and navigate to the current state of the view.
