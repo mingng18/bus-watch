@@ -122,6 +122,13 @@
 ## 2024-10-24 - Optimize array allocations when processing raw GTFS sets
 **Learning:** Chaining `.filter().map()` inside array to `Set` instantiations in data ingest paths (like `rail-ingest.ts`) causes the engine to allocate intermediate array structures. A standard `for` loop pushing directly to the `Set` reduces execution time and garbage collection pressure on large datasets.
 **Action:** Replace functional `.filter().map()` chains with standard `for` loops when instantiating `Set` objects from large arrays.
+## 2024-09-12 - String Sorting Optimization
+**Learning:** Using `String.prototype.localeCompare` to sort strictly formatted ASCII strings (like "HH:MM:SS") applies complex I18N collation rules that add noticeable performance overhead.
+**Action:** Use simple lexicographical comparison operators (`a < b ? -1 : a > b ? 1 : 0`) for much faster sorting when dealing with strictly formatted time strings.
+## 2025-05-23 - Optimize array allocations when processing raw GTFS sets in rail ingestion
+**Learning:** Chaining `.filter().map()` inside large array ingestion paths (like `rail-ingest.ts`) causes the engine to allocate massive intermediate array structures before mapping, increasing memory pressure and GC spikes. A standard `for` loop pushing directly to the target array executes the filtering/mapping logic in a single fast pass per dataset.
+**Action:** Replace functional `.filter().map()` chains with standard `for` loops when parsing large CSV raw outputs in data ingestion scripts.
+
 ## 2025-02-28 - Avoid new Date object allocations in hot paths
 **Learning:** Instantiating `new Date(unixTimestamp)` in tight loops (like travel time aggregations parsing thousands of passages) causes significant memory pressure and garbage collection overhead. Using straight arithmetic for time components (day of week, hour of day) avoids this penalty, turning ~500ms operations into ~15ms operations in a benchmark.
 **Action:** When computing fixed time units (like hour of day or day of week) from a UNIX timestamp inside hot loops, use simple modulo arithmetic based on epoch offsets instead of allocating `new Date()` objects.
