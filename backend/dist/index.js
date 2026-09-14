@@ -12293,6 +12293,14 @@ function klDayOfWeek(date) {
   return toKlLocal(date).getUTCDay();
 }
 __name(klDayOfWeek, "klDayOfWeek");
+function klDayOfWeekFromUnixSeconds(unixSeconds) {
+  return Math.floor((unixSeconds + 28800) / 86400 + 4) % 7;
+}
+__name(klDayOfWeekFromUnixSeconds, "klDayOfWeekFromUnixSeconds");
+function klHourOfDayFromUnixSeconds(unixSeconds) {
+  return Math.floor((unixSeconds + 28800) % 86400 / 3600);
+}
+__name(klHourOfDayFromUnixSeconds, "klHourOfDayFromUnixSeconds");
 function klDateYyyyMmDd(date) {
   const kl = toKlLocal(date);
   const y = kl.getUTCFullYear();
@@ -13093,8 +13101,9 @@ function detectStopPassages(samples, stops, route) {
           to_lat: target.lat,
           to_lon: target.lon,
           seconds,
-          day_of_week: klDayOfWeek(new Date(lastPassageTs * 1e3)),
-          time_bucket: klHourOfDay(new Date(lastPassageTs * 1e3))
+          // perf: Use zero-allocation arithmetic on Unix timestamps instead of new Date() in this hot loop
+          day_of_week: klDayOfWeekFromUnixSeconds(lastPassageTs),
+          time_bucket: klHourOfDayFromUnixSeconds(lastPassageTs)
         });
       }
     }
@@ -13107,11 +13116,6 @@ function detectStopPassages(samples, stops, route) {
   return results;
 }
 __name(detectStopPassages, "detectStopPassages");
-function klHourOfDay(date) {
-  const klOffsetMs = 8 * 60 * 60 * 1e3;
-  return new Date(date.getTime() + klOffsetMs).getUTCHours();
-}
-__name(klHourOfDay, "klHourOfDay");
 function aggregateSamples(samples) {
   const groups = /* @__PURE__ */ new Map();
   for (const s of samples) {
