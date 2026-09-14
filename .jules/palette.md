@@ -75,9 +75,6 @@
 ## 2025-02-12 - watchOS Navigation Chevrons
 **Learning:** In watchOS SwiftUI, list rows built with `Button` (for state-based navigation) lack the default `chevron.right` accessory provided by `NavigationLink`.
 **Action:** Manually append `Image(systemName: "chevron.right")` with secondary styling to the trailing edge of the button's content to provide consistent visual navigation affordances.
-## 2025-02-12 - ProgressView in ManualPickerView
-**Learning:** In SwiftUI, `ProgressView` provides a clean, native loading state indicator. When conditionally fetching data (like nearby stops in `ManualPickerView`), showing `ProgressView("Loading...")` clearly indicates to users that work is happening, compared to leaving an empty space or plain text placeholder.
-**Action:** Use `ProgressView("Loading...")` as a standard placeholder when waiting for `engine.nearbyStops` to populate from an initial `nil` state.
-## 2025-02-12 - Prevent List background flickering on empty states
-**Learning:** In SwiftUI `List` components, `HStack` or `Text` empty state placeholders within a `Section` will inherit the standard list row background style (e.g. white or gray cards), which can look strange for a simple text message.
-**Action:** When returning inline empty states in a list (like "No stops nearby"), append `.listRowBackground(Color.clear)` so the empty text blends seamlessly with the list background instead of appearing inside a detached row bubble.
+## 2025-02-12 - Disabled states need accessibility hints
+**Learning:** In SwiftUI, setting `.disabled(true)` on a control only visually dims it and adds the "dimmed" accessibility trait. VoiceOver riders are not told *why* it's disabled. For example, in `StationArrivalsView`, the "Set Home" button is disabled if the stop isn't favorited, but the hint just reads "Marks this stop as your home".
+**Action:** When conditionally applying `.disabled()` to a button for logical reasons, use a dynamic `.accessibilityHint` (or `.accessibilityValue` depending on context) that provides a different message when disabled to explain why the user can't interact with it.
