@@ -74,7 +74,7 @@
 **Learning:** Using regex to parse XML/HTML tags with unbounded captures like `/<tag>\s*([^<]*?)\s*<\/tag>/i` is extremely susceptible to ReDoS when the input is malformed, as backtracking grows exponentially.
 **Prevention:** Avoid using single regular expressions for block extraction. Use sequential token matching (finding the start token, updating the search index, then finding the end token) combined with string slicing (`xml.slice()`) which guarantees linear time complexity.
 
-## 2025-02-28 - Fix Zip Bomb Vulnerability in GTFS Ingest
+## $(date +%Y-%m-%d) - Fix Zip Bomb Vulnerability in GTFS Ingest
 **Learning:** When extracting untrusted ZIP archives in memory-constrained environments (like Cloudflare Workers) using `fflate`, a Zip Bomb vulnerability exists where a small compressed file expands to exhaust memory. This can be mitigated by using `fflate`'s `unzipSync` filter option to allow-list required files and track `file.originalSize` against a strict maximum size limit (e.g., 50MB).
 **Action:** Created memory entry for mitigating Zip Bomb vulnerabilities during in-memory ZIP extraction.
 
@@ -83,7 +83,7 @@
 **Learning:** Extracting untrusted ZIP archives in memory without constraints allows for Zip Bomb vulnerabilities, which can exhaust memory and crash the Cloudflare Worker.
 **Prevention:** Use extraction filters to allow-list required files and track `file.originalSize` against a strict maximum size limit (e.g., 50MB) to mitigate Zip Bomb attacks.
 
-## 2025-02-28 - Fix Zip Bomb Vulnerability in GTFS Ingest Missing Allowlist
+## $(date +%Y-%m-%d) - Fix Zip Bomb Vulnerability in GTFS Ingest Missing Allowlist
 **Vulnerability:** Unbounded extraction of untrusted ZIP archives in `backend/src/gtfs-static.ts` via `fflate`'s `unzipSync` without a strict allowlist. Extracting everything, even with a total size limit, leaves the application exposed to extracting an extremely large number of tiny files (a form of Zip Bomb) and wastes resources decompressing unused files.
 **Learning:** Extracting untrusted ZIP archives must not only restrict total extracted size, but also enforce a strict allowlist of explicitly required specification files (such as `stops.txt`, `routes.txt`, `trips.txt`, `stop_times.txt`, `calendar.txt`, `agency.txt`, `calendar_dates.txt`, and `shapes.txt`).
 **Prevention:** Always combine `file.originalSize` limit tracking with a specific file allowlist (`!ALLOWED_FILES.has(fileName)`) in extraction filters to mitigate Zip Bomb attacks effectively and prevent functional regressions.
@@ -97,6 +97,7 @@
 **Vulnerability:** Authenticated/administrative endpoints lacked a `Cache-Control: no-store` header, allowing responses (including errors or sensitive data) to potentially be cached by browsers, proxies, or CDNs.
 **Learning:** Even if an endpoint requires authentication, intermediate caches might still store the response if caching directives are not explicitly set, exposing sensitive operations or data.
 **Prevention:** Always apply a `Cache-Control: no-store` header (e.g., via middleware) to responses from authenticated or administrative API endpoints to prevent sensitive data leakage through browser or intermediate caching.
+
 
 ## 2025-02-28 - Enforce Strict Content Security Policy on JSON API
 **Vulnerability:** The backend JSON API lacked a strict Content Security Policy (CSP), potentially allowing execution of malicious scripts (XSS) if a client inadvertently rendered an API response as an HTML document (e.g., due to missing or ignored `Content-Type` headers).

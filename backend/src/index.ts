@@ -26,8 +26,8 @@ const AGENCIES = [...REALTIME_AGENCIES, ...SELANGOR_AGENCIES];
 const app = new Hono<{ Bindings: Env }>();
 app.use('*', secureHeaders({
   contentSecurityPolicy: {
-    defaultSrc: ["'none'"]
-  }
+    defaultSrc: ["'none'"],
+  },
 }));
 app.use('*', cors({ origin: (origin, c) => c.env.FRONTEND_URL ?? null }));
 
