@@ -132,3 +132,7 @@
 ## 2024-05-18 - [Testing] 🧪 Add tests for confidenceFromSamples
 **Learning:** Testing pure functions like `confidenceFromSamples` improves test coverage significantly with low effort, acting as a safety net for confidence algorithms.
 **Action:** Wrote exhaustive unit tests covering all branch thresholds (`>= 8` and `<= 0.25` spread for high, `>= 3` for medium, and `< 3` for low) and boundary cases (like `avgSeconds === 0`).
+
+## 2024-05-30 - Eliminate Date allocations in sampling loop
+**Learning:** In hot loops processing thousands of points (e.g. data aggregation loops), instantiating `new Date()` repeatedly creates massive garbage collection pressure and CPU overhead.
+**Action:** When computing date components like hour or day-of-week from Unix timestamps in hot paths, avoid `Date` objects and perform direct modulo/division arithmetic on the timestamp instead.
