@@ -128,7 +128,6 @@
 ## 2025-05-23 - Optimize array allocations when processing raw GTFS sets in rail ingestion
 **Learning:** Chaining `.filter().map()` inside large array ingestion paths (like `rail-ingest.ts`) causes the engine to allocate massive intermediate array structures before mapping, increasing memory pressure and GC spikes. A standard `for` loop pushing directly to the target array executes the filtering/mapping logic in a single fast pass per dataset.
 **Action:** Replace functional `.filter().map()` chains with standard `for` loops when parsing large CSV raw outputs in data ingestion scripts.
-
-## 2025-02-28 - Optimize String sorting overhead for strictly formatted strings
-**Learning:** `String.prototype.localeCompare` is significantly slower than standard string comparison operators (`<`, `>`) because it applies complex internationalization rules and collations. For strictly formatted ASCII strings (like GTFS `HH:MM:SS` departure times), this processing overhead is entirely unnecessary and causes slower sorting in hot arrays.
-**Action:** Always replace `.sort((a, b) => a.localeCompare(b))` with standard string operators (`.sort((a, b) => a < b ? -1 : a > b ? 1 : 0)`) when sorting strict ASCII formats like times, UUIDs, or IDs to substantially boost sort performance and reduce CPU usage.
+## 2024-05-30 - Eliminate Date allocations in sampling loop
+**Learning:** In hot loops processing thousands of points (e.g. data aggregation loops), instantiating `new Date()` repeatedly creates massive garbage collection pressure and CPU overhead.
+**Action:** When computing date components like hour or day-of-week from Unix timestamps in hot paths, avoid `Date` objects and perform direct modulo/division arithmetic on the timestamp instead.
