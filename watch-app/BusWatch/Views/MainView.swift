@@ -56,7 +56,6 @@ struct MainView: View {
                         Label("Plan a trip", systemImage: "arrow.triangle.turn.up.right.diamond")
                             .labelStyle(.iconOnly)
                     }
-                    .accessibilityLabel("Plan a trip (opens in browser)")
                 }
             }
         }
@@ -95,7 +94,6 @@ struct MainView: View {
                 Label("Open Settings", systemImage: "gear")
             }
             .buttonStyle(.bordered)
-            .accessibilityLabel("Open Settings (opens settings app)")
             #elseif os(watchOS)
             Text("Enable in Watch Settings")
                 .font(.caption)
