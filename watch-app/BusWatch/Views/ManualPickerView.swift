@@ -36,7 +36,6 @@ struct ManualPickerView: View {
                             Image(systemName: "mappin.slash")
                                 .accessibilityHidden(true)
                                 .foregroundStyle(.secondary)
-                                .accessibilityHidden(true)
                             Text("No stops nearby")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
