@@ -93,7 +93,12 @@
 **Learning:** Even though the backend primarily serves JSON via an API, applying a strict CSP (`default-src 'none'`) acts as a crucial defense-in-depth layer. Hono's `secureHeaders` middleware requires this configuration to be explicitly provided.
 **Prevention:** Always configure security headers middleware on API endpoints with strict defaults (`default-src 'none'`) to prevent unintended script execution if the content type is misinterpreted by the client.
 
-## 2024-05-15 - Prevent caching of authenticated endpoints
-**Vulnerability:** Authenticated administrative endpoints did not include `Cache-Control: no-store` headers, potentially allowing browsers or intermediate proxies to cache sensitive responses.
-**Learning:** Default API endpoints lack explicit caching directives, leaving authenticated routes vulnerable to unintended caching.
-**Prevention:** Always apply `Cache-Control: no-store` to responses from authenticated or administrative API endpoints.
+## 2025-02-28 - Missing Cache-Control on Authenticated Endpoints
+**Vulnerability:** Authenticated/administrative endpoints lacked a `Cache-Control: no-store` header, allowing responses (including errors or sensitive data) to potentially be cached by browsers, proxies, or CDNs.
+**Learning:** Even if an endpoint requires authentication, intermediate caches might still store the response if caching directives are not explicitly set, exposing sensitive operations or data.
+**Prevention:** Always apply a `Cache-Control: no-store` header (e.g., via middleware) to responses from authenticated or administrative API endpoints to prevent sensitive data leakage through browser or intermediate caching.
+
+## 2024-05-15 - Duplicated Cache-Control Middleware Fix
+**Vulnerability:** A previous security enhancement duplicated the `Cache-Control: no-store` header assignment inside the `requireAdminToken` middleware (once before auth, and once after).
+**Learning:** While duplicating a header might not functionally break the application, it pollutes the codebase and can cause confusion. However, ensuring the header is applied *before* the authentication check ensures that even rejected requests (401 Unauthorized) benefit from the caching restrictions.
+**Prevention:** Consolidate caching directives to be set as early as possible in the middleware chain to ensure all branches (including early returns and error responses) are covered by the security policy.
