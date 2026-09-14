@@ -93,7 +93,7 @@
 **Learning:** Even though the backend primarily serves JSON via an API, applying a strict CSP (`default-src 'none'`) acts as a crucial defense-in-depth layer. Hono's `secureHeaders` middleware requires this configuration to be explicitly provided.
 **Prevention:** Always configure security headers middleware on API endpoints with strict defaults (`default-src 'none'`) to prevent unintended script execution if the content type is misinterpreted by the client.
 
-## 2025-02-23 - Prevent sensitive data leakage through caching on authenticated endpoints
+## 2025-02-23 - Prevent sensitive data leakage through caching on authenticated endpoints (re-apply)
 **Vulnerability:** The authenticated admin endpoints (such as POST `/refresh` or POST `/rail/ingest`) didn't explicitly forbid caching. This means an intermediate proxy or the client's browser might have cached sensitive responses or information derived from the admin state.
-**Learning:** The `requireAdminToken` middleware is a great choke point for global authenticated checks, but missing a cache directive can still lead to data leakage or unintended side effects if the response was cached.
-**Prevention:** Apply a `Cache-Control: no-store` header immediately within the authentication middleware for any authorized request.
+**Learning:** The `requireAdminToken` middleware is a great choke point for global authenticated checks. Setting the `Cache-Control: no-store` header *before* the authentication check ensures that even unauthorized error responses are not cached.
+**Prevention:** Apply a `Cache-Control: no-store` header as early as possible within the authentication middleware.
