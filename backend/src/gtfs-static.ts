@@ -159,7 +159,14 @@ export async function fetchAndParseAgency(agency: string): Promise<AgencyData> {
   }
 
   const getFile = (name: string): string => {
-    const key = Object.keys(files).find(k => k.endsWith(name));
+    // perf: Avoid Object.keys().find() intermediate array allocation in hot paths
+    let key: string | undefined;
+    for (const k in files) {
+      if (k.endsWith(name)) {
+        key = k;
+        break;
+      }
+    }
     return key ? new TextDecoder().decode(files[key]) : '';
   };
 
