@@ -8,8 +8,9 @@ class APIClient {
     private let session: URLSession
 
     init(baseURL: String = "https://bus-watch.nggihming123.workers.dev", session: URLSession = .shared) {
-        self.baseURL = baseURL
         self.session = session
+    private init(baseURL: String = "https://bus-watch.nggihming123.workers.dev") {
+        self.baseURL = baseURL
     }
 
     func fetchNearby(lat: Double, lon: Double, radius: Int = 500) async throws -> NearbyResponse {
