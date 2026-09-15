@@ -214,7 +214,6 @@ struct StationArrivalsView: View {
                         .foregroundStyle(favorites.isHome(stop.id) ? .yellow : .secondary)
                 }
                 .buttonStyle(.plain)
-                .disabled(!favorites.contains(stop.id))
                 .accessibilityLabel(favorites.isHome(stop.id) ? "Home" : "Set Home")
                 .accessibilityValue(favorites.isHome(stop.id) ? "On" : "Off")
                 .accessibilityHint("Marks this stop as your home for quick access.")
