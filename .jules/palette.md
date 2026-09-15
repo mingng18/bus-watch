@@ -90,7 +90,10 @@
 ## 2025-02-12 - Expand domain abbreviations for better UX
 **Learning:** Using raw text abbreviations like "sched" for domain-specific data states harms readability and accessibility.
 **Action:** Replace text abbreviations with `Label` components containing expanded text and standard SF Symbols (e.g., 'clock'). For dynamic text combinations, concatenate `Text` views directly with the `+` operator.
+## 2025-02-12 - Remove artificial flow friction from buttons
+**Learning:** Artificially disabling buttons (e.g. "Set Home" being disabled until a stop is favorited) forces users to guess prerequisites and perform multi-step interactions, increasing cognitive load and friction.
+**Action:** When the underlying domain model (e.g., `setHome`) safely handles cascading state changes (like auto-favoriting), remove the `.disabled` modifier to allow one-tap semantic shortcuts.
 
-## 2025-01-26 - Multiline alignment for complex empty state texts
+## 2026-09-14 - Multiline alignment for complex empty state texts
 **Learning:** In watchOS, even short empty state strings containing dynamic variables (like destination names) can unexpectedly wrap on smaller screens, leading to awkward, lopsided text rendering if left unaligned.
 **Action:** Apply `.multilineTextAlignment(.center)` proactively to any empty state text that interpolates dynamic data to ensure robust visual balance.
