@@ -90,6 +90,9 @@
 ## 2025-02-12 - Expand domain abbreviations for better UX
 **Learning:** Using raw text abbreviations like "sched" for domain-specific data states harms readability and accessibility.
 **Action:** Replace text abbreviations with `Label` components containing expanded text and standard SF Symbols (e.g., 'clock'). For dynamic text combinations, concatenate `Text` views directly with the `+` operator.
+## 2025-02-12 - Remove artificial flow friction from buttons
+**Learning:** Artificially disabling buttons (e.g. "Set Home" being disabled until a stop is favorited) forces users to guess prerequisites and perform multi-step interactions, increasing cognitive load and friction.
+**Action:** When the underlying domain model (e.g., `setHome`) safely handles cascading state changes (like auto-favoriting), remove the `.disabled` modifier to allow one-tap semantic shortcuts.
 
 ## 2025-02-12 - Empty state headers for VoiceOver
 **Learning:** In watchOS, empty states (like "No active disruptions", "Location access needed", "No stops nearby") are often the primary content on the screen. However, VoiceOver riders may try to navigate using the "Headings" rotor. If these messages aren't marked as headers, they might be skipped or harder to find, leaving the user confused about the screen's state.
