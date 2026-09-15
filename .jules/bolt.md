@@ -133,6 +133,9 @@
 ## 2024-05-30 - Eliminate Date allocations in sampling loop
 **Learning:** In hot loops processing thousands of points (e.g. data aggregation loops), instantiating `new Date()` repeatedly creates massive garbage collection pressure and CPU overhead.
 **Action:** When computing date components like hour or day-of-week from Unix timestamps in hot paths, avoid `Date` objects and perform direct modulo/division arithmetic on the timestamp instead.
+## 2024-09-15 - Optimize Object.keys().find() to for...in loop
+**Learning:** Using `Object.keys(dict).find(...)` creates an intermediate array allocation which is O(N) in memory and time, creating GC pressure, particularly for dictionaries representing files or large sets.
+**Action:** Use a standard `for...in` loop to iterate over keys directly for better performance.
 
 ## 2025-02-12 - Optimize Array.find() in hot paths with module-level cache
 **Learning:** Re-evaluating O(N) `Array.find()` on arrays that are passed per-request (but rarely change) leads to significant performance degradation in hot endpoints. O(1) lookups via `Map` are much faster, and caching the Map at the module level while checking the array reference prevents redundant O(N) map building.
