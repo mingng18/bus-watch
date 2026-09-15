@@ -12466,7 +12466,13 @@ async function fetchAndParseAgency(agency) {
     throw new Error(msg.startsWith("Failed to fetch") ? msg : `Failed to fetch ${agency}: ${msg}`);
   }
   const getFile = /* @__PURE__ */ __name((name) => {
-    const key = Object.keys(files).find((k) => k.endsWith(name));
+    let key;
+    for (const k in files) {
+      if (k.endsWith(name)) {
+        key = k;
+        break;
+      }
+    }
     return key ? new TextDecoder().decode(files[key]) : "";
   }, "getFile");
   const rawStops = parseCsv(getFile("stops.txt"));
@@ -13355,7 +13361,13 @@ async function fetchAndParseGtfsData() {
     throw new Error(msg.startsWith("GTFS fetch failed") ? msg : `GTFS fetch failed: ${msg}`);
   }
   const getFile = /* @__PURE__ */ __name((name) => {
-    const key = Object.keys(files).find((k) => k.endsWith(name));
+    let key;
+    for (const k in files) {
+      if (k.endsWith(name)) {
+        key = k;
+        break;
+      }
+    }
     return key ? new TextDecoder().decode(files[key]) : "";
   }, "getFile");
   const rawStops = parseCsv(getFile("stops.txt"));
