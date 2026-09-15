@@ -131,8 +131,10 @@
 ## 2024-05-30 - Eliminate Date allocations in sampling loop
 **Learning:** In hot loops processing thousands of points (e.g. data aggregation loops), instantiating `new Date()` repeatedly creates massive garbage collection pressure and CPU overhead.
 **Action:** When computing date components like hour or day-of-week from Unix timestamps in hot paths, avoid `Date` objects and perform direct modulo/division arithmetic on the timestamp instead.
+## 2024-09-15 - Optimize Object.keys().find() to for...in loop
+**Learning:** Using `Object.keys(dict).find(...)` creates an intermediate array allocation which is O(N) in memory and time, creating GC pressure, particularly for dictionaries representing files or large sets.
+**Action:** Use a standard `for...in` loop to iterate over keys directly for better performance.
 
-
-## 2025-02-24 - Avoid Object.keys allocation in file lookups
-**Learning:** Using `Object.keys(dict).find(...)` for dictionary key lookups creates an unnecessary intermediate array and lambda closure.
-**Action:** When finding a key in a dictionary object based on string conditions (like `.endsWith`), use a standard `for (const k in dict)` loop to avoid O(N) array allocation overhead.
+## 2025-02-12 - Prevent lambda allocation in .find() hot paths
+**Learning:** In heavily repeated request handlers (like bus position and ETA), using `Array.prototype.find()` with an inline lambda function allocates a new function per invocation, causing GC overhead.
+**Action:** Replace `Array.prototype.find()` in hot array lookups with standard `for` loops to eliminate intermediate lambda allocations.

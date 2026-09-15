@@ -60,8 +60,8 @@ async function fetchAndParseGtfsData() {
   }
 
   const getFile = (name: string): string => {
-    // Performance optimization: Avoid Object.keys array allocation and inline lambda
-    let key;
+    // perf: Avoid Object.keys().find() intermediate array allocation in hot paths
+    let key: string | undefined;
     for (const k in files) {
       if (k.endsWith(name)) {
         key = k;
