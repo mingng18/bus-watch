@@ -115,6 +115,10 @@
 **Learning:** Caching reference types (`stops` array) module-level to optimize `.find()` lookups using a `Map` must carefully consider cache invalidation in a long-lived environment (like Cloudflare Workers). If the data source triggers a refresh, but the worker isolate is kept alive, passing the *same* cached array reference to the handler will skip the Map rebuild, but the *contents* of the array might have mutated if the ingestion logic mutates in-place instead of swapping references.
 **Action:** Always ensure that data updates in long-lived environments swap the entire array reference, or implement a versioned/timestamp-based cache invalidation alongside the reference check (`if (cachedArray !== currentArray || currentVersion !== cachedVersion)`) when using module-level caches to guarantee data consistency.
 
+## 2024-10-18 - [Performance] ⚡ Avoid unneeded string parsing in realtime updates
+**Learning:** Using `String.prototype.replace()` to remove prefixes (like "KJ" or "AG") from string IDs during every realtime vehicle position update causes unnecessary string parsing overhead in hot execution loops.
+**Action:** Realtime vehicle positions should just pass the raw, un-prefixed IDs directly from the source where possible, or preprocess lookup maps to include the raw GTFS string IDs, completely removing the need for runtime regex or string replacements during fast-path updates.
+
 ## 2024-09-13 - [Performance] ⚡ Avoid localeCompare for time string sorting
 **Learning:** Using `String.prototype.localeCompare()` inside hot sorting loops (e.g. `departures.sort((a, b) => a.departureTime.localeCompare(b.departureTime))`) adds unnecessary localization and collation overhead when comparing fixed-format GTFS time strings like "14:30:00" and "15:00:00".
 **Action:** Replace `localeCompare` with standard boolean string comparison (`a < b ? -1 : a > b ? 1 : 0`) for simple, predictable string formats in performance-critical areas to significantly reduce CPU execution time.
