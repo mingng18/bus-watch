@@ -347,21 +347,18 @@ export function aggregateSamples(
   const out: AggregatedTravelTime[] = [];
   for (const arr of groups.values()) {
     // Per-key MAD outlier rejection.
-    const len = arr.length;
-    const seconds = new Array(len);
-    for (let i = 0; i < len; i++) seconds[i] = arr[i].seconds;
-    const cleaned = rejectOutliers(seconds);
 
-    const cleanedLen = cleaned.length;
-    if (cleanedLen === 0) continue;
+    const cleaned = rejectOutliers(arr, (s) => s.seconds);
+    if (cleaned.length === 0) continue;
 
     let sum = 0;
-    for (let i = 0; i < cleanedLen; i++) sum += cleaned[i];
-    const avg = sum / cleanedLen;
+    for (let i = 0; i < cleaned.length; i++) sum += cleaned[i].seconds;
+    const avg = sum / cleaned.length;
 
-    let madSum = 0;
-    for (let i = 0; i < cleanedLen; i++) madSum += Math.abs(cleaned[i] - avg);
-    const mad = madSum / cleanedLen;
+    let sumDev = 0;
+    for (let i = 0; i < cleaned.length; i++) sumDev += Math.abs(cleaned[i].seconds - avg);
+    const mad = sumDev / cleaned.length;
+
     const first = arr[0];
     out.push({
       route: first.route,
@@ -386,34 +383,30 @@ export function aggregateSamples(
  * raw array when there's too little data (≤3 samples) or when MAD is 0 (all
  * identical), so a clean low-volume leg isn't discarded just for being small.
  */
-function rejectOutliers(values: number[], threshold = 3): number[] {
-  if (values.length <= 3) return values;
+function rejectOutliers<T>(items: T[], getValue: (item: T) => number, threshold = 3): T[] {
+  if (items.length <= 3) return items;
 
-  // Use Float64Array for fast contiguous mathematical sorting
+  // Extract values only once
+  const values = new Float64Array(items.length);
+  for (let i = 0; i < items.length; i++) {
+    values[i] = getValue(items[i]);
+  }
+
+  // Sort for median using a copy
   const sorted = new Float64Array(values).sort();
   const median = sorted[Math.floor(sorted.length / 2)];
 
-  // Performance optimization:
-  // Replaced devs.map() and devs.reduce() with standard loops
-  // to calculate total absolute deviation without closures or arrays.
-  let totalDev = 0;
+  // Calculate MAD
+  let sumDevs = 0;
   for (let i = 0; i < values.length; i++) {
-    totalDev += Math.abs(values[i] - median);
+    sumDevs += Math.abs(values[i] - median);
   }
-  const mad = totalDev / values.length;
+  const mad = sumDevs / values.length;
 
-  if (mad === 0) return values; // all values identical or near-median
+  if (mad === 0) return items; // all values identical or near-median
 
-  // Replace array .filter() with manual result array population
-  // to avoid closure overhead.
-  const result: number[] = [];
-  const maxDev = threshold * mad;
-  for (let i = 0; i < values.length; i++) {
-    if (Math.abs(values[i] - median) <= maxDev) {
-      result.push(values[i]);
-    }
-  }
-  return result;
+  const limit = threshold * mad;
+  return items.filter((_, i) => Math.abs(values[i] - median) <= limit);
 }
 
 /**
