@@ -131,6 +131,9 @@
 ## 2024-05-30 - Eliminate Date allocations in sampling loop
 **Learning:** In hot loops processing thousands of points (e.g. data aggregation loops), instantiating `new Date()` repeatedly creates massive garbage collection pressure and CPU overhead.
 **Action:** When computing date components like hour or day-of-week from Unix timestamps in hot paths, avoid `Date` objects and perform direct modulo/division arithmetic on the timestamp instead.
+## 2024-09-15 - Optimize Object.keys().find() to for...in loop
+**Learning:** Using `Object.keys(dict).find(...)` creates an intermediate array allocation which is O(N) in memory and time, creating GC pressure, particularly for dictionaries representing files or large sets.
+**Action:** Use a standard `for...in` loop to iterate over keys directly for better performance.
 
 ## 2025-02-18 - Optimize redundant lowercasing in parsing loops
 **Learning:** In string parsing functions that are called thousands of times inside loops (e.g. `extractUrlEntries` parsing XML), repeatedly applying `.toLowerCase()` to the same string inside sub-functions creates significant CPU and memory allocation overhead.
