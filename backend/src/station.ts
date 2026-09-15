@@ -61,8 +61,7 @@ export function getStationSchedule(
     });
   }
 
-  // Performance optimization: Avoid using localeCompare to sort ASCII strings
-  // to prevent unnecessary internationalization overhead.
+  // perf: Replace expensive localeCompare with simple lexicographical sorting for HH:MM:SS strings
   departures.sort((a, b) => a.departureTime < b.departureTime ? -1 : a.departureTime > b.departureTime ? 1 : 0);
 
   return {

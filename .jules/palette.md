@@ -87,3 +87,9 @@
 ## 2025-02-12 - Manual refresh for non-scrollable empty states
 **Learning:** In SwiftUI, native pull-to-refresh (`.refreshable`) only functions on scrollable containers like `List` or `ScrollView`. When a view is in a non-scrollable `.empty` state (like a `VStack`), users cannot trigger the native gesture.
 **Action:** Always provide an explicit, manual "Refresh" or "Retry" `Button` when presenting non-scrollable empty states, ensuring users have an accessible way to re-fetch data.
+## 2025-02-12 - Expand domain abbreviations for better UX
+**Learning:** Using raw text abbreviations like "sched" for domain-specific data states harms readability and accessibility.
+**Action:** Replace text abbreviations with `Label` components containing expanded text and standard SF Symbols (e.g., 'clock'). For dynamic text combinations, concatenate `Text` views directly with the `+` operator.
+## 2025-02-12 - Remove artificial flow friction from buttons
+**Learning:** Artificially disabling buttons (e.g. "Set Home" being disabled until a stop is favorited) forces users to guess prerequisites and perform multi-step interactions, increasing cognitive load and friction.
+**Action:** When the underlying domain model (e.g., `setHome`) safely handles cascading state changes (like auto-favoriting), remove the `.disabled` modifier to allow one-tap semantic shortcuts.

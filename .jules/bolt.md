@@ -122,6 +122,15 @@
 ## 2024-10-24 - Optimize array allocations when processing raw GTFS sets
 **Learning:** Chaining `.filter().map()` inside array to `Set` instantiations in data ingest paths (like `rail-ingest.ts`) causes the engine to allocate intermediate array structures. A standard `for` loop pushing directly to the `Set` reduces execution time and garbage collection pressure on large datasets.
 **Action:** Replace functional `.filter().map()` chains with standard `for` loops when instantiating `Set` objects from large arrays.
-## 2025-03-02 - Optimize string sorting by avoiding localeCompare for ASCII strings
-**Learning:** `String.prototype.localeCompare` is significantly slower than standard comparison operators (`<`, `>`) because it applies complex internationalization (Intl) collation rules. For strictly formatted ASCII strings where lexicographical order exactly matches semantic order (like `HH:MM:SS` time strings), `localeCompare` introduces unnecessary performance overhead, especially inside sorting loops on large datasets (like `departures.sort`).
-**Action:** When sorting standard time representations or fixed-format ASCII strings, avoid `localeCompare`. Replace it with a simple ternary using standard comparative operators (`a < b ? -1 : a > b ? 1 : 0`), which performs the exact same UTF-16 code unit comparison but is orders of magnitude faster.
+## 2024-09-12 - String Sorting Optimization
+**Learning:** Using `String.prototype.localeCompare` to sort strictly formatted ASCII strings (like "HH:MM:SS") applies complex I18N collation rules that add noticeable performance overhead.
+**Action:** Use simple lexicographical comparison operators (`a < b ? -1 : a > b ? 1 : 0`) for much faster sorting when dealing with strictly formatted time strings.
+## 2025-05-23 - Optimize array allocations when processing raw GTFS sets in rail ingestion
+**Learning:** Chaining `.filter().map()` inside large array ingestion paths (like `rail-ingest.ts`) causes the engine to allocate massive intermediate array structures before mapping, increasing memory pressure and GC spikes. A standard `for` loop pushing directly to the target array executes the filtering/mapping logic in a single fast pass per dataset.
+**Action:** Replace functional `.filter().map()` chains with standard `for` loops when parsing large CSV raw outputs in data ingestion scripts.
+## 2024-05-30 - Eliminate Date allocations in sampling loop
+**Learning:** In hot loops processing thousands of points (e.g. data aggregation loops), instantiating `new Date()` repeatedly creates massive garbage collection pressure and CPU overhead.
+**Action:** When computing date components like hour or day-of-week from Unix timestamps in hot paths, avoid `Date` objects and perform direct modulo/division arithmetic on the timestamp instead.
+## 2024-09-15 - Optimize Object.keys().find() to for...in loop
+**Learning:** Using `Object.keys(dict).find(...)` creates an intermediate array allocation which is O(N) in memory and time, creating GC pressure, particularly for dictionaries representing files or large sets.
+**Action:** Use a standard `for...in` loop to iterate over keys directly for better performance.
