@@ -129,6 +129,9 @@
 ## 2024-05-30 - Eliminate Date allocations in sampling loop
 **Learning:** In hot loops processing thousands of points (e.g. data aggregation loops), instantiating `new Date()` repeatedly creates massive garbage collection pressure and CPU overhead.
 **Action:** When computing date components like hour or day-of-week from Unix timestamps in hot paths, avoid `Date` objects and perform direct modulo/division arithmetic on the timestamp instead.
+## 2024-09-15 - Optimize Object.keys().find() to for...in loop
+**Learning:** Using `Object.keys(dict).find(...)` creates an intermediate array allocation which is O(N) in memory and time, creating GC pressure, particularly for dictionaries representing files or large sets.
+**Action:** Use a standard `for...in` loop to iterate over keys directly for better performance.
 
 ## 2026-07-28 - [Refactor] 🧹 Extracted helper functions in sampling.ts
 **Learning:** Functions doing complex DB operations combined with in-memory transformations can quickly become unwieldy (like `aggregateTravelTimes`). Extracting the distinct logical steps (fetching, grouping, transforming, upserting) into smaller, exported helper functions makes the main function a readable orchestrator.
