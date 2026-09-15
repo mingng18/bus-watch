@@ -60,7 +60,14 @@ async function fetchAndParseGtfsData() {
   }
 
   const getFile = (name: string): string => {
-    const key = Object.keys(files).find(k => k.endsWith(name));
+    // perf: Avoid Object.keys().find() intermediate array allocation in hot paths
+    let key: string | undefined;
+    for (const k in files) {
+      if (k.endsWith(name)) {
+        key = k;
+        break;
+      }
+    }
     return key ? new TextDecoder().decode(files[key]) : '';
   };
 
@@ -84,23 +91,27 @@ async function mapAndInsertGtfsData(
 
   try {
     // 3. Filter: only keep rail route types (0=tram, 1=subway, 2=rail)
-    // Performance optimization: Replaced chained array methods (.filter().map())
-    // with standard for...of loops to prevent large intermediate array allocations
-    // and reduce garbage collection overhead during GTFS ingestion.
+    // Performance optimization: Avoid intermediate array allocations from .filter().map()
+    // by using standard loops to directly populate the Sets.
     const railRouteIds = new Set<string>();
-    for (const r of rawRoutes) {
+    for (let i = 0; i < rawRoutes.length; i++) {
+      const r = rawRoutes[i];
       if (r.route_type === '0' || r.route_type === '1' || r.route_type === '2') {
         railRouteIds.add(r.route_id);
       }
     }
+
     const railTripIds = new Set<string>();
-    for (const t of rawTrips) {
+    for (let i = 0; i < rawTrips.length; i++) {
+      const t = rawTrips[i];
       if (railRouteIds.has(t.route_id)) {
         railTripIds.add(t.trip_id);
       }
     }
+
     const railStopIds = new Set<string>();
-    for (const st of rawStopTimes) {
+    for (let i = 0; i < rawStopTimes.length; i++) {
+      const st = rawStopTimes[i];
       if (railTripIds.has(st.trip_id)) {
         railStopIds.add(st.stop_id);
       }
@@ -112,8 +123,10 @@ async function mapAndInsertGtfsData(
        VALUES (?, ?, ?, ?)
        ON CONFLICT(stop_id) DO UPDATE SET stop_name=excluded.stop_name, lat=excluded.lat, lon=excluded.lon`
     );
-    const stopStmts: any[] = [];
-    for (const s of rawStops) {
+    // perf: Avoid intermediate array allocations from .filter().map() chains
+    const stopStmts = [];
+    for (let i = 0; i < rawStops.length; i++) {
+      const s = rawStops[i];
       if (railStopIds.has(s.stop_id)) {
         stopStmts.push(stopPrepStmt.bind(s.stop_id, s.stop_name, parseFloat(s.stop_lat), parseFloat(s.stop_lon)));
       }
@@ -127,8 +140,9 @@ async function mapAndInsertGtfsData(
        VALUES (?, ?, ?)
        ON CONFLICT(route_id) DO UPDATE SET route_short_name=excluded.route_short_name, route_long_name=excluded.route_long_name`
     );
-    const routeStmts: any[] = [];
-    for (const r of rawRoutes) {
+    const routeStmts = [];
+    for (let i = 0; i < rawRoutes.length; i++) {
+      const r = rawRoutes[i];
       if (railRouteIds.has(r.route_id)) {
         routeStmts.push(routePrepStmt.bind(r.route_id, r.route_short_name || '', r.route_long_name || ''));
       }
@@ -142,8 +156,9 @@ async function mapAndInsertGtfsData(
        VALUES (?, ?, ?, ?, ?)
        ON CONFLICT(trip_id) DO UPDATE SET route_id=excluded.route_id, service_id=excluded.service_id, headsign=excluded.headsign, direction=excluded.direction`
     );
-    const tripStmts: any[] = [];
-    for (const t of rawTrips) {
+    const tripStmts = [];
+    for (let i = 0; i < rawTrips.length; i++) {
+      const t = rawTrips[i];
       if (railTripIds.has(t.trip_id)) {
         tripStmts.push(tripPrepStmt.bind(t.trip_id, t.route_id, t.service_id, t.trip_headsign || '', parseInt(t.direction_id || '0') || 0));
       }
@@ -157,8 +172,9 @@ async function mapAndInsertGtfsData(
        VALUES (?, ?, ?, ?, ?)
        ON CONFLICT(trip_id, stop_seq) DO UPDATE SET stop_id=excluded.stop_id, arrival_time=excluded.arrival_time, departure_time=excluded.departure_time`
     );
-    const stStmts: any[] = [];
-    for (const st of rawStopTimes) {
+    const stStmts = [];
+    for (let i = 0; i < rawStopTimes.length; i++) {
+      const st = rawStopTimes[i];
       if (railTripIds.has(st.trip_id)) {
         stStmts.push(stPrepStmt.bind(st.trip_id, st.stop_id, parseInt(st.stop_sequence), st.arrival_time, st.departure_time || st.arrival_time));
       }
