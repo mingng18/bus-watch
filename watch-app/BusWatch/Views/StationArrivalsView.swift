@@ -217,7 +217,7 @@ struct StationArrivalsView: View {
                 .disabled(!favorites.contains(stop.id))
                 .accessibilityLabel(favorites.isHome(stop.id) ? "Home" : "Set Home")
                 .accessibilityValue(favorites.isHome(stop.id) ? "On" : "Off")
-                .accessibilityHint(favorites.contains(stop.id) ? "Marks this stop as your home for quick access." : "Must be favorited first to set as home.")
+                .accessibilityHint("Marks this stop as your home for quick access.")
             }
         }
     }

@@ -75,6 +75,6 @@
 ## 2025-02-12 - watchOS Navigation Chevrons
 **Learning:** In watchOS SwiftUI, list rows built with `Button` (for state-based navigation) lack the default `chevron.right` accessory provided by `NavigationLink`.
 **Action:** Manually append `Image(systemName: "chevron.right")` with secondary styling to the trailing edge of the button's content to provide consistent visual navigation affordances.
-## 2025-02-12 - Disabled states need accessibility hints
-**Learning:** In SwiftUI, setting `.disabled(true)` on a control only visually dims it and adds the "dimmed" accessibility trait. VoiceOver riders are not told *why* it's disabled. For example, in `StationArrivalsView`, the "Set Home" button is disabled if the stop isn't favorited, but the hint just reads "Marks this stop as your home".
-**Action:** When conditionally applying `.disabled()` to a button for logical reasons, use a dynamic `.accessibilityHint` (or `.accessibilityValue` depending on context) that provides a different message when disabled to explain why the user can't interact with it.
+## 2025-02-12 - Hide redundant map annotations from VoiceOver
+**Learning:** In SwiftUI MapKit, `Annotation` views are not automatically hidden from VoiceOver even if the map container has `.accessibilityElement(children: .ignore)`. Sighted users see dots, but VoiceOver riders will swipe into the map and hear every single station name read aloud, which clutters navigation.
+**Action:** When using `Annotation` for decorative or contextual map markers in a summarized map, apply `.accessibilityHidden(true)` directly to the annotation's content view to prevent VoiceOver from exploring it.
