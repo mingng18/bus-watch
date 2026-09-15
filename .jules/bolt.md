@@ -113,7 +113,7 @@
 
 ## 2024-08-05 - Bounding Box Pre-filtering outside nested loops
 **Learning:** In nested loops dealing with geographic data (e.g., checking every `stop` against every `vehicle`), applying a bounding box filter inside the inner loop is better than raw Haversine, but still requires evaluating thousands of out-of-bounds items iteratively.
-**Action:** When finding items within a radius of a central point across nested relationships (e.g. stops and vehicles), compute a combined outer bounding box (`searchRadius + innerRadius`) and pre-filter the secondary dataset (vehicles) *outside* the outer loop. This changes the execution from $O(S 	imes V)$ to $O(V + S 	imes V_{nearby})$, dropping execution times drastically (e.g., from ~360ms to ~38ms).
+**Action:** When finding items within a radius of a central point across nested relationships (e.g. stops and vehicles), compute a combined outer bounding box (`searchRadius + innerRadius`) and pre-filter the secondary dataset (vehicles) *outside* the outer loop. This changes the execution from $O(S \times V)$ to $O(V + S \times V_{nearby})$, dropping execution times drastically (e.g., from ~360ms to ~38ms).
 
 ## 2025-02-28 - Avoid array chaining overhead in hot paths
 **Learning:** Chaining array methods like `.map().reduce()` and `.map().filter()` inside heavily executed hot loops (such as `aggregateSamples` and `rejectOutliers` in `backend/src/sampling.ts`) forces the engine to allocate new intermediate arrays for every step. In tests, a manual standard `for` loop approach that combines array extraction, average, and spread computation in a single structure performed measurably faster and avoided memory pressure compared to naive array chaining.
@@ -122,13 +122,18 @@
 ## 2024-10-24 - Optimize array allocations when processing raw GTFS sets
 **Learning:** Chaining `.filter().map()` inside array to `Set` instantiations in data ingest paths (like `rail-ingest.ts`) causes the engine to allocate intermediate array structures. A standard `for` loop pushing directly to the `Set` reduces execution time and garbage collection pressure on large datasets.
 **Action:** Replace functional `.filter().map()` chains with standard `for` loops when instantiating `Set` objects from large arrays.
-
 ## 2024-09-12 - String Sorting Optimization
 **Learning:** Using `String.prototype.localeCompare` to sort strictly formatted ASCII strings (like "HH:MM:SS") applies complex I18N collation rules that add noticeable performance overhead.
 **Action:** Use simple lexicographical comparison operators (`a < b ? -1 : a > b ? 1 : 0`) for much faster sorting when dealing with strictly formatted time strings.
 ## 2025-05-23 - Optimize array allocations when processing raw GTFS sets in rail ingestion
 **Learning:** Chaining `.filter().map()` inside large array ingestion paths (like `rail-ingest.ts`) causes the engine to allocate massive intermediate array structures before mapping, increasing memory pressure and GC spikes. A standard `for` loop pushing directly to the target array executes the filtering/mapping logic in a single fast pass per dataset.
 **Action:** Replace functional `.filter().map()` chains with standard `for` loops when parsing large CSV raw outputs in data ingestion scripts.
+## 2024-05-30 - Eliminate Date allocations in sampling loop
+**Learning:** In hot loops processing thousands of points (e.g. data aggregation loops), instantiating `new Date()` repeatedly creates massive garbage collection pressure and CPU overhead.
+**Action:** When computing date components like hour or day-of-week from Unix timestamps in hot paths, avoid `Date` objects and perform direct modulo/division arithmetic on the timestamp instead.
+## 2024-09-15 - Optimize Object.keys().find() to for...in loop
+**Learning:** Using `Object.keys(dict).find(...)` creates an intermediate array allocation which is O(N) in memory and time, creating GC pressure, particularly for dictionaries representing files or large sets.
+**Action:** Use a standard `for...in` loop to iterate over keys directly for better performance.
 
 ## 2025-07-25 - Prevented cascading wait cascades in IO-bound endpoint
 **Learning:** Sequential awaits on non-dependent I/O calls significantly increase response times, especially in data-heavy hot paths.
