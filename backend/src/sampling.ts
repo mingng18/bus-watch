@@ -1,6 +1,6 @@
 import { Env, VehiclePosition, PrasaranaBus, TripStopEntry } from "./types";
 import { haversineDistance, getBoundingBox } from "./haversine";
-import { klDayOfWeek } from "./time-kl";
+import { klDayOfWeek, klDayOfWeekFromUnixSeconds, klHourOfDayFromUnixSeconds } from "./time-kl";
 
 interface LastPosition {
   bus_no: string;
@@ -267,23 +267,21 @@ export function detectStopPassages(
   let stopIdx = 0;
   let lastPassageTs: number | null = null; // timestamp the previous stop was hit
   let lastPassageStop: TripStopEntry | null = null;
+  let targetBox = getBoundingBox(stops[0].lat, stops[0].lon, STOP_PASSAGE_RADIUS_M);
+
   for (const s of ordered) {
     // Only test against the next expected stop. This enforces in-order
     // passage and makes a far-ahead outlier unable to skip stops.
     const target = stops[stopIdx];
 
-    // Fast-fail bounding box check to avoid expensive haversine calculation.
-    // 1 degree latitude is approx 111,320m.
-    // 1 degree longitude shrinks away from the equator (distance ≈ 111,320m * cos(lat)).
-    // We derive the thresholds dynamically from STOP_PASSAGE_RADIUS_M to ensure safety if it changes.
-    // We use a generous 3x multiplier for longitude to safely cover up to ~70 degrees latitude.
-    // Note: This simple subtraction does not handle crossing the 180th meridian (dateline),
-    // but KL transit data is nowhere near it.
-    const latThreshold = STOP_PASSAGE_RADIUS_M / 111000;
-    const lonThreshold = (STOP_PASSAGE_RADIUS_M / 111000) * 3;
-    const latDiff = Math.abs(s.lat - target.lat);
-    const lonDiff = Math.abs(s.lon - target.lon);
-    if (latDiff > latThreshold || lonDiff > lonThreshold) continue;
+    if (
+      s.lat < targetBox.minLat ||
+      s.lat > targetBox.maxLat ||
+      s.lon < targetBox.minLon ||
+      s.lon > targetBox.maxLon
+    ) {
+      continue;
+    }
 
     const d = haversineDistance(s.lat, s.lon, target.lat, target.lon);
     if (d > STOP_PASSAGE_RADIUS_M) continue;
@@ -301,8 +299,9 @@ export function detectStopPassages(
           to_lat: target.lat,
           to_lon: target.lon,
           seconds,
-          day_of_week: klDayOfWeek(new Date(lastPassageTs * 1000)),
-          time_bucket: klHourOfDay(new Date(lastPassageTs * 1000)),
+          // perf: Use zero-allocation arithmetic on Unix timestamps instead of new Date() in this hot loop
+          day_of_week: klDayOfWeekFromUnixSeconds(lastPassageTs),
+          time_bucket: klHourOfDayFromUnixSeconds(lastPassageTs),
         });
       }
       // A seconds gap outside [0, MAX] is treated as noise / out-of-service:
@@ -314,16 +313,10 @@ export function detectStopPassages(
     lastPassageStop = target;
     stopIdx++;
     if (stopIdx >= stops.length) break; // reached the terminus
+    targetBox = getBoundingBox(stops[stopIdx].lat, stops[stopIdx].lon, STOP_PASSAGE_RADIUS_M);
   }
 
   return results;
-}
-
-/** KL-local hour (0..23). Local equivalent of klDayOfWeek in time-kl.ts. */
-function klHourOfDay(date: Date): number {
-  // toKlLocal shifts so UTC fields hold KL wall-clock; read UTC hours.
-  const klOffsetMs = 8 * 60 * 60 * 1000;
-  return new Date(date.getTime() + klOffsetMs).getUTCHours();
 }
 
 /**
