@@ -134,7 +134,13 @@
 ## 2024-09-15 - Optimize Object.keys().find() to for...in loop
 **Learning:** Using `Object.keys(dict).find(...)` creates an intermediate array allocation which is O(N) in memory and time, creating GC pressure, particularly for dictionaries representing files or large sets.
 **Action:** Use a standard `for...in` loop to iterate over keys directly for better performance.
+<<<<<<< HEAD
+## 2025-05-24 - Pre-allocate arrays for simple map transformations
+**Learning:** In hot loops parsing raw GTFS data, using `Array.prototype.map()` creates array allocation overhead and closure allocations. Pre-allocating an array with `new Array(length)` and using a standard `for` loop provides a measurable performance boost (up to ~60% faster) compared to `Array.prototype.map()`.
+**Action:** When transforming large arrays of raw data (like stops, routes, trips, calendar), prefer a standard `for` loop pushing to or mutating a pre-allocated array `new Array(length)` to avoid `Array.prototype.map()` and closure allocation overhead.
+=======
 
 ## 2024-05-18 - [Testing] 🧪 Direct testing of validateLatLon
 **Learning:** Testing functions that validate input internally within an endpoint is better done with direct unit tests than via full request tests, requiring the function to be exported. Direct unit tests cover more edge cases precisely without requiring mocking the entire `fetch` routing and environment.
 **Action:** Exported the `validateLatLon` function and tested it directly in `backend/test/index.test.ts`.
+>>>>>>> 8fbb526 (🧪 Add tests for validateLatLon)
