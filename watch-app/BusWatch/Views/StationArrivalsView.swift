@@ -75,7 +75,7 @@ struct StationArrivalsView: View {
                 }
 
                 if !stop.arrivals.contains(where: { $0.isRealtime }) {
-                    Label("scheduled", systemImage: "clock")
+                    Label("Scheduled", systemImage: "clock")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .accessibilityLabel("Scheduled arrivals")
@@ -211,7 +211,7 @@ struct StationArrivalsView: View {
                     Label(favorites.isHome(stop.id) ? "Home" : "Set Home",
                           systemImage: favorites.isHome(stop.id) ? "house.fill" : "house")
                         .font(.caption)
-                        .foregroundStyle(favorites.isHome(stop.id) ? .yellow : .secondary)
+                        .foregroundStyle(favorites.isHome(stop.id) ? .green : .secondary)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(favorites.isHome(stop.id) ? "Home" : "Set Home")

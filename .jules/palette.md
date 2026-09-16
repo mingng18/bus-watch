@@ -93,7 +93,10 @@
 ## 2025-02-12 - Remove artificial flow friction from buttons
 **Learning:** Artificially disabling buttons (e.g. "Set Home" being disabled until a stop is favorited) forces users to guess prerequisites and perform multi-step interactions, increasing cognitive load and friction.
 **Action:** When the underlying domain model (e.g., `setHome`) safely handles cascading state changes (like auto-favoriting), remove the `.disabled` modifier to allow one-tap semantic shortcuts.
+## 2025-03-02 - Smooth transitions for dynamic times
+**Learning:** Text views that update frequently via timers or live data (like estimated arrival strings e.g. "10:45") can cause visually jarring replacements on-screen, but SwiftUI's `.contentTransition(.numericText())` seamlessly morphs these dynamic strings, even if they aren't purely integers.
+**Action:** Always apply `.contentTransition(.numericText())` paired with `.animation(.default, value: state)` to any dynamically changing numeric or time-based `Text` elements to significantly improve the perceived quality and smoothness of the interface.
 
-## 2025-02-12 - Use standard SF Symbols for terminology
-**Learning:** Abbreviations like 'sched' in UI can be ambiguous to users who aren't familiar with transit domain language. Pairing it with a standard system icon (like a clock) and expanding the word slightly improves visual comprehension without taking up much more space.
-**Action:** Replace raw text abbreviations with `Label` components using standard SF Symbols when indicating data states like 'scheduled' or 'offline'.
+## 2025-03-02 - Differentiate home vs favorite colors
+**Learning:** Using the exact same visual styling (.yellow) for both the Home icon and the Favorite icon in list views makes it difficult for sighted users to quickly distinguish them at a glance, relying entirely on the shape of the small glyph.
+**Action:** Use distinct colors (like .green for Home and .yellow for Favorites) to provide clearer, instantaneous visual distinction between the two states.

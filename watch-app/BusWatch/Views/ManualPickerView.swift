@@ -73,7 +73,7 @@ struct ManualPickerView: View {
                    let favorites,
                    favorites.isHome(stop.id) {
                     Image(systemName: "house.fill")
-                        .foregroundStyle(.yellow)
+                        .foregroundStyle(.green)
                         .accessibilityHidden(true)
                 }
                 if AppFeatureFlags.favoritesAndHome,
