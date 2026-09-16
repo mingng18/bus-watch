@@ -137,7 +137,3 @@
 ## 2025-05-24 - Pre-allocate arrays for simple map transformations
 **Learning:** In hot loops parsing raw GTFS data, using `Array.prototype.map()` creates array allocation overhead and closure allocations. Pre-allocating an array with `new Array(length)` and using a standard `for` loop provides a measurable performance boost (up to ~60% faster) compared to `Array.prototype.map()`.
 **Action:** When transforming large arrays of raw data (like stops, routes, trips, calendar), prefer a standard `for` loop pushing to or mutating a pre-allocated array `new Array(length)` to avoid `Array.prototype.map()` and closure allocation overhead.
-
-## 2024-05-19 - [Testing array traversal optimization in departures-toward.ts]
-**Learning:** Found a hot loop where `.findIndex()` and `.slice().some()` with inline lambdas iterate over stops for potentially thousands of trips per request. Replacing this with two simple `for` loops avoids function allocation and intermediate array allocations (`slice`), reducing GC pressure in hot paths.
-**Action:** Replace inline array callbacks with standard loops for hot-path array lookups, especially when iterating over `tripStops` mappings.
