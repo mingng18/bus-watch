@@ -96,6 +96,7 @@
 ## 2025-03-02 - Smooth transitions for dynamic times
 **Learning:** Text views that update frequently via timers or live data (like estimated arrival strings e.g. "10:45") can cause visually jarring replacements on-screen, but SwiftUI's `.contentTransition(.numericText())` seamlessly morphs these dynamic strings, even if they aren't purely integers.
 **Action:** Always apply `.contentTransition(.numericText())` paired with `.animation(.default, value: state)` to any dynamically changing numeric or time-based `Text` elements to significantly improve the perceived quality and smoothness of the interface.
+
 ## 2025-02-12 - Expanded Labels for Status Abbreviations
 **Learning:** In SwiftUI, using raw text abbreviations (like "sched") for domain-specific data states is hard to parse visually and lacks polish.
 **Action:** Always avoid raw text abbreviations. Use `Label` components with expanded text and standard SF Symbols (e.g., 'clock' for scheduled times) to improve visual comprehension and accessibility without taking up much more space. If embedding in strings, prefer `Text` interpolation with `Image(systemName:)`.
