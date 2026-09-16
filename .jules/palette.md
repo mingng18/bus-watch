@@ -79,3 +79,20 @@
 ## 2025-02-12 - Fallbacks for empty route identifiers in Complications
 **Learning:** Empty string fallbacks for missing route identifiers (like `line.isEmpty ? "Service" : line`) implemented in the main app views weren't carried over to the WatchOS complications, causing visually broken states (e.g. " → Destination") and awkward VoiceOver phrasing on the watch face.
 **Action:** When implementing generic fallbacks for transit identifiers, proactively review and update corresponding complication/widget views to ensure the watch face matches the main app's gracefully degraded experience.
+
+## 2025-02-12 - Pull-to-refresh on watchOS Lists
+**Learning:** In watchOS SwiftUI, applying `.refreshable` to a `List` provides a native, highly expected pull-to-refresh interaction. However, if the data loading function unconditionally transitions the view into a full-screen loading state (e.g. `ProgressView`), it will instantly replace the `List`, thereby destroying the native pull-to-refresh spinner animation mid-flight and creating a jarring experience.
+**Action:** When adding `.refreshable` to a `List` that drives a state machine, update the loading function to accept an `isRefresh` boolean. Conditionally bypass the full-screen `.loading` state transition when `isRefresh` is true, allowing the native refresh spinner to render over the existing list until the new data arrives.
+
+## 2025-02-12 - Manual refresh for non-scrollable empty states
+**Learning:** In SwiftUI, native pull-to-refresh (`.refreshable`) only functions on scrollable containers like `List` or `ScrollView`. When a view is in a non-scrollable `.empty` state (like a `VStack`), users cannot trigger the native gesture.
+**Action:** Always provide an explicit, manual "Refresh" or "Retry" `Button` when presenting non-scrollable empty states, ensuring users have an accessible way to re-fetch data.
+## 2025-02-12 - Expand domain abbreviations for better UX
+**Learning:** Using raw text abbreviations like "sched" for domain-specific data states harms readability and accessibility.
+**Action:** Replace text abbreviations with `Label` components containing expanded text and standard SF Symbols (e.g., 'clock'). For dynamic text combinations, concatenate `Text` views directly with the `+` operator.
+## 2025-02-12 - Remove artificial flow friction from buttons
+**Learning:** Artificially disabling buttons (e.g. "Set Home" being disabled until a stop is favorited) forces users to guess prerequisites and perform multi-step interactions, increasing cognitive load and friction.
+**Action:** When the underlying domain model (e.g., `setHome`) safely handles cascading state changes (like auto-favoriting), remove the `.disabled` modifier to allow one-tap semantic shortcuts.
+## 2025-03-02 - Smooth transitions for dynamic times
+**Learning:** Text views that update frequently via timers or live data (like estimated arrival strings e.g. "10:45") can cause visually jarring replacements on-screen, but SwiftUI's `.contentTransition(.numericText())` seamlessly morphs these dynamic strings, even if they aren't purely integers.
+**Action:** Always apply `.contentTransition(.numericText())` paired with `.animation(.default, value: state)` to any dynamically changing numeric or time-based `Text` elements to significantly improve the perceived quality and smoothness of the interface.
