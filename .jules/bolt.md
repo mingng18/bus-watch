@@ -131,15 +131,12 @@
 ## 2024-05-30 - Eliminate Date allocations in sampling loop
 **Learning:** In hot loops processing thousands of points (e.g. data aggregation loops), instantiating `new Date()` repeatedly creates massive garbage collection pressure and CPU overhead.
 **Action:** When computing date components like hour or day-of-week from Unix timestamps in hot paths, avoid `Date` objects and perform direct modulo/division arithmetic on the timestamp instead.
-<<<<<<< HEAD
 ## 2024-09-15 - Optimize Object.keys().find() to for...in loop
 **Learning:** Using `Object.keys(dict).find(...)` creates an intermediate array allocation which is O(N) in memory and time, creating GC pressure, particularly for dictionaries representing files or large sets.
 **Action:** Use a standard `for...in` loop to iterate over keys directly for better performance.
 ## 2025-05-24 - Pre-allocate arrays for simple map transformations
 **Learning:** In hot loops parsing raw GTFS data, using `Array.prototype.map()` creates array allocation overhead and closure allocations. Pre-allocating an array with `new Array(length)` and using a standard `for` loop provides a measurable performance boost (up to ~60% faster) compared to `Array.prototype.map()`.
 **Action:** When transforming large arrays of raw data (like stops, routes, trips, calendar), prefer a standard `for` loop pushing to or mutating a pre-allocated array `new Array(length)` to avoid `Array.prototype.map()` and closure allocation overhead.
-=======
-## 2025-03-01 - Avoid Object.keys().find() for substring matching in dictionaries
-**Learning:** Using `Object.keys(dict).find(...)` to search for a key based on string conditions (like `.endsWith()`) creates an unnecessary intermediate O(N) array allocation. In hot paths (like extracting specific files from parsed GTFS zip archives), this wastes memory and CPU cycles.
-**Action:** When searching for a matching key in an object dictionary, use a standard `for...in` loop instead of `Object.keys().find()`. This avoids the array allocation overhead and allows for an early `break` when the matching key is found.
->>>>>>> 2d3c6ed (perf: avoid Object.keys().find() intermediate array allocations)
+## 2025-03-01 - Avoid flat() intermediate array allocation
+**Learning:** Chaining `.flat()` creates unnecessary intermediate array allocations, taking double the time of using `.flatMap()`.
+**Action:** Replaced `.flat()` with `.flatMap(r => r || [])` in `backend/src/index.ts` to perform flattening without extra overhead.

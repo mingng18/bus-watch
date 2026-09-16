@@ -174,11 +174,10 @@ export async function fetchAndParseAgency(agency: string): Promise<AgencyData> {
   }
 
   const getFile = (name: string): string => {
-    // Performance optimization: Replaced Object.keys(files).find() with a standard for...in loop
-    // to avoid intermediate O(N) array allocation from Object.keys() when searching for matching files.
+    // perf: Avoid Object.keys().find() intermediate array allocation in hot paths
     let key: string | undefined;
     for (const k in files) {
-      if (Object.hasOwn(files, k) && k.endsWith(name)) {
+      if (k.endsWith(name)) {
         key = k;
         break;
       }

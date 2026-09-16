@@ -773,7 +773,8 @@ async function getRealtimeVehicles(kv: KVNamespace): Promise<VehiclePosition[]> 
   if (cached && Date.now() - cached.ts < 25000) return cached.vehicles;
 
   const allVehicles = await Promise.all(REALTIME_AGENCIES.map(a => fetchVehiclePositions(a)));
-  const vehicles = allVehicles.flat();
+  // perf: Avoid chained array allocation overhead from .flat() in hot paths.
+  const vehicles = allVehicles.flatMap(r => r || []);
   await kv.put('realtime:vehicles', JSON.stringify({ ts: Date.now(), vehicles }));
   return vehicles;
 }
