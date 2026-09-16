@@ -12361,7 +12361,9 @@ function parseStops(rawStops, rawRoutes, rawTrips, rawStopTimes) {
   for (let i2 = 0; i2 < rawTrips.length; i2++) {
     tripToRouteType.set(rawTrips[i2].trip_id, routeIdToType.get(rawTrips[i2].route_id) || "3");
   }
-  const stops = rawStops.map((s) => {
+  const stops = new Array(rawStops.length);
+  for (let i2 = 0; i2 < rawStops.length; i2++) {
+    const s = rawStops[i2];
     const stop = {
       id: s.stop_id,
       name: s.stop_name,
@@ -12371,8 +12373,8 @@ function parseStops(rawStops, rawRoutes, rawTrips, rawStopTimes) {
       parentStation: s.parent_station
     };
     stopMap.set(s.stop_id, stop);
-    return stop;
-  });
+    stops[i2] = stop;
+  }
   for (const st of rawStopTimes) {
     const rt = tripToRouteType.get(st.trip_id);
     if (rt && ["0", "1", "2"].includes(rt)) {
@@ -12390,23 +12392,33 @@ function parseStops(rawStops, rawRoutes, rawTrips, rawStopTimes) {
 }
 __name(parseStops, "parseStops");
 function parseRoutes(rawRoutes) {
-  return rawRoutes.map((r) => ({
-    id: r.route_id,
-    shortName: r.route_short_name,
-    longName: r.route_long_name,
-    type: parseInt(r.route_type)
-  }));
+  const routes = new Array(rawRoutes.length);
+  for (let i2 = 0; i2 < rawRoutes.length; i2++) {
+    const r = rawRoutes[i2];
+    routes[i2] = {
+      id: r.route_id,
+      shortName: r.route_short_name,
+      longName: r.route_long_name,
+      type: parseInt(r.route_type)
+    };
+  }
+  return routes;
 }
 __name(parseRoutes, "parseRoutes");
 function parseTrips(rawTrips) {
-  return rawTrips.map((t) => ({
-    id: t.trip_id,
-    routeId: t.route_id,
-    serviceId: t.service_id,
-    headsign: t.trip_headsign,
-    directionId: parseInt(t.direction_id) || 0,
-    shapeId: ""
-  }));
+  const trips = new Array(rawTrips.length);
+  for (let i2 = 0; i2 < rawTrips.length; i2++) {
+    const t = rawTrips[i2];
+    trips[i2] = {
+      id: t.trip_id,
+      routeId: t.route_id,
+      serviceId: t.service_id,
+      headsign: t.trip_headsign,
+      directionId: parseInt(t.direction_id) || 0,
+      shapeId: ""
+    };
+  }
+  return trips;
 }
 __name(parseTrips, "parseTrips");
 function parseTripStops(rawStopTimes, stopMap) {
@@ -12484,12 +12496,24 @@ async function fetchAndParseAgency(agency) {
   const routes = parseRoutes(rawRoutes);
   const trips = parseTrips(rawTrips);
   const tripStops = parseTripStops(rawStopTimes, stopMap);
-  const calendar = rawCalendar.map((c) => ({
-    serviceId: c.service_id,
-    days: [c.sunday, c.monday, c.tuesday, c.wednesday, c.thursday, c.friday, c.saturday].map((d) => d === "1"),
-    startDate: c.start_date,
-    endDate: c.end_date
-  }));
+  const calendar = new Array(rawCalendar.length);
+  for (let i2 = 0; i2 < rawCalendar.length; i2++) {
+    const c = rawCalendar[i2];
+    calendar[i2] = {
+      serviceId: c.service_id,
+      days: [
+        c.sunday === "1",
+        c.monday === "1",
+        c.tuesday === "1",
+        c.wednesday === "1",
+        c.thursday === "1",
+        c.friday === "1",
+        c.saturday === "1"
+      ],
+      startDate: c.start_date,
+      endDate: c.end_date
+    };
+  }
   return { stops, routes, trips, tripStops, calendar, frequencies: [], shapes: {} };
 }
 __name(fetchAndParseAgency, "fetchAndParseAgency");
