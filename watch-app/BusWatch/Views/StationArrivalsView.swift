@@ -168,11 +168,11 @@ struct StationArrivalsView: View {
         HStack(spacing: 4) {
             Image(systemName: "wifi.slash")
                 .font(.caption2)
-                .foregroundStyle(.orange)
+                .foregroundStyle(.red)
                 .accessibilityHidden(true)
             Text("Offline — showing scheduled times")
                 .font(.caption2)
-                .foregroundStyle(.orange)
+                .foregroundStyle(.red)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Offline. Showing cached scheduled times.")

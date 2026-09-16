@@ -96,6 +96,6 @@
 ## 2025-03-02 - Smooth transitions for dynamic times
 **Learning:** Text views that update frequently via timers or live data (like estimated arrival strings e.g. "10:45") can cause visually jarring replacements on-screen, but SwiftUI's `.contentTransition(.numericText())` seamlessly morphs these dynamic strings, even if they aren't purely integers.
 **Action:** Always apply `.contentTransition(.numericText())` paired with `.animation(.default, value: state)` to any dynamically changing numeric or time-based `Text` elements to significantly improve the perceived quality and smoothness of the interface.
-## 2025-02-12 - Hide redundant map annotations from VoiceOver
-**Learning:** In SwiftUI MapKit, `Annotation` views are not automatically hidden from VoiceOver even if the map container has `.accessibilityElement(children: .ignore)`. Sighted users see dots, but VoiceOver riders will swipe into the map and hear every single station name read aloud, which clutters navigation.
-**Action:** When using `Annotation` for decorative or contextual map markers in a summarized map, apply `.accessibilityHidden(true)` directly to the annotation's content view to prevent VoiceOver from exploring it.
+## 2025-02-12 - Expose active offline states with contrasting icons
+**Learning:** In SwiftUI, banner items conveying disconnected/offline status often blend in with normal text if they use default `.secondary` or simple `.orange` styling. Sighted users might mistake it for a schedule remark rather than an active warning that times might be inaccurate.
+**Action:** When displaying an offline banner, use `Label` with a distinct `wifi.exclamationmark` or `wifi.slash` and give it a prominent contrasting color (like `.red` or `.orange` combined with `.bold()`) so it's impossible to miss visually.

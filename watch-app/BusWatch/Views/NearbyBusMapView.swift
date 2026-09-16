@@ -77,7 +77,6 @@ struct NearbyBusMapView: View {
                             .fill(stop.type == "rail" ? Color.blue : Color.white)
                             .frame(width: 7, height: 7)
                             .overlay(Circle().stroke(.black.opacity(0.5), lineWidth: 1))
-                            .accessibilityHidden(true)
                     }
                 }
             }
