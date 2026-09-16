@@ -60,14 +60,15 @@ async function fetchAndParseGtfsData() {
   }
 
   const getFile = (name: string): string => {
-    let targetKey: string | undefined;
+    // perf: Avoid Object.keys().find() intermediate array allocation in hot paths
+    let key: string | undefined;
     for (const k in files) {
       if (k.endsWith(name)) {
-        targetKey = k;
+        key = k;
         break;
       }
     }
-    return targetKey ? new TextDecoder().decode(files[targetKey]) : '';
+    return key ? new TextDecoder().decode(files[key]) : '';
   };
 
   // 2. Parse CSVs (reuse existing csv-parser)
