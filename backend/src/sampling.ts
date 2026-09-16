@@ -1,6 +1,6 @@
 import { Env, VehiclePosition, PrasaranaBus, TripStopEntry } from "./types";
 import { haversineDistance, getBoundingBox } from "./haversine";
-import { klDayOfWeek, klDayOfWeekFromUnixSeconds, klHourOfDayFromUnixSeconds } from "./time-kl";
+import { klDayOfWeek } from "./time-kl";
 
 interface LastPosition {
   bus_no: string;
@@ -299,9 +299,8 @@ export function detectStopPassages(
           to_lat: target.lat,
           to_lon: target.lon,
           seconds,
-          // perf: Use zero-allocation arithmetic on Unix timestamps instead of new Date() in this hot loop
-          day_of_week: klDayOfWeekFromUnixSeconds(lastPassageTs),
-          time_bucket: klHourOfDayFromUnixSeconds(lastPassageTs),
+          day_of_week: klDayOfWeek(new Date(lastPassageTs * 1000)),
+          time_bucket: klHourOfDay(new Date(lastPassageTs * 1000)),
         });
       }
       // A seconds gap outside [0, MAX] is treated as noise / out-of-service:
@@ -317,6 +316,13 @@ export function detectStopPassages(
   }
 
   return results;
+}
+
+/** KL-local hour (0..23). Local equivalent of klDayOfWeek in time-kl.ts. */
+function klHourOfDay(date: Date): number {
+  // toKlLocal shifts so UTC fields hold KL wall-clock; read UTC hours.
+  const klOffsetMs = 8 * 60 * 60 * 1000;
+  return new Date(date.getTime() + klOffsetMs).getUTCHours();
 }
 
 /**
@@ -347,26 +353,17 @@ export function aggregateSamples(
   const out: AggregatedTravelTime[] = [];
   for (const arr of groups.values()) {
     // Per-key MAD outlier rejection.
+    const cleaned = rejectOutliers(arr, (s) => s.seconds);
+    if (cleaned.length === 0) continue;
 
-    // Performance optimization:
-    // Replaced chained .map() and .reduce() with manual loops
-    // to prevent intermediate array allocations in a hot aggregation path.
-    const len = arr.length;
-    const seconds = new Array(len);
-    for (let i = 0; i < len; i++) seconds[i] = arr[i].seconds;
-    const cleaned = rejectOutliers(seconds);
-
-    const cleanedLen = cleaned.length;
-    if (cleanedLen === 0) continue;
-
+    const len = cleaned.length;
     let sum = 0;
-    for (let i = 0; i < cleanedLen; i++) sum += cleaned[i];
-    const avg = sum / cleanedLen;
+    for (let i = 0; i < len; i++) sum += cleaned[i].seconds;
+    const avg = sum / len;
 
-    let madSum = 0;
-    for (let i = 0; i < cleanedLen; i++) madSum += Math.abs(cleaned[i] - avg);
-    const mad = madSum / cleanedLen;
-
+    let sumDev = 0;
+    for (let i = 0; i < len; i++) sumDev += Math.abs(cleaned[i].seconds - avg);
+    const mad = sumDev / len;
     const first = arr[0];
     out.push({
       route: first.route,
@@ -391,31 +388,34 @@ export function aggregateSamples(
  * raw array when there's too little data (≤3 samples) or when MAD is 0 (all
  * identical), so a clean low-volume leg isn't discarded just for being small.
  */
-function rejectOutliers(values: number[], threshold = 3): number[] {
-  if (values.length <= 3) return values;
+function rejectOutliers<T>(items: T[], getValue: (item: T) => number, threshold = 3): T[] {
+  if (items.length <= 3) return items;
 
-  // Use Float64Array for fast contiguous mathematical sorting
+  // Extract values only once
+  const values = new Float64Array(items.length);
+  for (let i = 0; i < items.length; i++) {
+    values[i] = getValue(items[i]);
+  }
+
+  // Sort for median using a copy
   const sorted = new Float64Array(values).sort();
   const median = sorted[Math.floor(sorted.length / 2)];
-
-  // Performance optimization:
-  // Replaced devs.map() and devs.reduce() with standard loops
-  // to calculate total absolute deviation without closures or arrays.
-  let totalDev = 0;
+  // Calculate MAD
+  let sumDevs = 0;
   for (let i = 0; i < values.length; i++) {
-    totalDev += Math.abs(values[i] - median);
+    sumDevs += Math.abs(values[i] - median);
   }
-  const mad = totalDev / values.length;
+  const mad = sumDevs / values.length;
 
-  if (mad === 0) return values; // all values identical or near-median
+  if (mad === 0) return items; // all values identical or near-median
 
   // Replace array .filter() with manual result array population
   // to avoid closure overhead.
-  const result: number[] = [];
+  const result: T[] = [];
   const maxDev = threshold * mad;
-  for (let i = 0; i < values.length; i++) {
+  for (let i = 0; i < items.length; i++) {
     if (Math.abs(values[i] - median) <= maxDev) {
-      result.push(values[i]);
+      result.push(items[i]);
     }
   }
   return result;
