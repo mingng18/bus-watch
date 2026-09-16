@@ -1,3 +1,46 @@
+## 2024-06-25 - Avoid intermediate allocations with flat().filter(Boolean)
+**Learning:** In V8/Node.js, chaining `.flat().filter(Boolean)` creates costly intermediate array allocations and causes the data to be traversed twice. A benchmark using 66 million items showed `.flat().filter(Boolean)` took ~7100ms, while `.flatMap(r => r || [])` took only ~3100ms.
+**Action:** When flattening an array of arrays and stripping out null/undefined/falsy values, use `.flatMap(r => r || [])` to perform both operations in a single pass without allocating a massive intermediate flattened array.
+## 2024-05-18 - Track array sortedness to avoid unnecessary sorting
+**Learning:** During array groupings, constantly tracking array sortedness by comparing the current item against the previous item avoids running an expensive `.sort()` on arrays that are already inherently sorted by data source nature.
+**Action:** Implemented a Set `unsortedTrips` in `backend/src/gtfs-static.ts` to identify unsorted sequences, and only passed those specific trips to `.sort()`, dropping execution time by 55% for the block.
+## 2024-05-24 - Optimize Linear Route Search with TTL-cached Map Lookups
+**Learning:** When optimizing O(N) array `.find()` lookups on static or semi-static data (like transit routes) inside a request handler, simply substituting a `for` loop reduces closure overhead but doesn't fix the algorithmic complexity. Creating a Map on every request is O(N) and often slower than a simple loop due to map instantiation overhead.
+**Action:** Implemented a module-level, TTL-based memory cache (60 seconds) in the Cloudflare Worker to store both the raw array and O(1) lookup Maps (keyed by `id` and `shortName`). This avoids unbounded KV reads, eliminates per-request Map generation overhead, and successfully turns O(N) linear searches into true O(1) lookups across isolate requests.
+## 2024-05-18 - Hoist Map Instantiation
+**Learning:** Instantiating `Map` objects inside loops using chained array iterations (`new Map(routes.map(r => [r.id, r]))`) can cause significant performance overhead in hot loops (e.g. `nearby.map` when `routeMap` doesn't change per item).
+**Action:** Always verify if object creations that don't depend on loop context can be hoisted to a wider scope to prevent unnecessary memory allocation and CPU cycles per iteration.
+
+## 2024-06-19 - Removed chained array allocations in hot paths
+**Learning:** Chained array methods (like `.map().filter()`) inside hot paths such as `findNearbyStops` create thousands of intermediate objects that are thrown away. This is especially slow when processing many thousands of items like `stops`.
+**Action:** Replace array chains with standard `for` loops inside iterative performance-sensitive paths to eliminate intermediate allocations.
+## 2025-02-18 - Optimize hot loop conversions by hoisting
+
+**Learning:** Mathematical utility functions called inside deep iterations or "hot loops" (e.g., scanning thousands of stops to find nearby vehicles using `haversineDistance`) suffer from significant performance degradation if they redefine identical closures or recalculate static math conversions on every invocation. In our `haversineDistance` function, the inline closure `toRad` was re-created, and the `Math.PI / 180` conversion multiplier along with `R = 6371000` were re-evaluated on every single execution.
+
+**Action:** Whenever implementing geometry or mathematical utilities intended for batch operations, proactively hoist all constant definitions and conversion factors out of the function body into the module scope. Avoid defining inline functional closures (like `(deg) => deg * Math.PI / 180`) within these utilities; inline the arithmetic directly to eliminate closure allocation overhead.
+## 2024-06-20 - Optimize array allocations in findNearbyRoutes
+**Learning:** Chaining `.filter()` and `.map()` results in multiple intermediate array allocations. When searching over large arrays of static data (e.g., transit stops), these redundant iterations and allocations create unnecessary memory pressure and slower execution times. Using a standard `for` loop with index-based iteration eliminates these overheads.
+**Action:** Replace functional array iteration chains with raw `for` loops inside performance-critical data processing paths to skip intermediate array construction and significantly lower execution times.
+
+## 2024-06-21 - Intermediate array allocation in hot loops
+**Learning:** Found an instance in `backend/src/nearby.ts` where `vehicles.filter` was used inside a loop over `stops` to find nearby vehicles. This led to creating unnecessary intermediate array allocations repeatedly in a hot path. Benchmarks showed it to be ~25% slower than standard loops when scaling the stops and vehicles count.
+**Action:** Replace chained array methods `.map().filter()` or array allocations from `.filter()` inside inner hot loops with a standard single loop iteration to directly process items and eliminate intermediate array overhead and redundant calculations.
+## 2024-06-21 - Replace Array findIndex with manual standard for loop
+**Learning:** `findIndex` using a lambda expression with conditions (such as checking `i > currentIdx`) iterates over the whole array up to the match, checking the closure for each element pointlessly over the skipped range `0` through `currentIdx`.
+**Action:** Replaced `findIndex` with a manual `for` loop that strictly starts at `currentIdx + 1`, avoiding unnecessary iterations and memory allocations from closures.
+
+## 2024-06-21 - Optimize CSV parsing string allocation
+**Learning:** In hot parsing loops in Node.js/Cloudflare Workers, performing character-by-character string concatenation (`str += char`) causes significant overhead due to constant memory allocation and GC pressure.
+**Action:** Replaced character-by-character concatenation with manual index tracking and `substring()` to slice larger contiguous chunks of the string at once. This reduces intermediate object creation and improved execution time by ~31% compared to the naive approach.
+
+## 2024-06-21 - Cache GTFS fetch helpers
+**Learning:** Functions doing expensive IO (like parsing/fetching JSON arrays) inside routes with multiple sequential or parallel `Promise.all`s should cache their resolved outputs to prevent severe latency hits and excessive allocations, especially on high-traffic workers or endpoints making many calls.
+**Action:** Introduced global caching variables (`cachedStops`, `cachedTrips`, `cachedTripStops`, `cachedCalendar`, `cachedFrequencies`) to cache `getAll*` data within memory across worker invocations to prevent repetitive KV fetches.
+
+## 2024-06-21 - Cache Cloudflare KV Fetch Promises
+**Learning:** Calling `Promise.all` mapping over multiple async Cloudflare KV fetches (`kv.get`) on every request path deserializes potentially large JSON payloads repeatedly, applying heavy CPU and memory pressure on Workers while waiting for I/O operations. Cloudflare Worker limits are easily hit under concurrent requests when the same payload is parsed thousands of times per minute. Caching the resolved results helps, but leaves a window where concurrent requests might trigger redundant cache fetches ("cache stampede").
+**Action:** Implemented Promise-based caching in memory (by storing the Promise object in a global variable rather than the resolved value) for repetitive KV calls like `getAllStops`, `getAllTrips`, `getAllTripStops`, `getAllCalendar`, `getAllFrequencies`, and `getAllShapes`. Subsequent simultaneous requests hitting the Cloudflare Worker during the async resolution window will `await` the existing pending Promise rather than initiating redundant KV API round-trips. Local benchmarking demonstrated concurrent request execution time dropping from ~42ms to ~0.07ms (under fully cached conditions).
 ## 2024-06-22 - Optimize `new Map` Array Allocation Overhead
 **Learning:** `new Map(array.map(...))` creates unnecessary intermediate arrays (due to `Array.prototype.map`), which severely degrades performance in hot loops, causing memory allocation and garbage collection overhead.
 **Action:** Replace `new Map(array.map(...))` allocations with a standard `for` loop combined with `map.set()` to prevent redundant array creation, specifically in performance-critical areas like processing thousands of GTFS objects or searching for nearby stops.
@@ -82,14 +125,18 @@
 ## 2024-09-12 - String Sorting Optimization
 **Learning:** Using `String.prototype.localeCompare` to sort strictly formatted ASCII strings (like "HH:MM:SS") applies complex I18N collation rules that add noticeable performance overhead.
 **Action:** Use simple lexicographical comparison operators (`a < b ? -1 : a > b ? 1 : 0`) for much faster sorting when dealing with strictly formatted time strings.
-
 ## 2025-05-23 - Optimize array allocations when processing raw GTFS sets in rail ingestion
 **Learning:** Chaining `.filter().map()` inside large array ingestion paths (like `rail-ingest.ts`) causes the engine to allocate massive intermediate array structures before mapping, increasing memory pressure and GC spikes. A standard `for` loop pushing directly to the target array executes the filtering/mapping logic in a single fast pass per dataset.
 **Action:** Replace functional `.filter().map()` chains with standard `for` loops when parsing large CSV raw outputs in data ingestion scripts.
-
 ## 2024-05-30 - Eliminate Date allocations in sampling loop
 **Learning:** In hot loops processing thousands of points (e.g. data aggregation loops), instantiating `new Date()` repeatedly creates massive garbage collection pressure and CPU overhead.
 **Action:** When computing date components like hour or day-of-week from Unix timestamps in hot paths, avoid `Date` objects and perform direct modulo/division arithmetic on the timestamp instead.
+## 2024-09-15 - Optimize Object.keys().find() to for...in loop
+**Learning:** Using `Object.keys(dict).find(...)` creates an intermediate array allocation which is O(N) in memory and time, creating GC pressure, particularly for dictionaries representing files or large sets.
+**Action:** Use a standard `for...in` loop to iterate over keys directly for better performance.
+## 2025-05-24 - Pre-allocate arrays for simple map transformations
+**Learning:** In hot loops parsing raw GTFS data, using `Array.prototype.map()` creates array allocation overhead and closure allocations. Pre-allocating an array with `new Array(length)` and using a standard `for` loop provides a measurable performance boost (up to ~60% faster) compared to `Array.prototype.map()`.
+**Action:** When transforming large arrays of raw data (like stops, routes, trips, calendar), prefer a standard `for` loop pushing to or mutating a pre-allocated array `new Array(length)` to avoid `Array.prototype.map()` and closure allocation overhead.
 
 ## 2025-02-28 - [Performance] ⚡ Array to Map Lookup caching in Cloudflare workers
 **Learning:** O(N) array scans inside heavily accessed routes (like schedule lookups fetching multiple stops per request) scale poorly and cause high CPU spikes. Replacing `array.find(x => x.id === target)` with pre-computed `Map.get(target)` lookups reduces execution time by ~99% on typical workloads (e.g. 1800ms to 17ms for 10000 lookups).
