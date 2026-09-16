@@ -80,6 +80,13 @@
 **Learning:** Empty string fallbacks for missing route identifiers (like `line.isEmpty ? "Service" : line`) implemented in the main app views weren't carried over to the WatchOS complications, causing visually broken states (e.g. " → Destination") and awkward VoiceOver phrasing on the watch face.
 **Action:** When implementing generic fallbacks for transit identifiers, proactively review and update corresponding complication/widget views to ensure the watch face matches the main app's gracefully degraded experience.
 
-## 2024-05-24 - Preserving native pull-to-refresh animations
-**Learning:** In SwiftUI, when using `.refreshable` on a list to provide native pull-to-refresh functionality, conditionally bypassing replacing the main view with a full-screen loading state (e.g., `ProgressView`) during the refresh event is required. Otherwise, the immediate full-screen state change abruptly interrupts and cancels the native refresh spinner animation. Also, non-scrollable states like `.empty` require manual refresh buttons because native pull-to-refresh requires a scrollable container.
-**Action:** Always add an `isRefresh` flag to data loading methods to skip full-screen loading indicators when triggered by a pull-to-refresh action, and remember to add manual refresh buttons to empty states.
+## 2025-02-12 - Pull-to-refresh on watchOS Lists
+**Learning:** In watchOS SwiftUI, applying `.refreshable` to a `List` provides a native, highly expected pull-to-refresh interaction. However, if the data loading function unconditionally transitions the view into a full-screen loading state (e.g. `ProgressView`), it will instantly replace the `List`, thereby destroying the native pull-to-refresh spinner animation mid-flight and creating a jarring experience.
+**Action:** When adding `.refreshable` to a `List` that drives a state machine, update the loading function to accept an `isRefresh` boolean. Conditionally bypass the full-screen `.loading` state transition when `isRefresh` is true, allowing the native refresh spinner to render over the existing list until the new data arrives.
+
+## 2025-02-12 - Manual refresh for non-scrollable empty states
+**Learning:** In SwiftUI, native pull-to-refresh (`.refreshable`) only functions on scrollable containers like `List` or `ScrollView`. When a view is in a non-scrollable `.empty` state (like a `VStack`), users cannot trigger the native gesture.
+**Action:** Always provide an explicit, manual "Refresh" or "Retry" `Button` when presenting non-scrollable empty states, ensuring users have an accessible way to re-fetch data.
+## 2025-02-12 - Expand domain abbreviations for better UX
+**Learning:** Using raw text abbreviations like "sched" for domain-specific data states harms readability and accessibility.
+**Action:** Replace text abbreviations with `Label` components containing expanded text and standard SF Symbols (e.g., 'clock'). For dynamic text combinations, concatenate `Text` views directly with the `+` operator.
