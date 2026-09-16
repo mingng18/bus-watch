@@ -22,7 +22,7 @@ export function getDeparturesTowardDestination(
   calendar: CalendarEntry[],
   limit = 5,
   pRouteMap?: Map<string, Route>,
-  pStopMap?: Map<string, Stop>
+  pStopMap?: Map<string, any>
 ): StationScheduleResponse {
   const stop = pStopMap ? pStopMap.get(stopId) : stops.find(s => s.id === stopId);
   if (!stop) throw new Error(`Stop not found: ${stopId}`);
