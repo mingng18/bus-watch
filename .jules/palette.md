@@ -97,6 +97,6 @@
 **Learning:** Text views that update frequently via timers or live data (like estimated arrival strings e.g. "10:45") can cause visually jarring replacements on-screen, but SwiftUI's `.contentTransition(.numericText())` seamlessly morphs these dynamic strings, even if they aren't purely integers.
 **Action:** Always apply `.contentTransition(.numericText())` paired with `.animation(.default, value: state)` to any dynamically changing numeric or time-based `Text` elements to significantly improve the perceived quality and smoothness of the interface.
 
-## 2025-01-23 - Add accessibility hints to icon-only toolbar buttons
-**Learning:** In SwiftUI, icon-only toolbar buttons have terse labels. VoiceOver users may need more context about what action the button performs, especially for generic icons like lists or chevrons.
-**Action:** Always provide an `.accessibilityHint` to icon-only toolbar buttons to explain the consequence of the action (e.g., "Returns to the nearby stops list.").
+## 2025-03-03 - Expand icon-only buttons with explicit accessibility labels
+**Learning:** In watchOS SwiftUI, `Label` elements in toolbars are automatically collapsed to icon-only. However, `Image(systemName:)` without a label causes VoiceOver to read generic names.
+**Action:** When creating toolbar items or navigation chevrons, explicitly tag them with `.accessibilityLabel("Label name")` or `.accessibilityHidden(true)` if they are purely decorative.

@@ -86,6 +86,7 @@ struct ManualPickerView: View {
                     Image(systemName: "chevron.right")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
+                        .accessibilityHidden(true)
                 }
             }
         }
