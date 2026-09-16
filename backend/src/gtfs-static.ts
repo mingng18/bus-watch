@@ -40,7 +40,10 @@ function parseStops(
   }
 
   // Parse stops - determine type from trips serving each stop
-  const stops: Stop[] = rawStops.map(s => {
+  // perf: Replace map with pre-allocated array to avoid Array.map overhead and inner closure allocation
+  const stops: Stop[] = new Array(rawStops.length);
+  for (let i = 0; i < rawStops.length; i++) {
+    const s = rawStops[i];
     const stop: Stop = {
       id: s.stop_id,
       name: s.stop_name,
@@ -50,8 +53,8 @@ function parseStops(
       parentStation: s.parent_station,
     };
     stopMap.set(s.stop_id, stop);
-    return stop;
-  });
+    stops[i] = stop;
+  }
 
   // Set stop type based on routes serving it via stop_times → trips → routes
   for (const st of rawStopTimes) {
@@ -74,23 +77,35 @@ function parseStops(
 }
 
 function parseRoutes(rawRoutes: GtfsRoute[]): Route[] {
-  return rawRoutes.map(r => ({
-    id: r.route_id,
-    shortName: r.route_short_name,
-    longName: r.route_long_name,
-    type: parseInt(r.route_type),
-  }));
+  // perf: Replace map with pre-allocated array to avoid Array.map overhead and inner closure allocation
+  const routes = new Array(rawRoutes.length);
+  for (let i = 0; i < rawRoutes.length; i++) {
+    const r = rawRoutes[i];
+    routes[i] = {
+      id: r.route_id,
+      shortName: r.route_short_name,
+      longName: r.route_long_name,
+      type: parseInt(r.route_type),
+    };
+  }
+  return routes;
 }
 
 function parseTrips(rawTrips: GtfsTrip[]): Trip[] {
-  return rawTrips.map(t => ({
-    id: t.trip_id,
-    routeId: t.route_id,
-    serviceId: t.service_id,
-    headsign: t.trip_headsign,
-    directionId: parseInt(t.direction_id) || 0,
-    shapeId: '',
-  }));
+  // perf: Replace map with pre-allocated array to avoid Array.map overhead and inner closure allocation
+  const trips = new Array(rawTrips.length);
+  for (let i = 0; i < rawTrips.length; i++) {
+    const t = rawTrips[i];
+    trips[i] = {
+      id: t.trip_id,
+      routeId: t.route_id,
+      serviceId: t.service_id,
+      headsign: t.trip_headsign,
+      directionId: parseInt(t.direction_id) || 0,
+      shapeId: '',
+    };
+  }
+  return trips;
 }
 
 function parseTripStops(rawStopTimes: GtfsStopTime[], stopMap: Map<string, Stop>): Record<string, TripStopEntry[]> {
@@ -181,13 +196,25 @@ export async function fetchAndParseAgency(agency: string): Promise<AgencyData> {
   const trips = parseTrips(rawTrips);
   const tripStops = parseTripStops(rawStopTimes, stopMap);
 
-  const calendar: CalendarEntry[] = rawCalendar.map(c => ({
-    serviceId: c.service_id,
-    days: [c.sunday, c.monday, c.tuesday, c.wednesday, c.thursday, c.friday, c.saturday]
-      .map(d => d === '1'),
-    startDate: c.start_date,
-    endDate: c.end_date,
-  }));
+  // perf: Replace map with pre-allocated array to avoid Array.map overhead and inner closure allocation
+  const calendar: CalendarEntry[] = new Array(rawCalendar.length);
+  for (let i = 0; i < rawCalendar.length; i++) {
+    const c = rawCalendar[i];
+    calendar[i] = {
+      serviceId: c.service_id,
+      days: [
+        c.sunday === '1',
+        c.monday === '1',
+        c.tuesday === '1',
+        c.wednesday === '1',
+        c.thursday === '1',
+        c.friday === '1',
+        c.saturday === '1'
+      ],
+      startDate: c.start_date,
+      endDate: c.end_date,
+    };
+  }
 
   return { stops, routes, trips, tripStops, calendar, frequencies: [], shapes: {} };
 }
