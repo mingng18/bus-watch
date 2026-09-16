@@ -138,6 +138,7 @@
 **Learning:** In hot loops parsing raw GTFS data, using `Array.prototype.map()` creates array allocation overhead and closure allocations. Pre-allocating an array with `new Array(length)` and using a standard `for` loop provides a measurable performance boost (up to ~60% faster) compared to `Array.prototype.map()`.
 **Action:** When transforming large arrays of raw data (like stops, routes, trips, calendar), prefer a standard `for` loop pushing to or mutating a pre-allocated array `new Array(length)` to avoid `Array.prototype.map()` and closure allocation overhead.
 
+
 ## 2023-11-20 - Ensure DB Insert Failure Is Tested in Rail Timetable Ingestion
 **Learning:** Adding test coverage for failure modes in `batch` operations ensures the ingestion pipeline correctly identifies partial updates and sets the proper error state without swallowing errors or reporting incorrect success counts.
 **Action:** Wrote an `it` block in `rail-ingest.test.ts` mocking `mockDb.batch` to throw an error on the 3rd invocation, asserting `{ inserted: 2, error: 'D1 error on trips' }` was returned.
