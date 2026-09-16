@@ -87,50 +87,6 @@
 **Learning:** Sequential async lookups to remote stores like Cloudflare KV (e.g. `await getA(); await getB();`) compound latency linearly (e.g., 6 lookups at 50ms = 300ms delay).
 **Action:** Group independent data fetches into concurrent `Promise.all` blocks to bound the total execution time to the single slowest request, dramatically improving endpoint response times.
 
-## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for Haversine Calculations
-**Learning:** In Cloudflare Workers where execution time and CPU cycles are highly constrained, large loops (e.g., iterating through thousands of bus stops or vehicles) that calculate geographic distance using the Haversine formula can be a significant bottleneck due to expensive trigonometric math (`Math.sin`, `Math.cos`, `Math.atan2`).
-**Action:** When filtering objects by geographic radius, implement a spatial pre-filter using a fast bounding box approximation before invoking the precise distance calculation. Use simple float comparisons (`<`, `>`) to aggressively prune out-of-bounds coordinates early, drastically reducing trigonometric overhead.
-
-## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for inner loops
-**Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop`) can reintroduce the trigonometric bottleneck of `haversineDistance`.
-**Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
-
-## 2024-07-28 - [Performance] ⚡ Bounding Box Pre-filtering for inner loops
-**Learning:** Even if a bounding box pre-filter is applied in outer functions or loops, failing to apply it inside inner nested loops over large datasets (like checking every `vehicle` position for every nearby `stop` or evaluating historical passages) can reintroduce the trigonometric bottleneck of `haversineDistance`.
-**Action:** When iterating over coordinates in hot nested loops, ensure bounding box pre-filtering using `getBoundingBox` and arithmetic checks are applied directly inside the tightest loop where the geographic comparison occurs, effectively bypassing `haversineDistance` entirely for out-of-bounds items.
-
-## 2024-07-28 - [Performance] ⚡ Dynamic Bounding Box Pruning
-**Learning:** When evaluating distance across large coordinate arrays, repeatedly performing O(N) array scans to find the nearest point (like `nearestFromStopOnRoute`), recalculating the precise `haversineDistance` for every single coordinate introduces significant trigonometric overhead. Additionally, calling generic bounding box helpers inside the loop repeats constant calculations (like `Math.cos(lat)`).
-**Action:** When finding a nearest point in a loop, pre-calculate the constants outside the loop, initialize a bounding box with the first point's distance, and dynamically shrink the bounding box limits (`minLat`, `maxLat`, `minLon`, `maxLon`) every time a closer point is found. This progressively and aggressively prunes outer coordinates with cheap arithmetic checks before falling back to `haversineDistance`.
-
-## 2024-07-28 - [Performance] ⚡ Two-phase Promise.all fetching
-**Learning:** Sequential async lookups to remote stores (like `fetchPrasaranaBuses`) compound latency linearly. However, grouping ALL fetches (like `getRealtimeVehicles`, `getAllTrips`, `getAllShapes`) into a single `Promise.all` block before validating parameters (e.g. checking if `route` exists) causes unnecessary database/KV reads for invalid requests (like 404s), wasting I/O resources on error paths.
-**Action:** When migrating sequential `await`s to concurrent `Promise.all` blocks in endpoints, split the requests into logical phases. Fetch the minimal data required for validation in the first `Promise.all`, perform the validation (early return on 404), and fetch the remaining heavy data in a second `Promise.all` block to preserve fast/cheap error paths while maximizing concurrency on the happy path.
-
-## 2024-08-04 - [Performance] ⚡ Async Data Fetching Parallelization
-**Learning:** Sequential `await` calls for independent data sets (like configuration, agency data, or vehicle positions) accumulate latency linearly, blocking subsequent network operations unnecessarily.
-**Action:** Always wrap independent async operations in `Promise.all()` arrays. This guarantees network requests execute concurrently, bonding the total delay to the longest single request rather than the sum of all requests, drastically cutting endpoint response times.
-
-## 2024-05-18 - [Performance] ⚡ Stop Scan Optimization Cache Invalidation Bug
-**Learning:** Caching reference types (`stops` array) module-level to optimize `.find()` lookups using a `Map` must carefully consider cache invalidation in a long-lived environment (like Cloudflare Workers). If the data source triggers a refresh, but the worker isolate is kept alive, passing the *same* cached array reference to the handler will skip the Map rebuild, but the *contents* of the array might have mutated if the ingestion logic mutates in-place instead of swapping references.
-**Action:** Always ensure that data updates in long-lived environments swap the entire array reference, or implement a versioned/timestamp-based cache invalidation alongside the reference check (`if (cachedArray !== currentArray || currentVersion !== cachedVersion)`) when using module-level caches to guarantee data consistency.
-
-## 2024-09-15 - [Performance] ⚡ Replace `.some` with `for` loops in hot UI paths
-**Learning:** Using `.some()` with inline lambdas to check boolean array conditions inside SwiftUI view body evaluation or highly repeated data processing pipelines generates unnecessary closure allocations per run.
-**Action:** Replaced `routes.some(x => x === target)` patterns with direct `for` loop evaluations to eliminate lambda allocation overhead, especially in code that executes frequently or is deeply nested.
-
-## 2024-10-18 - [Performance] ⚡ Avoid unneeded string parsing in realtime updates
-**Learning:** Using `String.prototype.replace()` to remove prefixes (like "KJ" or "AG") from string IDs during every realtime vehicle position update causes unnecessary string parsing overhead in hot execution loops.
-**Action:** Realtime vehicle positions should just pass the raw, un-prefixed IDs directly from the source where possible, or preprocess lookup maps to include the raw GTFS string IDs, completely removing the need for runtime regex or string replacements during fast-path updates.
-
-## 2024-09-13 - [Performance] ⚡ Avoid localeCompare for time string sorting
-**Learning:** Using `String.prototype.localeCompare()` inside hot sorting loops (e.g. `departures.sort((a, b) => a.departureTime.localeCompare(b.departureTime))`) adds unnecessary localization and collation overhead when comparing fixed-format GTFS time strings like "14:30:00" and "15:00:00".
-**Action:** Replace `localeCompare` with standard boolean string comparison (`a < b ? -1 : a > b ? 1 : 0`) for simple, predictable string formats in performance-critical areas to significantly reduce CPU execution time.
-
-## 2024-05-18 - [Performance] ⚡ Stop Scan Optimization Cache Invalidation Bug
-**Learning:** Caching reference types (`stops` array) module-level to optimize `.find()` lookups using a `Map` must carefully consider cache invalidation in a long-lived environment (like Cloudflare Workers). If the data source triggers a refresh, but the worker isolate is kept alive, passing the *same* cached array reference to the handler will skip the Map rebuild, but the *contents* of the array might have mutated if the ingestion logic mutates in-place instead of swapping references.
-**Action:** Always ensure that data updates in long-lived environments swap the entire array reference, or implement a versioned/timestamp-based cache invalidation alongside the reference check (`if (cachedArray !== currentArray || currentVersion !== cachedVersion)`) when using module-level caches to guarantee data consistency.
-
 ## 2024-05-18 - [Performance] ⚡ Optimize Stop Array Scans
 **Learning:** To prevent per-request O(N) array scans (e.g., using `.find()`) in hot code paths where data arrays are occasionally refreshed, use a module-level reference cache. Store the previous array reference alongside a precomputed `Map`. Before looking up an item, check if the array reference has changed (`if (cachedArray !== currentArray)`); if so, rebuild the map using a standard `for` loop. This provides O(1) lookups across requests without memory leaks.
 **Action:** Implemented a module-level loop cache in `backend/src/station.ts` to replace the `stops.find(s => s.id === stopId)` call with a fast O(1) map lookup.
