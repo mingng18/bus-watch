@@ -137,3 +137,7 @@
 ## 2025-05-24 - Pre-allocate arrays for simple map transformations
 **Learning:** In hot loops parsing raw GTFS data, using `Array.prototype.map()` creates array allocation overhead and closure allocations. Pre-allocating an array with `new Array(length)` and using a standard `for` loop provides a measurable performance boost (up to ~60% faster) compared to `Array.prototype.map()`.
 **Action:** When transforming large arrays of raw data (like stops, routes, trips, calendar), prefer a standard `for` loop pushing to or mutating a pre-allocated array `new Array(length)` to avoid `Array.prototype.map()` and closure allocation overhead.
+
+## 2024-07-25 - Extract helper functions for complex code health
+**Learning:** Large functions with multiple responsibilities can often be split into smaller, more focused helper functions, improving readability and testability.
+**Action:** Extracted `filterAndSortStops`, `getBusArrivalsForStop`, and `getScheduledArrivalsForStop` from the overly complex `findNearbyStops` function to improve maintainability.
