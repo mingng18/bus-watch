@@ -137,3 +137,7 @@
 ## 2025-05-24 - Pre-allocate arrays for simple map transformations
 **Learning:** In hot loops parsing raw GTFS data, using `Array.prototype.map()` creates array allocation overhead and closure allocations. Pre-allocating an array with `new Array(length)` and using a standard `for` loop provides a measurable performance boost (up to ~60% faster) compared to `Array.prototype.map()`.
 **Action:** When transforming large arrays of raw data (like stops, routes, trips, calendar), prefer a standard `for` loop pushing to or mutating a pre-allocated array `new Array(length)` to avoid `Array.prototype.map()` and closure allocation overhead.
+
+## 2025-02-18 - Optimize Array Allocations in D1 Bindings
+**Learning:** During GTFS data ingestion (`rail-ingest.ts`), chaining `.filter().map()` arrays to extract required statement bindings from massive datasets (like `stops.txt`, `routes.txt`, `trips.txt`, `stop_times.txt` which can contain millions of rows) causes significant intermediate array allocations in memory.
+**Action:** Replace the chained array methods with standard `for...of` loops and pre-instantiated arrays (`any[]`) to populate D1PreparedStatement bindings in a single iteration. This minimizes memory consumption and reduces garbage collection pressure when executing within constrained Cloudflare Worker limits.
