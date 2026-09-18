@@ -29,6 +29,16 @@ app.use('*', secureHeaders({
     defaultSrc: ["'none'"],
   },
 }));
+
+// Security: Prevent caching of authenticated/administrative endpoints
+app.use('/refresh', async (c, next) => {
+  await next();
+  c.header('Cache-Control', 'no-store');
+});
+app.use('/rail/ingest', async (c, next) => {
+  await next();
+  c.header('Cache-Control', 'no-store');
+});
 app.use('*', cors({ origin: (origin, c) => c.env.FRONTEND_URL ?? null }));
 
 // Security: Global input length validation to prevent DoS via excessively large payloads
