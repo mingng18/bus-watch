@@ -124,7 +124,7 @@ async function mapAndInsertGtfsData(
        ON CONFLICT(stop_id) DO UPDATE SET stop_name=excluded.stop_name, lat=excluded.lat, lon=excluded.lon`
     );
     // perf: Avoid intermediate array allocations from .filter().map() chains
-    const stopStmts: any[] = [];
+    const stopStmts = [];
     for (let i = 0; i < rawStops.length; i++) {
       const s = rawStops[i];
       if (railStopIds.has(s.stop_id)) {
@@ -140,7 +140,7 @@ async function mapAndInsertGtfsData(
        VALUES (?, ?, ?)
        ON CONFLICT(route_id) DO UPDATE SET route_short_name=excluded.route_short_name, route_long_name=excluded.route_long_name`
     );
-    const routeStmts: any[] = [];
+    const routeStmts = [];
     for (let i = 0; i < rawRoutes.length; i++) {
       const r = rawRoutes[i];
       if (railRouteIds.has(r.route_id)) {
@@ -156,7 +156,7 @@ async function mapAndInsertGtfsData(
        VALUES (?, ?, ?, ?, ?)
        ON CONFLICT(trip_id) DO UPDATE SET route_id=excluded.route_id, service_id=excluded.service_id, headsign=excluded.headsign, direction=excluded.direction`
     );
-    const tripStmts: any[] = [];
+    const tripStmts = [];
     for (let i = 0; i < rawTrips.length; i++) {
       const t = rawTrips[i];
       if (railTripIds.has(t.trip_id)) {
@@ -172,7 +172,7 @@ async function mapAndInsertGtfsData(
        VALUES (?, ?, ?, ?, ?)
        ON CONFLICT(trip_id, stop_seq) DO UPDATE SET stop_id=excluded.stop_id, arrival_time=excluded.arrival_time, departure_time=excluded.departure_time`
     );
-    const stStmts: any[] = [];
+    const stStmts = [];
     for (let i = 0; i < rawStopTimes.length; i++) {
       const st = rawStopTimes[i];
       if (railTripIds.has(st.trip_id)) {
