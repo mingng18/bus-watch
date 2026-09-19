@@ -12653,7 +12653,9 @@ function findNearbyStops(ctx) {
       nearbyVehicles.push(v);
     }
   }
-  return nearby.map(({ stop, distance }) => {
+  const result = new Array(nearby.length);
+  for (let j = 0; j < nearby.length; j++) {
+    const { stop, distance } = nearby[j];
     const arrivals = [];
     if (stop.type === "bus") {
       const seen = /* @__PURE__ */ new Set();
@@ -12701,7 +12703,7 @@ function findNearbyStops(ctx) {
         });
       }
     }
-    return {
+    result[j] = {
       id: stop.id,
       name: stop.name,
       type: stop.type,
@@ -12710,7 +12712,8 @@ function findNearbyStops(ctx) {
       distance_m: Math.round(distance),
       arrivals: arrivals.slice(0, 3)
     };
-  });
+  }
+  return result;
 }
 __name(findNearbyStops, "findNearbyStops");
 function findNearbyBusRoutes(routes, trips, vehicles, lat, lon, radiusM = 1e3, pRouteMap, pTripMap) {
@@ -13231,9 +13234,16 @@ async function aggregateTravelTimes(env, stopSequencesByRoute) {
        WHERE timestamp > ?
        ORDER BY route, bus_no, timestamp`
     ).bind(since).all();
-    rows = (results || []).filter(
-      (r) => Number.isFinite(r.lat) && Number.isFinite(r.lon) && Number.isFinite(r.timestamp)
-    );
+    const rawResults = results || [];
+    rows = new Array(rawResults.length);
+    let validCount = 0;
+    for (let i2 = 0, len = rawResults.length; i2 < len; i2++) {
+      const r = rawResults[i2];
+      if (Number.isFinite(r.lat) && Number.isFinite(r.lon) && Number.isFinite(r.timestamp)) {
+        rows[validCount++] = r;
+      }
+    }
+    rows.length = validCount;
   } catch (err2) {
     console.error("aggregateTravelTimes: failed to read bus_positions:", err2);
     return;
@@ -13288,8 +13298,10 @@ async function aggregateTravelTimes(env, stopSequencesByRoute) {
          sample_count = travel_times.sample_count + excluded.sample_count,
          updated_at = excluded.updated_at`
   );
-  const upsertStmts = aggregated.map(
-    (a) => travelTimesPrepStmt.bind(
+  const upsertStmts = new Array(aggregated.length);
+  for (let i2 = 0, len = aggregated.length; i2 < len; i2++) {
+    const a = aggregated[i2];
+    upsertStmts[i2] = travelTimesPrepStmt.bind(
       a.route,
       a.from_stop_id,
       a.to_stop_id,
@@ -13303,8 +13315,8 @@ async function aggregateTravelTimes(env, stopSequencesByRoute) {
       a.day_of_week,
       a.time_bucket,
       a.spread_seconds
-    )
-  );
+    );
+  }
   const BATCH_SIZE2 = 100;
   const CONCURRENCY = 5;
   const errors = [];
