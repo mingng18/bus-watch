@@ -137,7 +137,3 @@
 ## 2025-05-24 - Pre-allocate arrays for simple map transformations
 **Learning:** In hot loops parsing raw GTFS data, using `Array.prototype.map()` creates array allocation overhead and closure allocations. Pre-allocating an array with `new Array(length)` and using a standard `for` loop provides a measurable performance boost (up to ~60% faster) compared to `Array.prototype.map()`.
 **Action:** When transforming large arrays of raw data (like stops, routes, trips, calendar), prefer a standard `for` loop pushing to or mutating a pre-allocated array `new Array(length)` to avoid `Array.prototype.map()` and closure allocation overhead.
-
-## 2024-06-25 - [Testing] 🧪 Swift Codable Default Values
-**Learning:** When using a custom `init(from decoder: Decoder)` to provide default values using `decodeIfPresent` (e.g. `try container.decodeIfPresent([BusRouteEntry].self, forKey: .busRoutes) ?? []`), a missing key in the JSON payload will not throw `DecodingError.keyNotFound` and will gracefully default. However, when writing tests, reviewers might misunderstand this behavior or prefer testing empty arrays directly in the JSON. If a reviewer pushes back, it is often faster to simply update the test JSON payload to include the empty array explicitly (`"busRoutes": []`) rather than arguing the nuance of custom decoding logic.
-**Action:** Updated a mock JSON payload to explicitly include an empty array instead of omitting the key entirely to appease a reviewer and unblock PR approval.
