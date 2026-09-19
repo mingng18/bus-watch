@@ -34,8 +34,8 @@ struct ManualPickerView: View {
                     if nearby.stops.isEmpty {
                         HStack(spacing: 6) {
                             Image(systemName: "mappin.slash")
-                                .accessibilityHidden(true)
                                 .foregroundStyle(.secondary)
+                                .accessibilityHidden(true)
                             Text("No stops nearby")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
@@ -48,6 +48,8 @@ struct ManualPickerView: View {
                     }
                 } else {
                     ProgressView("Loading...")
+                        .accessibilityLabel("Loading nearby stops")
+                        .accessibilityHidden(false)
                         .foregroundStyle(.secondary)
                 }
             }

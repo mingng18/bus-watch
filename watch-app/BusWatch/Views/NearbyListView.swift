@@ -73,8 +73,8 @@ struct NearbyListView: View {
                 if response.stops.isEmpty {
                     HStack(spacing: 6) {
                         Image(systemName: "mappin.slash")
-                            .accessibilityHidden(true)
                             .foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
                         Text("No stops nearby")
                             .font(.caption)
                             .foregroundStyle(.secondary)

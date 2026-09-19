@@ -97,6 +97,6 @@
 **Learning:** Text views that update frequently via timers or live data (like estimated arrival strings e.g. "10:45") can cause visually jarring replacements on-screen, but SwiftUI's `.contentTransition(.numericText())` seamlessly morphs these dynamic strings, even if they aren't purely integers.
 **Action:** Always apply `.contentTransition(.numericText())` paired with `.animation(.default, value: state)` to any dynamically changing numeric or time-based `Text` elements to significantly improve the perceived quality and smoothness of the interface.
 
-## 2025-01-23 - Pair empty state text with an appropriate icon
-**Learning:** Text-only empty states in lists (like "No Active Disruptions") can feel unpolished and lack visual grounding, leaving users scanning for meaning.
-**Action:** Always pair empty state text with a context-appropriate, secondary-styled SF Symbol (like `checkmark.seal.fill` or `mappin.slash`) and mark the icon as `.accessibilityHidden(true)` to improve visual glanceability and polish without cluttering VoiceOver.
+## 2025-02-06 - Add accessibility labels to ProgressView components
+**Learning:** By default, SwiftUI `ProgressView` elements without explicit text labels are read as generic "In progress" or "Activity Indicator" by VoiceOver, offering no context about *what* is loading. This creates a confusing screen reader experience during async operations (like "Locating nearby stops", "Loading alerts", or "Saving reminder").
+**Action:** Always append an explicit `.accessibilityLabel` to `ProgressView` components (e.g. `ProgressView("Loading...").accessibilityLabel("Loading nearby stops")`) and ensure they are exposed by applying `.accessibilityHidden(false)` if they reside in a parent that might otherwise ignore children. This provides immediate, descriptive feedback to VoiceOver users about the current async state.

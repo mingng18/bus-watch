@@ -36,7 +36,6 @@ struct StationArrivalsView: View {
                 if schedule.departures.isEmpty {
                     HStack(spacing: 6) {
                         Image(systemName: "bus.slash")
-                            .accessibilityHidden(true)
                             .foregroundStyle(.secondary)
                             .accessibilityHidden(true)
                         Text("No upcoming departures")
@@ -132,6 +131,8 @@ struct StationArrivalsView: View {
                 } label: {
                     if isSchedulingReminder {
                         ProgressView()
+                        .accessibilityLabel("Saving reminder")
+                        .accessibilityHidden(false)
                     } else {
                         Label(scheduledReminderId == nil ? "Set alert" : "Alert set",
                               systemImage: scheduledReminderId == nil ? "bell" : "bell.badge.fill")

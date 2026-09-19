@@ -26,7 +26,6 @@ struct DeparturesTowardView: View {
                 if schedule.departures.isEmpty {
                     HStack(spacing: 6) {
                         Image(systemName: "bus.slash")
-                            .accessibilityHidden(true)
                             .foregroundStyle(.secondary)
                             .accessibilityHidden(true)
                         Text("No departures toward \(destinationName)")
