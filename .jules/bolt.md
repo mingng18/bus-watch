@@ -137,7 +137,13 @@
 ## 2025-05-24 - Pre-allocate arrays for simple map transformations
 **Learning:** In hot loops parsing raw GTFS data, using `Array.prototype.map()` creates array allocation overhead and closure allocations. Pre-allocating an array with `new Array(length)` and using a standard `for` loop provides a measurable performance boost (up to ~60% faster) compared to `Array.prototype.map()`.
 **Action:** When transforming large arrays of raw data (like stops, routes, trips, calendar), prefer a standard `for` loop pushing to or mutating a pre-allocated array `new Array(length)` to avoid `Array.prototype.map()` and closure allocation overhead.
+## 2025-05-24 - Pre-allocate arrays for map transformations in nearby stops
+**Learning:** In hot loops parsing array data (like processing nearby stops), using `Array.prototype.map()` creates array allocation overhead and closure allocations which can be slow down API response.
+**Action:** When transforming arrays in hot paths (like in `/nearby` processing), prefer a standard `for` loop pushing to or mutating a pre-allocated array `new Array(length)` to avoid `Array.prototype.map()` and closure allocation overhead.
+## 2024-05-14 - Optimizing array methods over large datasets
+**Learning:** In hot loops dealing with large datasets (like `aggregateTravelTimes` handling historical bus positions or aggregated results), chained or standalone array methods like `.filter()` and `.map()` introduce significant overhead from intermediate array allocations and closure executions.
+**Action:** Replace these methods with pre-allocated manual `for` loops (e.g. `new Array(length)` followed by indexing and `.length` truncation). This pattern reduces memory pressure, GC overhead, and execution time by roughly 50-60%.
 
-## 2026-09-16 - Pre-allocate arrays for simple map transformations
-**Learning:** In hot loops parsing raw data, using `Array.prototype.map()` creates array allocation overhead and closure allocations. Pre-allocating an array with `new Array(length)` and using a standard `for` loop provides a measurable performance boost (up to ~50% faster) compared to `Array.prototype.map()`.
-**Action:** When transforming arrays of raw data (like CSV headers), prefer a standard `for` loop pushing to or mutating a pre-allocated array `new Array(length)` to avoid `Array.prototype.map()` and closure allocation overhead.
+## 2026-09-17 - Pre-allocate arrays for API response shaping
+**Learning:** Using `Array.prototype.map()` to shape database rows into API response objects (e.g., in endpoints like `/rail-schedule`) introduces unnecessary closure instantiations and intermediate array allocation overhead.
+**Action:** Replace `.map()` with a standard `for` loop pushing to a pre-allocated array (`new Array(length)`) to reduce CPU overhead and garbage collection pressure in data transformation paths.

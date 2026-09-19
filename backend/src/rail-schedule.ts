@@ -93,14 +93,18 @@ export async function getRailSchedule(
     departure_minutes: number;
   }>();
 
-  const arrivals: RailArrival[] = results.map(row => ({
-    trip_id: row.trip_id,
-    route_short_name: row.route_short_name,
-    route_long_name: row.route_long_name,
-    headsign: row.headsign,
-    scheduled_time: formatGtfsTime(row.departure_time),
-    minutes_until: row.departure_minutes - currentMinutes,
-  }));
+  const arrivals: RailArrival[] = new Array(results.length);
+  for (let i = 0; i < results.length; i++) {
+    const row = results[i];
+    arrivals[i] = {
+      trip_id: row.trip_id,
+      route_short_name: row.route_short_name,
+      route_long_name: row.route_long_name,
+      headsign: row.headsign,
+      scheduled_time: formatGtfsTime(row.departure_time),
+      minutes_until: row.departure_minutes - currentMinutes,
+    };
+  }
 
   // 4. Check staleness
   const metaRow = await env.DB.prepare(
