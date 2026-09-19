@@ -459,12 +459,22 @@ export async function fetchBusPositions(
     )
       .bind(since)
       .all<PositionSample>();
-    return (results || []).filter(
-      (r) =>
+    // perf: Avoid intermediate array allocation and closure overhead from .filter()
+    const rawResults = results || [];
+    const rows = new Array(rawResults.length);
+    let validCount = 0;
+    for (let i = 0, len = rawResults.length; i < len; i++) {
+      const r = rawResults[i];
+      if (
         Number.isFinite(r.lat) &&
         Number.isFinite(r.lon) &&
-        Number.isFinite(r.timestamp),
-    );
+        Number.isFinite(r.timestamp)
+      ) {
+        rows[validCount++] = r;
+      }
+    }
+    rows.length = validCount;
+    return rows;
   } catch (err) {
     console.error("aggregateTravelTimes: failed to read bus_positions:", err);
     return [];
@@ -535,8 +545,11 @@ export async function upsertAggregatedTravelTimes(
          sample_count = travel_times.sample_count + excluded.sample_count,
          updated_at = excluded.updated_at`,
   );
-  const upsertStmts = aggregated.map((a) =>
-    travelTimesPrepStmt.bind(
+  // perf: Avoid intermediate array allocation and closure overhead from .map()
+  const upsertStmts = new Array(aggregated.length);
+  for (let i = 0, len = aggregated.length; i < len; i++) {
+    const a = aggregated[i];
+    upsertStmts[i] = travelTimesPrepStmt.bind(
       a.route,
       a.from_stop_id,
       a.to_stop_id,
@@ -550,8 +563,8 @@ export async function upsertAggregatedTravelTimes(
       a.day_of_week,
       a.time_bucket,
       a.spread_seconds,
-    ),
-  );
+    );
+  }
 
   const BATCH_SIZE = 100;
   const CONCURRENCY = 5;
