@@ -97,3 +97,8 @@
 **Vulnerability:** Authenticated/administrative endpoints lacked a `Cache-Control: no-store` header, allowing responses (including errors or sensitive data) to potentially be cached by browsers, proxies, or CDNs.
 **Learning:** Even if an endpoint requires authentication, intermediate caches might still store the response if caching directives are not explicitly set, exposing sensitive operations or data.
 **Prevention:** Always apply a `Cache-Control: no-store` header (e.g., via middleware) to responses from authenticated or administrative API endpoints to prevent sensitive data leakage through browser or intermediate caching.
+
+## $(date +%Y-%m-%d) - Prevent caching on admin endpoints via middleware
+**Vulnerability:** Admin endpoints like `/refresh` and `/rail/ingest` were protected by authorization tokens, but missed explicit caching prevention headers (`Cache-Control: no-store`).
+**Learning:** Depending on CDN configurations and routing topologies, authenticated HTTP requests can occasionally have responses cached if `Cache-Control` is missing, leaking internal application state or data to subsequent requests.
+**Prevention:** Apply an explicit middleware to all admin or mutating endpoints appending `c.header('Cache-Control', 'no-store')` immediately to enforce zero caching.
