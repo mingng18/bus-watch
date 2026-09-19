@@ -11,7 +11,7 @@ import { findNearbyStops, findNearbyBusRoutes, findNearbyPrasaranaBuses, getHist
 import { getBusTripProgress } from './bus-tracker';
 import { getStationSchedule } from './station';
 import { findNearbyRoutes } from './routes';
-import { VehiclePosition, PrasaranaBus, BusRouteEntry, Env, Route, Trip } from './types';
+import { VehiclePosition, PrasaranaBus, BusRouteEntry, Env, Route, Trip, Stop } from './types';
 import { haversineDistance } from './haversine';
 import { sampleBusPositions, aggregateTravelTimes, cleanupOldPositions, canonicalStopSequencesByRoute } from './sampling';
 import { ingestRailTimetables } from './rail-ingest';
@@ -687,12 +687,12 @@ async function getAllRoutes(kv: KVNamespace) {
 }
 
 
-let cachedStopsMap: { map: Map<string, any>, expires: number } | null = null;
-async function getStopsMaps(kv: KVNamespace): Promise<{ map: Map<string, any> }> {
+let cachedStopsMap: { map: Map<string, Stop>, expires: number } | null = null;
+async function getStopsMaps(kv: KVNamespace): Promise<{ map: Map<string, Stop> }> {
   const now = Date.now();
   if (cachedStopsMap && cachedStopsMap.expires > now) return cachedStopsMap;
   const allStops = await getAllStops(kv);
-  const map = new Map<string, any>();
+  const map = new Map<string, Stop>();
   for (let i = 0; i < allStops.length; i++) {
     const s = allStops[i];
     map.set(s.id, s);
