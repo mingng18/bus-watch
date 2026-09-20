@@ -143,3 +143,6 @@
 ## 2024-05-14 - Optimizing array methods over large datasets
 **Learning:** In hot loops dealing with large datasets (like `aggregateTravelTimes` handling historical bus positions or aggregated results), chained or standalone array methods like `.filter()` and `.map()` introduce significant overhead from intermediate array allocations and closure executions.
 **Action:** Replace these methods with pre-allocated manual `for` loops (e.g. `new Array(length)` followed by indexing and `.length` truncation). This pattern reduces memory pressure, GC overhead, and execution time by roughly 50-60%.
+## 2025-05-24 - Optimize Array.prototype.find and redundant Date allocations
+**Learning:** In hot paths (like station and departures endpoints), using `Array.prototype.find()` creates closure allocation and garbage collection overhead. Additionally, instantiating multiple `new Date()` objects within the same function scope causes redundant allocations.
+**Action:** Replace `Array.prototype.find()` with a standard `for` loop, and consolidate multiple `new Date()` calls into a single shared variable instance when the precision of identical timestamps is acceptable.

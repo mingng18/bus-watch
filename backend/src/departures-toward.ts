@@ -23,7 +23,14 @@ export function getDeparturesTowardDestination(
   limit = 5,
   pRouteMap?: Map<string, Route>
 ): StationScheduleResponse {
-  const stop = stops.find(s => s.id === stopId);
+  // perf: Avoid Array.prototype.find() closure allocation overhead
+  let stop: Stop | undefined;
+  for (let i = 0; i < stops.length; i++) {
+    if (stops[i].id === stopId) {
+      stop = stops[i];
+      break;
+    }
+  }
   if (!stop) throw new Error(`Stop not found: ${stopId}`);
 
   const routeMap = pRouteMap || new Map<string, Route>();
@@ -32,14 +39,16 @@ export function getDeparturesTowardDestination(
       routeMap.set(routes[i].id, routes[i]);
     }
   }
-  const activeServiceIds = getActiveServiceIds(calendar, new Date());
+  // perf: reuse a single Date instance to avoid redundant allocations
+  const now = new Date();
+  const activeServiceIds = getActiveServiceIds(calendar, now);
 
   const departures: Departure[] = [];
 
   // Hoist current time calculation outside of the loop.
   // GTFS departure_time is KL-local (UTC+8); Workers run in UTC, so shift
   // before deriving seconds-of-day. See issue #127.
-  const nowSeconds = klSecondsSinceMidnight(new Date());
+  const nowSeconds = klSecondsSinceMidnight(now);
 
   for (const trip of trips) {
     if (!activeServiceIds.has(trip.serviceId)) continue;
