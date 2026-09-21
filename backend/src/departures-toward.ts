@@ -32,14 +32,19 @@ export function getDeparturesTowardDestination(
       routeMap.set(routes[i].id, routes[i]);
     }
   }
-  const activeServiceIds = getActiveServiceIds(calendar, new Date());
+
+  // perf: consolidate new Date instantiations to prevent redundant system calls
+  // and garbage collection overhead in hot API endpoints
+  const now = new Date();
+
+  const activeServiceIds = getActiveServiceIds(calendar, now);
 
   const departures: Departure[] = [];
 
   // Hoist current time calculation outside of the loop.
   // GTFS departure_time is KL-local (UTC+8); Workers run in UTC, so shift
   // before deriving seconds-of-day. See issue #127.
-  const nowSeconds = klSecondsSinceMidnight(new Date());
+  const nowSeconds = klSecondsSinceMidnight(now);
 
   for (const trip of trips) {
     if (!activeServiceIds.has(trip.serviceId)) continue;
