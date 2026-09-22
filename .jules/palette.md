@@ -96,3 +96,6 @@
 ## 2025-03-02 - Smooth transitions for dynamic times
 **Learning:** Text views that update frequently via timers or live data (like estimated arrival strings e.g. "10:45") can cause visually jarring replacements on-screen, but SwiftUI's `.contentTransition(.numericText())` seamlessly morphs these dynamic strings, even if they aren't purely integers.
 **Action:** Always apply `.contentTransition(.numericText())` paired with `.animation(.default, value: state)` to any dynamically changing numeric or time-based `Text` elements to significantly improve the perceived quality and smoothness of the interface.
+## 2025-03-03 - Dynamic WidgetFamily via Environment
+**Learning:** Hardcoding `WidgetFamily` inside `StaticConfiguration` (e.g., `countdownView(for: .accessoryRectangular)`) causes all complication sizes (circular, corner) to render the rectangular view, resulting in visually broken or clipped layouts on watch faces. The `WidgetFamily` environment value is not passed directly to the configuration closure.
+**Action:** Always create a separate entry view struct (e.g., `WidgetEntryView`) that extracts the family via `@Environment(\.widgetFamily)` and passes it to the view builder, ensuring each supported family renders its appropriate layout.
