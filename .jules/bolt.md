@@ -143,3 +143,6 @@
 ## 2024-05-14 - Optimizing array methods over large datasets
 **Learning:** In hot loops dealing with large datasets (like `aggregateTravelTimes` handling historical bus positions or aggregated results), chained or standalone array methods like `.filter()` and `.map()` introduce significant overhead from intermediate array allocations and closure executions.
 **Action:** Replace these methods with pre-allocated manual `for` loops (e.g. `new Array(length)` followed by indexing and `.length` truncation). This pattern reduces memory pressure, GC overhead, and execution time by roughly 50-60%.
+## 2024-05-18 - Avoid repeated Date instantiations in hot paths
+**Learning:** Multiple `new Date()` calls within the same function scope create redundant object allocations and trigger multiple system calls to the OS clock, adding small but cumulative latency to API endpoints.
+**Action:** Always capture the current time in a single `const now = new Date();` variable at the beginning of a function and reuse it, especially when fetching current time for loops or downstream formatting.
