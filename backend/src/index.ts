@@ -36,10 +36,15 @@ app.use('*', async (c, next) => {
   if (c.req.path.length > 256) {
     return c.json({ error: 'URI path too long' }, 414);
   }
-  const queries = c.req.query();
+  const queries = c.req.queries();
   for (const key in queries) {
-    if (queries[key] && queries[key].length > 100) {
-      return c.json({ error: `Parameter ${key} is too long` }, 400);
+    const values = queries[key];
+    if (values) {
+      for (const val of values) {
+        if (val.length > 100) {
+          return c.json({ error: `Parameter ${key} is too long` }, 400);
+        }
+      }
     }
   }
   await next();

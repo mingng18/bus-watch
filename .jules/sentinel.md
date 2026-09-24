@@ -97,3 +97,7 @@
 **Vulnerability:** Authenticated/administrative endpoints lacked a `Cache-Control: no-store` header, allowing responses (including errors or sensitive data) to potentially be cached by browsers, proxies, or CDNs.
 **Learning:** Even if an endpoint requires authentication, intermediate caches might still store the response if caching directives are not explicitly set, exposing sensitive operations or data.
 **Prevention:** Always apply a `Cache-Control: no-store` header (e.g., via middleware) to responses from authenticated or administrative API endpoints to prevent sensitive data leakage through browser or intermediate caching.
+## 2024-05-24 - Fix HPP Vulnerability in Hono Global Validation
+**Vulnerability:** HTTP Parameter Pollution bypass. Hono's `c.req.query()` only returns the first string of duplicated URL parameters (e.g. `?q=1&q=2`). This allows malicious oversized payloads hidden in the second parameter to bypass length validation checks.
+**Learning:** In Hono, validating lengths via `c.req.query()` creates a bypass vector. You must use `c.req.queries()` to iterate and validate all string values associated with a single key.
+**Prevention:** Always use `c.req.queries()` when enforcing security policies against query parameter payloads.
