@@ -96,3 +96,6 @@
 ## 2025-03-02 - Smooth transitions for dynamic times
 **Learning:** Text views that update frequently via timers or live data (like estimated arrival strings e.g. "10:45") can cause visually jarring replacements on-screen, but SwiftUI's `.contentTransition(.numericText())` seamlessly morphs these dynamic strings, even if they aren't purely integers.
 **Action:** Always apply `.contentTransition(.numericText())` paired with `.animation(.default, value: state)` to any dynamically changing numeric or time-based `Text` elements to significantly improve the perceived quality and smoothness of the interface.
+## 2024-05-18 - Deduplicate overlapping semantic states
+**Learning:** When a domain model enforces that one state is a subset of another (e.g. a "home" stop is always a "favorited" stop), blindly rendering visual indicators for both boolean flags causes UI clutter (two identical yellow icons) and redundant VoiceOver speech ("home stop, favorited").
+**Action:** Use `else if` conditions when rendering visual or audible indicators for cascading semantic states, prioritizing the more specific state (Home) to reduce visual clutter and keep VoiceOver concise.
