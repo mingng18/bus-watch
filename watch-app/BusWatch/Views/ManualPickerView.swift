@@ -69,18 +69,16 @@ struct ManualPickerView: View {
                 Text(stop.name)
                     .font(.caption)
                 Spacer()
-                if AppFeatureFlags.favoritesAndHome,
-                   let favorites,
-                   favorites.isHome(stop.id) {
-                    Image(systemName: "house.fill")
-                        .foregroundStyle(.yellow)
-                        .accessibilityHidden(true)
-                }
-                if AppFeatureFlags.favoritesAndHome,
-                   favorites?.contains(stop.id) == true {
-                    Image(systemName: "star.fill")
-                        .foregroundStyle(.yellow)
-                        .accessibilityHidden(true)
+                if AppFeatureFlags.favoritesAndHome, let favorites {
+                    if favorites.isHome(stop.id) {
+                        Image(systemName: "house.fill")
+                            .foregroundStyle(.yellow)
+                            .accessibilityHidden(true)
+                    } else if favorites.contains(stop.id) {
+                        Image(systemName: "star.fill")
+                            .foregroundStyle(.yellow)
+                            .accessibilityHidden(true)
+                    }
                 }
                 if stop.type == "rail" {
                     Image(systemName: "chevron.right")
@@ -125,8 +123,11 @@ struct ManualPickerView: View {
     private func stopRowLabel(_ stop: NearbyStop) -> String {
         var parts = [stop.name]
         if AppFeatureFlags.favoritesAndHome, let favorites {
-            if favorites.isHome(stop.id) { parts.append("home stop") }
-            if favorites.contains(stop.id) { parts.append("favorited") }
+            if favorites.isHome(stop.id) {
+                parts.append("home stop")
+            } else if favorites.contains(stop.id) {
+                parts.append("favorited")
+            }
         }
         return parts.joined(separator: ", ")
     }
