@@ -97,3 +97,8 @@
 **Vulnerability:** Authenticated/administrative endpoints lacked a `Cache-Control: no-store` header, allowing responses (including errors or sensitive data) to potentially be cached by browsers, proxies, or CDNs.
 **Learning:** Even if an endpoint requires authentication, intermediate caches might still store the response if caching directives are not explicitly set, exposing sensitive operations or data.
 **Prevention:** Always apply a `Cache-Control: no-store` header (e.g., via middleware) to responses from authenticated or administrative API endpoints to prevent sensitive data leakage through browser or intermediate caching.
+
+## 2026-09-25 - Hono Query Array DoS Bypass
+**Vulnerability:** Global query length validation used `c.req.query()`, which in Hono only returns the first string value. Attackers could bypass the 100-character payload limit by sending an array (e.g., `?q=short&q=massive_payload`), evading the DoS protection.
+**Learning:** Hono parses multiple identical query parameters into an array under the hood, but `c.req.query()` silently drops all but the first. This creates a dangerous blind spot for global security middleware.
+**Prevention:** Always use `c.req.queries()` when enforcing size limits or traversing all user input, ensuring every element of an array parameter is inspected.
