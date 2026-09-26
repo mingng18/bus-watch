@@ -99,3 +99,9 @@
 ## 2024-09-26 - WatchOS Complication Sizing
 **Learning:** Hardcoding WidgetFamily inside StaticConfiguration (e.g., countdownView(for: .accessoryRectangular)) forces all complication sizes to render the same layout, breaking visuals on non-matching faces.
 **Action:** Always create a dedicated entry view that reads @Environment(\.widgetFamily) to dynamically render the appropriate layout.
+## 2025-02-12 - Expanded Labels for Status Abbreviations
+**Learning:** In SwiftUI, using raw text abbreviations (like "sched") for domain-specific data states is hard to parse visually and lacks polish.
+**Action:** Always avoid raw text abbreviations. Use `Label` components with expanded text and standard SF Symbols (e.g., 'clock' for scheduled times) to improve visual comprehension and accessibility without taking up much more space. If embedding in strings, prefer `Text` interpolation with `Image(systemName:)`.
+## 2025-02-12 - Expanded Labels for Status Abbreviations
+**Learning:** In SwiftUI, using raw text abbreviations (like "sched") for domain-specific data states is hard to parse visually and lacks polish.
+**Action:** Always avoid raw text abbreviations. Use `Label` components with expanded text and standard SF Symbols (e.g., 'clock' for scheduled times) to improve visual comprehension and accessibility without taking up much more space. If embedding in strings, prefer `Text` interpolation with `Image(systemName:)`.
