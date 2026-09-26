@@ -147,7 +147,7 @@ function extractUrlEntries(xml: string): SitemapEntry[] {
   // and use manual indexOf searches to avoid Regex allocation and repeated .slice() calls.
   const lowerXml = xml.toLowerCase();
 
-  const startTag = '<url>';
+  const startTag = '<url';
   const endTag = '</url>';
   const locStartTag = '<loc>';
   const locEndTag = '</loc>';
@@ -157,10 +157,26 @@ function extractUrlEntries(xml: string): SitemapEntry[] {
   let searchIdx = 0;
 
   while (true) {
-    const startIdx = lowerXml.indexOf(startTag, searchIdx);
+    let startIdx = lowerXml.indexOf(startTag, searchIdx);
     if (startIdx === -1) break;
 
-    const blockStart = startIdx + startTag.length;
+    // perf: verify it's actually an opening tag <url> or <url attr="...">
+    // avoiding regex overhead while ensuring word boundaries
+    let nextChar = lowerXml.charCodeAt(startIdx + 4); // index of character after 'url'
+    while (startIdx !== -1 && nextChar !== 62 && nextChar !== 32 && nextChar !== 9 && nextChar !== 10 && nextChar !== 13) {
+      searchIdx = startIdx + 4;
+      startIdx = lowerXml.indexOf(startTag, searchIdx);
+      if (startIdx !== -1) {
+          nextChar = lowerXml.charCodeAt(startIdx + 4);
+      }
+    }
+
+    if (startIdx === -1) break;
+
+    // Find the end of the <url ...> tag
+    const blockStart = lowerXml.indexOf('>', startIdx + 4) + 1;
+    if (blockStart === 0) break; // malformed tag, missing >
+
     const endIdx = lowerXml.indexOf(endTag, blockStart);
     if (endIdx === -1) break;
 
