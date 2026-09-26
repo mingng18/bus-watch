@@ -11417,9 +11417,6 @@ var Hono2 = class extends Hono {
   }
 };
 
-// node_modules/.pnpm/hono@4.12.26/node_modules/hono/dist/helper/factory/index.js
-var createMiddleware = /* @__PURE__ */ __name((middleware) => middleware, "createMiddleware");
-
 // node_modules/.pnpm/hono@4.12.26/node_modules/hono/dist/middleware/cors/index.js
 var cors = /* @__PURE__ */ __name((options) => {
   const opts = {
@@ -12293,14 +12290,6 @@ function klDayOfWeek(date) {
   return toKlLocal(date).getUTCDay();
 }
 __name(klDayOfWeek, "klDayOfWeek");
-function klDayOfWeekFromUnixSeconds(unixSeconds) {
-  return Math.floor((unixSeconds + 28800) / 86400 + 4) % 7;
-}
-__name(klDayOfWeekFromUnixSeconds, "klDayOfWeekFromUnixSeconds");
-function klHourOfDayFromUnixSeconds(unixSeconds) {
-  return Math.floor((unixSeconds + 28800) % 86400 / 3600);
-}
-__name(klHourOfDayFromUnixSeconds, "klHourOfDayFromUnixSeconds");
 function klDateYyyyMmDd(date) {
   const kl = toKlLocal(date);
   const y = kl.getUTCFullYear();
@@ -12361,9 +12350,7 @@ function parseStops(rawStops, rawRoutes, rawTrips, rawStopTimes) {
   for (let i2 = 0; i2 < rawTrips.length; i2++) {
     tripToRouteType.set(rawTrips[i2].trip_id, routeIdToType.get(rawTrips[i2].route_id) || "3");
   }
-  const stops = new Array(rawStops.length);
-  for (let i2 = 0; i2 < rawStops.length; i2++) {
-    const s = rawStops[i2];
+  const stops = rawStops.map((s) => {
     const stop = {
       id: s.stop_id,
       name: s.stop_name,
@@ -12373,8 +12360,8 @@ function parseStops(rawStops, rawRoutes, rawTrips, rawStopTimes) {
       parentStation: s.parent_station
     };
     stopMap.set(s.stop_id, stop);
-    stops[i2] = stop;
-  }
+    return stop;
+  });
   for (const st of rawStopTimes) {
     const rt = tripToRouteType.get(st.trip_id);
     if (rt && ["0", "1", "2"].includes(rt)) {
@@ -12392,33 +12379,23 @@ function parseStops(rawStops, rawRoutes, rawTrips, rawStopTimes) {
 }
 __name(parseStops, "parseStops");
 function parseRoutes(rawRoutes) {
-  const routes = new Array(rawRoutes.length);
-  for (let i2 = 0; i2 < rawRoutes.length; i2++) {
-    const r = rawRoutes[i2];
-    routes[i2] = {
-      id: r.route_id,
-      shortName: r.route_short_name,
-      longName: r.route_long_name,
-      type: parseInt(r.route_type)
-    };
-  }
-  return routes;
+  return rawRoutes.map((r) => ({
+    id: r.route_id,
+    shortName: r.route_short_name,
+    longName: r.route_long_name,
+    type: parseInt(r.route_type)
+  }));
 }
 __name(parseRoutes, "parseRoutes");
 function parseTrips(rawTrips) {
-  const trips = new Array(rawTrips.length);
-  for (let i2 = 0; i2 < rawTrips.length; i2++) {
-    const t = rawTrips[i2];
-    trips[i2] = {
-      id: t.trip_id,
-      routeId: t.route_id,
-      serviceId: t.service_id,
-      headsign: t.trip_headsign,
-      directionId: parseInt(t.direction_id) || 0,
-      shapeId: ""
-    };
-  }
-  return trips;
+  return rawTrips.map((t) => ({
+    id: t.trip_id,
+    routeId: t.route_id,
+    serviceId: t.service_id,
+    headsign: t.trip_headsign,
+    directionId: parseInt(t.direction_id) || 0,
+    shapeId: ""
+  }));
 }
 __name(parseTrips, "parseTrips");
 function parseTripStops(rawStopTimes, stopMap) {
@@ -12459,32 +12436,12 @@ async function fetchAndParseAgency(agency) {
     const response = await fetch(url, { signal: AbortSignal.timeout(15e3) });
     if (!response.ok) throw new Error(`Failed to fetch ${agency}: ${response.status}`);
     const zipBuffer = await response.arrayBuffer();
-    let totalSize = 0;
-    const MAX_SIZE = 50 * 1024 * 1024;
-    const ALLOWED_FILES = /* @__PURE__ */ new Set(["stops.txt", "routes.txt", "trips.txt", "stop_times.txt", "calendar.txt", "agency.txt", "calendar_dates.txt", "shapes.txt"]);
-    files = unzipSync(new Uint8Array(zipBuffer), {
-      filter: /* @__PURE__ */ __name((file) => {
-        const fileName = file.name.split("/").pop() || file.name;
-        if (!ALLOWED_FILES.has(fileName)) return false;
-        totalSize += file.originalSize;
-        if (totalSize > MAX_SIZE) {
-          throw new Error("Zip bomb detected: extracted size exceeds 50MB limit");
-        }
-        return true;
-      }, "filter")
-    });
+    files = unzipSync(new Uint8Array(zipBuffer));
   } catch (err2) {
-    const msg = err2.message || String(err2);
-    throw new Error(msg.startsWith("Failed to fetch") ? msg : `Failed to fetch ${agency}: ${msg}`);
+    throw new Error(`Failed to fetch ${agency}: ${err2.message || err2}`);
   }
   const getFile = /* @__PURE__ */ __name((name) => {
-    let key;
-    for (const k in files) {
-      if (k.endsWith(name)) {
-        key = k;
-        break;
-      }
-    }
+    const key = Object.keys(files).find((k) => k.endsWith(name));
     return key ? new TextDecoder().decode(files[key]) : "";
   }, "getFile");
   const rawStops = parseCsv(getFile("stops.txt"));
@@ -12496,24 +12453,12 @@ async function fetchAndParseAgency(agency) {
   const routes = parseRoutes(rawRoutes);
   const trips = parseTrips(rawTrips);
   const tripStops = parseTripStops(rawStopTimes, stopMap);
-  const calendar = new Array(rawCalendar.length);
-  for (let i2 = 0; i2 < rawCalendar.length; i2++) {
-    const c = rawCalendar[i2];
-    calendar[i2] = {
-      serviceId: c.service_id,
-      days: [
-        c.sunday === "1",
-        c.monday === "1",
-        c.tuesday === "1",
-        c.wednesday === "1",
-        c.thursday === "1",
-        c.friday === "1",
-        c.saturday === "1"
-      ],
-      startDate: c.start_date,
-      endDate: c.end_date
-    };
-  }
+  const calendar = rawCalendar.map((c) => ({
+    serviceId: c.service_id,
+    days: [c.sunday, c.monday, c.tuesday, c.wednesday, c.thursday, c.friday, c.saturday].map((d) => d === "1"),
+    startDate: c.start_date,
+    endDate: c.end_date
+  }));
   return { stops, routes, trips, tripStops, calendar, frequencies: [], shapes: {} };
 }
 __name(fetchAndParseAgency, "fetchAndParseAgency");
@@ -12583,17 +12528,6 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 __name(haversineDistance, "haversineDistance");
-function getBoundingBox(lat, lon, radiusM) {
-  const latDelta = radiusM / 111e3;
-  const lonDelta = radiusM / (111e3 * Math.max(1e-4, Math.cos(lat * TO_RAD)));
-  return {
-    minLat: lat - latDelta,
-    maxLat: lat + latDelta,
-    minLon: lon - lonDelta,
-    maxLon: lon + lonDelta
-  };
-}
-__name(getBoundingBox, "getBoundingBox");
 
 // src/frequency.ts
 function expandTripsForStop(stopId, trips, tripStops, routes, calendar, frequencies, now, timeWindow) {
@@ -12602,20 +12536,6 @@ function expandTripsForStop(stopId, trips, tripStops, routes, calendar, frequenc
 __name(expandTripsForStop, "expandTripsForStop");
 
 // src/nearby.ts
-function buildEntityMap(items, keyField, existingMap) {
-  const map = existingMap || /* @__PURE__ */ new Map();
-  if (!existingMap) {
-    for (let i2 = 0; i2 < items.length; i2++) {
-      const item = items[i2];
-      const key = item[keyField];
-      if (!map.has(key)) {
-        map.set(key, item);
-      }
-    }
-  }
-  return map;
-}
-__name(buildEntityMap, "buildEntityMap");
 function findNearbyStops(ctx) {
   const {
     stops,
@@ -12631,40 +12551,31 @@ function findNearbyStops(ctx) {
   } = ctx;
   const now = /* @__PURE__ */ new Date();
   const nearby = [];
-  const box = getBoundingBox(lat, lon, radiusM);
   for (let i2 = 0; i2 < stops.length; i2++) {
     const stop = stops[i2];
-    if (stop.lat < box.minLat || stop.lat > box.maxLat || stop.lon < box.minLon || stop.lon > box.maxLon) {
-      continue;
-    }
     const distance = haversineDistance(lat, lon, stop.lat, stop.lon);
     if (distance <= radiusM) {
       nearby.push({ stop, distance });
     }
   }
   nearby.sort((a, b) => a.distance - b.distance);
-  const tripMap = buildEntityMap(trips, "id", ctx.tripMap);
-  const routeMap = buildEntityMap(routes, "id", ctx.routeMap);
-  const combinedBox = getBoundingBox(lat, lon, radiusM + 500);
-  const nearbyVehicles = [];
-  for (let i2 = 0; i2 < vehicles.length; i2++) {
-    const v = vehicles[i2];
-    if (v.lat >= combinedBox.minLat && v.lat <= combinedBox.maxLat && v.lon >= combinedBox.minLon && v.lon <= combinedBox.maxLon) {
-      nearbyVehicles.push(v);
+  const tripMap = ctx.tripMap || /* @__PURE__ */ new Map();
+  if (!ctx.tripMap) {
+    for (let i2 = 0; i2 < trips.length; i2++) {
+      tripMap.set(trips[i2].id, trips[i2]);
     }
   }
-  const result = new Array(nearby.length);
-  for (let j = 0; j < nearby.length; j++) {
-    const { stop, distance } = nearby[j];
+  const routeMap = ctx.routeMap || /* @__PURE__ */ new Map();
+  if (!ctx.routeMap) {
+    for (let i2 = 0; i2 < routes.length; i2++) {
+      routeMap.set(routes[i2].id, routes[i2]);
+    }
+  }
+  return nearby.map(({ stop, distance }) => {
     const arrivals = [];
     if (stop.type === "bus") {
       const seen = /* @__PURE__ */ new Set();
-      const stopBox = getBoundingBox(stop.lat, stop.lon, 500);
-      for (let i2 = 0; i2 < nearbyVehicles.length; i2++) {
-        const v = nearbyVehicles[i2];
-        if (v.lat < stopBox.minLat || v.lat > stopBox.maxLat || v.lon < stopBox.minLon || v.lon > stopBox.maxLon) {
-          continue;
-        }
+      for (const v of vehicles) {
         const d = haversineDistance(stop.lat, stop.lon, v.lat, v.lon);
         if (d > 500) continue;
         const trip = tripMap.get(v.tripId);
@@ -12703,7 +12614,7 @@ function findNearbyStops(ctx) {
         });
       }
     }
-    result[j] = {
+    return {
       id: stop.id,
       name: stop.name,
       type: stop.type,
@@ -12712,20 +12623,25 @@ function findNearbyStops(ctx) {
       distance_m: Math.round(distance),
       arrivals: arrivals.slice(0, 3)
     };
-  }
-  return result;
+  });
 }
 __name(findNearbyStops, "findNearbyStops");
 function findNearbyBusRoutes(routes, trips, vehicles, lat, lon, radiusM = 1e3, pRouteMap, pTripMap) {
-  const routeMap = buildEntityMap(routes, "id", pRouteMap);
-  const tripMap = buildEntityMap(trips, "id", pTripMap);
+  const routeMap = pRouteMap || /* @__PURE__ */ new Map();
+  if (!pRouteMap) {
+    for (let i2 = 0; i2 < routes.length; i2++) {
+      routeMap.set(routes[i2].id, routes[i2]);
+    }
+  }
+  const tripMap = pTripMap || /* @__PURE__ */ new Map();
+  if (!pTripMap) {
+    for (let i2 = 0; i2 < trips.length; i2++) {
+      tripMap.set(trips[i2].id, trips[i2]);
+    }
+  }
   const results = [];
   const seen = /* @__PURE__ */ new Set();
-  const box = getBoundingBox(lat, lon, radiusM);
   for (const v of vehicles) {
-    if (v.lat < box.minLat || v.lat > box.maxLat || v.lon < box.minLon || v.lon > box.maxLon) {
-      continue;
-    }
     const d = haversineDistance(lat, lon, v.lat, v.lon);
     if (d > radiusM) continue;
     const trip = tripMap.get(v.tripId);
@@ -12747,28 +12663,35 @@ function findNearbyBusRoutes(routes, trips, vehicles, lat, lon, radiusM = 1e3, p
   return results;
 }
 __name(findNearbyBusRoutes, "findNearbyBusRoutes");
-function findNearbyPrasaranaBuses(buses, routes, trips, lat, lon, radiusM = 1e3, pRouteTripMap, pShortNameMap) {
-  const routeTripMap = buildEntityMap(trips, "routeId", pRouteTripMap);
-  const shortNameMap = buildEntityMap(routes, "shortName", pShortNameMap);
+function findNearbyPrasaranaBuses(buses, routes, trips, lat, lon, radiusM = 1e3, pRouteTripMap) {
+  const routeTripMap = pRouteTripMap || /* @__PURE__ */ new Map();
+  if (!pRouteTripMap) {
+    for (const t of trips) {
+      if (!routeTripMap.has(t.routeId)) {
+        routeTripMap.set(t.routeId, t);
+      }
+    }
+  }
+  const routeNameMap = /* @__PURE__ */ new Map();
+  for (const r of routes) {
+    if (!routeNameMap.has(r.shortName)) {
+      const trip = routeTripMap.get(r.id);
+      routeNameMap.set(r.shortName, { route: r, trip });
+    }
+  }
   const results = [];
-  const box = getBoundingBox(lat, lon, radiusM);
-  for (let i2 = 0; i2 < buses.length; i2++) {
-    const b = buses[i2];
+  for (const b of buses) {
     if (b.trip_rev_kind === "01" || b.trip_rev_kind === "03" || b.trip_rev_kind === "05")
       continue;
-    if (b.latitude < box.minLat || b.latitude > box.maxLat || b.longitude < box.minLon || b.longitude > box.maxLon) {
-      continue;
-    }
     const d = haversineDistance(lat, lon, b.latitude, b.longitude);
     if (d > radiusM) continue;
     const routeCode = normalizeRouteCode(b.route);
-    const gtfsRoute = shortNameMap.get(routeCode);
-    const gtfsTrip = gtfsRoute ? routeTripMap.get(gtfsRoute.id) : void 0;
-    const destination = gtfsTrip?.headsign || "";
+    const gtfsMatch = routeNameMap.get(routeCode);
+    const destination = gtfsMatch?.trip?.headsign || "";
     const roadDist = d * 1.4;
     const minutes = b.speed > 0 ? Math.max(1, Math.round(roadDist / (b.speed * 16.67))) : Math.max(1, Math.round(roadDist / 250));
     results.push({
-      routeId: gtfsRoute?.id || routeCode,
+      routeId: gtfsMatch?.route.id || routeCode,
       routeShortName: routeCode,
       destination,
       minutes,
@@ -12851,34 +12774,15 @@ async function getBatchedHistoricalETAs(db, queries, now = /* @__PURE__ */ new D
   return map;
 }
 __name(getBatchedHistoricalETAs, "getBatchedHistoricalETAs");
-var TO_RAD2 = Math.PI / 180;
-var CONST_111000 = 111e3;
 function nearestFromStopOnRoute(busLat, busLon, stops) {
   if (stops.length === 0) return null;
   let best = stops[0];
   let bestD = haversineDistance(busLat, busLon, best.lat, best.lon);
-  const lonDivisor = CONST_111000 * Math.max(1e-4, Math.cos(busLat * TO_RAD2));
-  let latDelta = bestD / CONST_111000;
-  let lonDelta = bestD / lonDivisor;
-  let minLat = busLat - latDelta;
-  let maxLat = busLat + latDelta;
-  let minLon = busLon - lonDelta;
-  let maxLon = busLon + lonDelta;
   for (let i2 = 1; i2 < stops.length; i2++) {
-    const stop = stops[i2];
-    if (stop.lat < minLat || stop.lat > maxLat || stop.lon < minLon || stop.lon > maxLon) {
-      continue;
-    }
-    const d = haversineDistance(busLat, busLon, stop.lat, stop.lon);
+    const d = haversineDistance(busLat, busLon, stops[i2].lat, stops[i2].lon);
     if (d < bestD) {
       bestD = d;
-      best = stop;
-      latDelta = bestD / CONST_111000;
-      lonDelta = bestD / lonDivisor;
-      minLat = busLat - latDelta;
-      maxLat = busLat + latDelta;
-      minLon = busLon - lonDelta;
-      maxLon = busLon + lonDelta;
+      best = stops[i2];
     }
   }
   return best;
@@ -12946,7 +12850,7 @@ function getStationSchedule(stopId, stops, routes, trips, tripStops, calendar, p
       minutesUntil
     });
   }
-  departures.sort((a, b) => a.departureTime < b.departureTime ? -1 : a.departureTime > b.departureTime ? 1 : 0);
+  departures.sort((a, b) => a.departureTime.localeCompare(b.departureTime));
   return {
     stopId,
     stopName: stop.name,
@@ -12958,12 +12862,8 @@ __name(getStationSchedule, "getStationSchedule");
 // src/routes.ts
 function findNearbyRoutes(stops, routes, trips, tripStops, lat, lon, radiusM) {
   const stopIds = /* @__PURE__ */ new Set();
-  const box = getBoundingBox(lat, lon, radiusM);
   for (let i2 = 0; i2 < stops.length; i2++) {
     const s = stops[i2];
-    if (s.lat < box.minLat || s.lat > box.maxLat || s.lon < box.minLon || s.lon > box.maxLon) {
-      continue;
-    }
     if (haversineDistance(lat, lon, s.lat, s.lon) <= radiusM) {
       stopIds.add(s.id);
     }
@@ -13000,21 +12900,8 @@ __name(findNearbyRoutes, "findNearbyRoutes");
 
 // src/sampling.ts
 async function sampleBusPositions(env, vehicles, prasaranaBuses) {
+  const stmts = [];
   const now = Math.floor(Date.now() / 1e3);
-  const lastPositions = await fetchLastPositions(env);
-  const stmts = [
-    ...prepareGtfsInsertStatements(env, vehicles, lastPositions, now),
-    ...preparePrasaranaInsertStatements(
-      env,
-      prasaranaBuses,
-      lastPositions,
-      now
-    )
-  ];
-  await executeBatchInserts(env, stmts);
-}
-__name(sampleBusPositions, "sampleBusPositions");
-async function fetchLastPositions(env) {
   const { results } = await env.DB.prepare(
     `SELECT bus_no, lat, lon, ts FROM (
        SELECT bus_no, lat, lon, timestamp as ts, rowid,
@@ -13029,11 +12916,6 @@ async function fetchLastPositions(env) {
       lastPositions.set(r.bus_no, r);
     }
   }
-  return lastPositions;
-}
-__name(fetchLastPositions, "fetchLastPositions");
-function prepareGtfsInsertStatements(env, vehicles, lastPositions, now) {
-  const stmts = [];
   const gtfsInsertStmt = env.DB.prepare(
     `INSERT INTO bus_positions (bus_no, route, source, lat, lon, speed, timestamp)
      VALUES (?, ?, ?, ?, ?, NULL, ?)`
@@ -13044,23 +12926,9 @@ function prepareGtfsInsertStatements(env, vehicles, lastPositions, now) {
     const moved = last ? haversineDistance(last.lat, last.lon, v.lat, v.lon) > 100 : true;
     const timedOut = last ? now - last.ts >= 300 : true;
     if (moved || timedOut) {
-      stmts.push(
-        gtfsInsertStmt.bind(
-          v.tripId,
-          v.routeId,
-          "gtfs",
-          v.lat,
-          v.lon,
-          v.timestamp
-        )
-      );
+      stmts.push(gtfsInsertStmt.bind(v.tripId, v.routeId, "gtfs", v.lat, v.lon, v.timestamp));
     }
   }
-  return stmts;
-}
-__name(prepareGtfsInsertStatements, "prepareGtfsInsertStatements");
-function preparePrasaranaInsertStatements(env, prasaranaBuses, lastPositions, now) {
-  const stmts = [];
   const prasaInsertStmt = env.DB.prepare(
     `INSERT INTO bus_positions (bus_no, route, source, lat, lon, speed, timestamp)
      VALUES (?, ?, ?, ?, ?, ?, ?)`
@@ -13075,24 +12943,9 @@ function preparePrasaranaInsertStatements(env, prasaranaBuses, lastPositions, no
     const moved = last ? haversineDistance(last.lat, last.lon, b.latitude, b.longitude) > 100 : true;
     const timedOut = last ? ts - last.ts >= 300 : true;
     if (moved || timedOut) {
-      stmts.push(
-        prasaInsertStmt.bind(
-          b.bus_no,
-          b.route,
-          "prasarana",
-          b.latitude,
-          b.longitude,
-          b.speed,
-          ts
-        )
-      );
+      stmts.push(prasaInsertStmt.bind(b.bus_no, b.route, "prasarana", b.latitude, b.longitude, b.speed, ts));
     }
   }
-  return stmts;
-}
-__name(preparePrasaranaInsertStatements, "preparePrasaranaInsertStatements");
-async function executeBatchInserts(env, stmts) {
-  if (stmts.length === 0) return;
   const BATCH_SIZE2 = 100;
   const CONCURRENCY = 5;
   for (let i2 = 0; i2 < stmts.length; i2 += BATCH_SIZE2 * CONCURRENCY) {
@@ -13104,7 +12957,7 @@ async function executeBatchInserts(env, stmts) {
     await Promise.all(batchPromises);
   }
 }
-__name(executeBatchInserts, "executeBatchInserts");
+__name(sampleBusPositions, "sampleBusPositions");
 var STOP_PASSAGE_RADIUS_M = 80;
 var MAX_INTER_STOP_SECONDS = 30 * 60;
 function detectStopPassages(samples, stops, route) {
@@ -13114,12 +12967,8 @@ function detectStopPassages(samples, stops, route) {
   let stopIdx = 0;
   let lastPassageTs = null;
   let lastPassageStop = null;
-  let targetBox = getBoundingBox(stops[0].lat, stops[0].lon, STOP_PASSAGE_RADIUS_M);
   for (const s of ordered) {
     const target = stops[stopIdx];
-    if (s.lat < targetBox.minLat || s.lat > targetBox.maxLat || s.lon < targetBox.minLon || s.lon > targetBox.maxLon) {
-      continue;
-    }
     const d = haversineDistance(s.lat, s.lon, target.lat, target.lon);
     if (d > STOP_PASSAGE_RADIUS_M) continue;
     if (lastPassageTs !== null && lastPassageStop !== null) {
@@ -13134,9 +12983,8 @@ function detectStopPassages(samples, stops, route) {
           to_lat: target.lat,
           to_lon: target.lon,
           seconds,
-          // perf: Use zero-allocation arithmetic on Unix timestamps instead of new Date() in this hot loop
-          day_of_week: klDayOfWeekFromUnixSeconds(lastPassageTs),
-          time_bucket: klHourOfDayFromUnixSeconds(lastPassageTs)
+          day_of_week: klDayOfWeek(new Date(lastPassageTs * 1e3)),
+          time_bucket: klHourOfDay(new Date(lastPassageTs * 1e3))
         });
       }
     }
@@ -13144,11 +12992,15 @@ function detectStopPassages(samples, stops, route) {
     lastPassageStop = target;
     stopIdx++;
     if (stopIdx >= stops.length) break;
-    targetBox = getBoundingBox(stops[stopIdx].lat, stops[stopIdx].lon, STOP_PASSAGE_RADIUS_M);
   }
   return results;
 }
 __name(detectStopPassages, "detectStopPassages");
+function klHourOfDay(date) {
+  const klOffsetMs = 8 * 60 * 60 * 1e3;
+  return new Date(date.getTime() + klOffsetMs).getUTCHours();
+}
+__name(klHourOfDay, "klHourOfDay");
 function aggregateSamples(samples) {
   const groups = /* @__PURE__ */ new Map();
   for (const s of samples) {
@@ -13159,17 +13011,10 @@ function aggregateSamples(samples) {
   }
   const out = [];
   for (const arr of groups.values()) {
-    const seconds = new Array(arr.length);
-    for (let i2 = 0; i2 < arr.length; i2++) seconds[i2] = arr[i2].seconds;
-    const cleaned = rejectOutliers(seconds);
-    const len = cleaned.length;
-    if (len === 0) continue;
-    let sum = 0;
-    for (let i2 = 0; i2 < len; i2++) sum += cleaned[i2];
-    const avg = sum / len;
-    let madSum = 0;
-    for (let i2 = 0; i2 < len; i2++) madSum += Math.abs(cleaned[i2] - avg);
-    const mad = madSum / len;
+    const cleaned = rejectOutliers(arr.map((s) => s.seconds));
+    if (cleaned.length === 0) continue;
+    const avg = cleaned.reduce((a, b) => a + b, 0) / cleaned.length;
+    const mad = cleaned.reduce((a, b) => a + Math.abs(b - avg), 0) / cleaned.length;
     const first = arr[0];
     out.push({
       route: first.route,
@@ -13193,20 +13038,10 @@ function rejectOutliers(values, threshold = 3) {
   if (values.length <= 3) return values;
   const sorted = [...values].sort((a, b) => a - b);
   const median = sorted[Math.floor(sorted.length / 2)];
-  let totalDev = 0;
-  for (let i2 = 0; i2 < values.length; i2++) {
-    totalDev += Math.abs(values[i2] - median);
-  }
-  const mad = totalDev / values.length;
+  const devs = values.map((v) => Math.abs(v - median));
+  const mad = devs.reduce((a, b) => a + b, 0) / devs.length;
   if (mad === 0) return values;
-  const result = [];
-  const maxDev = threshold * mad;
-  for (let i2 = 0; i2 < values.length; i2++) {
-    if (Math.abs(values[i2] - median) <= maxDev) {
-      result.push(values[i2]);
-    }
-  }
-  return result;
+  return values.filter((_, i2) => devs[i2] <= threshold * mad);
 }
 __name(rejectOutliers, "rejectOutliers");
 function canonicalStopSequencesByRoute(trips, tripStops) {
@@ -13234,16 +13069,9 @@ async function aggregateTravelTimes(env, stopSequencesByRoute) {
        WHERE timestamp > ?
        ORDER BY route, bus_no, timestamp`
     ).bind(since).all();
-    const rawResults = results || [];
-    rows = new Array(rawResults.length);
-    let validCount = 0;
-    for (let i2 = 0, len = rawResults.length; i2 < len; i2++) {
-      const r = rawResults[i2];
-      if (Number.isFinite(r.lat) && Number.isFinite(r.lon) && Number.isFinite(r.timestamp)) {
-        rows[validCount++] = r;
-      }
-    }
-    rows.length = validCount;
+    rows = (results || []).filter(
+      (r) => Number.isFinite(r.lat) && Number.isFinite(r.lon) && Number.isFinite(r.timestamp)
+    );
   } catch (err2) {
     console.error("aggregateTravelTimes: failed to read bus_positions:", err2);
     return;
@@ -13266,17 +13094,14 @@ async function aggregateTravelTimes(env, stopSequencesByRoute) {
   }
   const allSamples = [];
   for (const [traceKey, samples] of traces) {
-    const route = samples[0].route;
+    const route = traceKey.split("|")[0];
     const stops = stopSequencesByRoute.get(route);
     if (!stops) continue;
     try {
       const legs = detectStopPassages(samples, stops, route);
       allSamples.push(...legs);
     } catch (err2) {
-      console.error(
-        `aggregateTravelTimes: detectStopPassages failed for route ${route}:`,
-        err2
-      );
+      console.error(`aggregateTravelTimes: detectStopPassages failed for route ${route}:`, err2);
     }
   }
   if (allSamples.length === 0) return;
@@ -13298,10 +13123,8 @@ async function aggregateTravelTimes(env, stopSequencesByRoute) {
          sample_count = travel_times.sample_count + excluded.sample_count,
          updated_at = excluded.updated_at`
   );
-  const upsertStmts = new Array(aggregated.length);
-  for (let i2 = 0, len = aggregated.length; i2 < len; i2++) {
-    const a = aggregated[i2];
-    upsertStmts[i2] = travelTimesPrepStmt.bind(
+  const upsertStmts = aggregated.map(
+    (a) => travelTimesPrepStmt.bind(
       a.route,
       a.from_stop_id,
       a.to_stop_id,
@@ -13315,8 +13138,8 @@ async function aggregateTravelTimes(env, stopSequencesByRoute) {
       a.day_of_week,
       a.time_bucket,
       a.spread_seconds
-    );
-  }
+    )
+  );
   const BATCH_SIZE2 = 100;
   const CONCURRENCY = 5;
   const errors = [];
@@ -13325,12 +13148,10 @@ async function aggregateTravelTimes(env, stopSequencesByRoute) {
     for (let j = 0; j < CONCURRENCY && i2 + j * BATCH_SIZE2 < upsertStmts.length; j++) {
       const start = i2 + j * BATCH_SIZE2;
       batchPromises.push(
-        env.DB.batch(upsertStmts.slice(start, start + BATCH_SIZE2)).catch(
-          (err2) => {
-            console.error("aggregateTravelTimes: upsert batch failed:", err2);
-            errors.push(err2);
-          }
-        )
+        env.DB.batch(upsertStmts.slice(start, start + BATCH_SIZE2)).catch((err2) => {
+          console.error("aggregateTravelTimes: upsert batch failed:", err2);
+          errors.push(err2);
+        })
       );
     }
     await Promise.all(batchPromises);
@@ -13341,9 +13162,7 @@ async function aggregateTravelTimes(env, stopSequencesByRoute) {
 }
 __name(aggregateTravelTimes, "aggregateTravelTimes");
 async function cleanupOldPositions(env) {
-  await env.DB.prepare(
-    `DELETE FROM bus_positions WHERE timestamp < (unixepoch() - 7 * 24 * 60 * 60)`
-  ).run();
+  await env.DB.prepare(`DELETE FROM bus_positions WHERE timestamp < (unixepoch() - 7 * 24 * 60 * 60)`).run();
 }
 __name(cleanupOldPositions, "cleanupOldPositions");
 
@@ -13378,32 +13197,13 @@ async function fetchAndParseGtfsData() {
     const resp = await fetch(RAIL_GTFS_URL, { signal: AbortSignal.timeout(15e3) });
     if (!resp.ok) throw new Error(`GTFS fetch failed: ${resp.status}`);
     const zipBuffer = await resp.arrayBuffer();
-    let totalSize = 0;
-    const MAX_SIZE = 50 * 1024 * 1024;
-    const ALLOWED_FILES = /* @__PURE__ */ new Set(["stops.txt", "routes.txt", "trips.txt", "stop_times.txt"]);
-    files = unzipSync(new Uint8Array(zipBuffer), {
-      filter: /* @__PURE__ */ __name((file) => {
-        const fileName = file.name.split("/").pop() || file.name;
-        if (!ALLOWED_FILES.has(fileName)) return false;
-        totalSize += file.originalSize;
-        if (totalSize > MAX_SIZE) {
-          throw new Error("Zip bomb detected: extracted size exceeds 50MB limit");
-        }
-        return true;
-      }, "filter")
-    });
+    files = unzipSync(new Uint8Array(zipBuffer));
   } catch (err2) {
     const msg = err2.message || String(err2);
     throw new Error(msg.startsWith("GTFS fetch failed") ? msg : `GTFS fetch failed: ${msg}`);
   }
   const getFile = /* @__PURE__ */ __name((name) => {
-    let key;
-    for (const k in files) {
-      if (k.endsWith(name)) {
-        key = k;
-        break;
-      }
-    }
+    const key = Object.keys(files).find((k) => k.endsWith(name));
     return key ? new TextDecoder().decode(files[key]) : "";
   }, "getFile");
   const rawStops = parseCsv(getFile("stops.txt"));
@@ -13416,39 +13216,21 @@ __name(fetchAndParseGtfsData, "fetchAndParseGtfsData");
 async function mapAndInsertGtfsData(env, rawStops, rawRoutes, rawTrips, rawStopTimes) {
   let inserted = 0;
   try {
-    const railRouteIds = /* @__PURE__ */ new Set();
-    for (let i2 = 0; i2 < rawRoutes.length; i2++) {
-      const r = rawRoutes[i2];
-      if (r.route_type === "0" || r.route_type === "1" || r.route_type === "2") {
-        railRouteIds.add(r.route_id);
-      }
-    }
-    const railTripIds = /* @__PURE__ */ new Set();
-    for (let i2 = 0; i2 < rawTrips.length; i2++) {
-      const t = rawTrips[i2];
-      if (railRouteIds.has(t.route_id)) {
-        railTripIds.add(t.trip_id);
-      }
-    }
-    const railStopIds = /* @__PURE__ */ new Set();
-    for (let i2 = 0; i2 < rawStopTimes.length; i2++) {
-      const st = rawStopTimes[i2];
-      if (railTripIds.has(st.trip_id)) {
-        railStopIds.add(st.stop_id);
-      }
-    }
+    const railRouteIds = new Set(
+      rawRoutes.filter((r) => ["0", "1", "2"].includes(r.route_type)).map((r) => r.route_id)
+    );
+    const railTripIds = new Set(
+      rawTrips.filter((t) => railRouteIds.has(t.route_id)).map((t) => t.trip_id)
+    );
+    const railStopIds = new Set(
+      rawStopTimes.filter((st) => railTripIds.has(st.trip_id)).map((st) => st.stop_id)
+    );
     const stopPrepStmt = env.DB.prepare(
       `INSERT INTO rail_stops (stop_id, stop_name, lat, lon)
        VALUES (?, ?, ?, ?)
        ON CONFLICT(stop_id) DO UPDATE SET stop_name=excluded.stop_name, lat=excluded.lat, lon=excluded.lon`
     );
-    const stopStmts = [];
-    for (let i2 = 0; i2 < rawStops.length; i2++) {
-      const s = rawStops[i2];
-      if (railStopIds.has(s.stop_id)) {
-        stopStmts.push(stopPrepStmt.bind(s.stop_id, s.stop_name, parseFloat(s.stop_lat), parseFloat(s.stop_lon)));
-      }
-    }
+    const stopStmts = rawStops.filter((s) => railStopIds.has(s.stop_id)).map((s) => stopPrepStmt.bind(s.stop_id, s.stop_name, parseFloat(s.stop_lat), parseFloat(s.stop_lon)));
     await batch(env.DB, stopStmts);
     inserted += stopStmts.length;
     const routePrepStmt = env.DB.prepare(
@@ -13456,13 +13238,7 @@ async function mapAndInsertGtfsData(env, rawStops, rawRoutes, rawTrips, rawStopT
        VALUES (?, ?, ?)
        ON CONFLICT(route_id) DO UPDATE SET route_short_name=excluded.route_short_name, route_long_name=excluded.route_long_name`
     );
-    const routeStmts = [];
-    for (let i2 = 0; i2 < rawRoutes.length; i2++) {
-      const r = rawRoutes[i2];
-      if (railRouteIds.has(r.route_id)) {
-        routeStmts.push(routePrepStmt.bind(r.route_id, r.route_short_name || "", r.route_long_name || ""));
-      }
-    }
+    const routeStmts = rawRoutes.filter((r) => railRouteIds.has(r.route_id)).map((r) => routePrepStmt.bind(r.route_id, r.route_short_name || "", r.route_long_name || ""));
     await batch(env.DB, routeStmts);
     inserted += routeStmts.length;
     const tripPrepStmt = env.DB.prepare(
@@ -13470,13 +13246,7 @@ async function mapAndInsertGtfsData(env, rawStops, rawRoutes, rawTrips, rawStopT
        VALUES (?, ?, ?, ?, ?)
        ON CONFLICT(trip_id) DO UPDATE SET route_id=excluded.route_id, service_id=excluded.service_id, headsign=excluded.headsign, direction=excluded.direction`
     );
-    const tripStmts = [];
-    for (let i2 = 0; i2 < rawTrips.length; i2++) {
-      const t = rawTrips[i2];
-      if (railTripIds.has(t.trip_id)) {
-        tripStmts.push(tripPrepStmt.bind(t.trip_id, t.route_id, t.service_id, t.trip_headsign || "", parseInt(t.direction_id || "0") || 0));
-      }
-    }
+    const tripStmts = rawTrips.filter((t) => railTripIds.has(t.trip_id)).map((t) => tripPrepStmt.bind(t.trip_id, t.route_id, t.service_id, t.trip_headsign || "", parseInt(t.direction_id || "0") || 0));
     await batch(env.DB, tripStmts);
     inserted += tripStmts.length;
     const stPrepStmt = env.DB.prepare(
@@ -13484,13 +13254,7 @@ async function mapAndInsertGtfsData(env, rawStops, rawRoutes, rawTrips, rawStopT
        VALUES (?, ?, ?, ?, ?)
        ON CONFLICT(trip_id, stop_seq) DO UPDATE SET stop_id=excluded.stop_id, arrival_time=excluded.arrival_time, departure_time=excluded.departure_time`
     );
-    const stStmts = [];
-    for (let i2 = 0; i2 < rawStopTimes.length; i2++) {
-      const st = rawStopTimes[i2];
-      if (railTripIds.has(st.trip_id)) {
-        stStmts.push(stPrepStmt.bind(st.trip_id, st.stop_id, parseInt(st.stop_sequence), st.arrival_time, st.departure_time || st.arrival_time));
-      }
-    }
+    const stStmts = rawStopTimes.filter((st) => railTripIds.has(st.trip_id)).map((st) => stPrepStmt.bind(st.trip_id, st.stop_id, parseInt(st.stop_sequence), st.arrival_time, st.departure_time || st.arrival_time));
     await batch(env.DB, stStmts);
     inserted += stStmts.length;
     return inserted;
@@ -13638,7 +13402,7 @@ function getDeparturesTowardDestination(stopId, destinationStopId, stops, routes
       minutesUntil
     });
   }
-  departures.sort((a, b) => a.departureTime < b.departureTime ? -1 : a.departureTime > b.departureTime ? 1 : 0);
+  departures.sort((a, b) => a.departureTime.localeCompare(b.departureTime));
   return {
     stopId,
     stopName: stop.name,
@@ -13725,25 +13489,14 @@ function extractUrlEntries(xml) {
     }
     const block = xml.slice(startRe.lastIndex, endMatch.index);
     startRe.lastIndex = endRe.lastIndex;
-    const loc = extractTagContent(block, "loc");
+    const loc = block.match(/<loc>\s*([^<]*?)\s*<\/loc>/i)?.[1]?.trim();
     if (!loc) continue;
-    const lastmod = extractTagContent(block, "lastmod");
+    const lastmod = block.match(/<lastmod>\s*([^<]*?)\s*<\/lastmod>/i)?.[1]?.trim();
     entries.push({ loc, lastmod: lastmod || null });
   }
   return entries;
 }
 __name(extractUrlEntries, "extractUrlEntries");
-function extractTagContent(block, tag) {
-  const lowerBlock = block.toLowerCase();
-  const startTag = `<${tag}>`;
-  const endTag = `</${tag}>`;
-  const startIdx = lowerBlock.indexOf(startTag);
-  if (startIdx === -1) return void 0;
-  const endIdx = lowerBlock.indexOf(endTag, startIdx + startTag.length);
-  if (endIdx === -1) return void 0;
-  return block.slice(startIdx + startTag.length, endIdx).trim();
-}
-__name(extractTagContent, "extractTagContent");
 var NON_DISRUPTION_SLUGS = [
   "malaysian-philharmonic",
   "mrt-"
@@ -13776,10 +13529,19 @@ function parseSlug(slug) {
   const base = slug.replace(/-\d+$/, "");
   const tokens = base.split("-");
   if (base.startsWith("info-penutupan-jalan-laluan-")) {
-    return parseBusAlert(tokens, "Road closure", "severe");
+    const routes = extractRoutes(tokens);
+    const title = routes.length ? `Road closure \u2014 routes ${routes.join(", ")}` : "Road closure";
+    return { title, summary: title, affectedLines: routes, severity: "severe" };
   }
   if (base.startsWith("info-gangguan-trafik-laluan-")) {
-    return parseBusAlert(tokens, "Traffic disruption", "warning");
+    const routes = extractRoutes(tokens);
+    const title = routes.length ? `Traffic disruption \u2014 routes ${routes.join(", ")}` : "Traffic disruption";
+    return {
+      title,
+      summary: title,
+      affectedLines: routes,
+      severity: "warning"
+    };
   }
   if (/^kelewatan-bas-\d+-laluan-terjejas$/.test(base)) {
     const n = tokens[tokens.indexOf("bas") + 1];
@@ -13787,37 +13549,48 @@ function parseSlug(slug) {
     return { title, summary: title, affectedLines: [], severity: "warning" };
   }
   if (base.startsWith("kelewatan-tren-laluan-")) {
-    return parseLineAlert(tokens, "Train delay", "warning");
+    const line = lineName(tokens.slice(tokens.indexOf("laluan") + 1).join(" "));
+    const title = line ? `Train delay \u2014 ${line} line` : "Train delay";
+    return {
+      title,
+      summary: title,
+      affectedLines: line ? [line] : [],
+      severity: "warning"
+    };
   }
   if (base.startsWith("perkhidmatan-pulih-laluan-")) {
-    return parseLineAlert(tokens, "Service restored", "info");
+    const line = lineName(tokens.slice(tokens.indexOf("laluan") + 1).join(" "));
+    const title = line ? `Service restored \u2014 ${line} line` : "Service restored";
+    return {
+      title,
+      summary: title,
+      affectedLines: line ? [line] : [],
+      severity: "info"
+    };
   }
   if (base.startsWith("kemas-kini-kekerapan-laluan-")) {
-    return parseLineAlert(tokens, "Frequency update", "info");
+    const line = lineName(tokens.slice(tokens.indexOf("laluan") + 1).join(" "));
+    const title = line ? `Frequency update \u2014 ${line} line` : "Frequency update";
+    return {
+      title,
+      summary: title,
+      affectedLines: line ? [line] : [],
+      severity: "info"
+    };
   }
   if (base.startsWith("kemas-kini-laluan-")) {
-    return parseLineAlert(tokens, "Line update", "info");
+    const line = lineName(tokens.slice(tokens.indexOf("laluan") + 1).join(" "));
+    const title = line ? `Line update \u2014 ${line} line` : "Line update";
+    return {
+      title,
+      summary: title,
+      affectedLines: line ? [line] : [],
+      severity: "info"
+    };
   }
   return null;
 }
 __name(parseSlug, "parseSlug");
-function parseBusAlert(tokens, label, severity) {
-  const routes = extractRoutes(tokens);
-  const title = routes.length ? `${label} \u2014 routes ${routes.join(", ")}` : label;
-  return { title, summary: title, affectedLines: routes, severity };
-}
-__name(parseBusAlert, "parseBusAlert");
-function parseLineAlert(tokens, label, severity) {
-  const line = lineName(tokens.slice(tokens.indexOf("laluan") + 1).join(" "));
-  const title = line ? `${label} \u2014 ${line} line` : label;
-  return {
-    title,
-    summary: title,
-    affectedLines: line ? [line] : [],
-    severity
-  };
-}
-__name(parseLineAlert, "parseLineAlert");
 function extractRoutes(tokens) {
   const idx = tokens.indexOf("laluan");
   if (idx === -1) return [];
@@ -13841,11 +13614,8 @@ var SELANGOR_AGENCIES = ["selangor-mobility"];
 var REALTIME_AGENCIES = ["rapid-bus-kl", "rapid-bus-mrtfeeder"];
 var AGENCIES = [...REALTIME_AGENCIES, ...SELANGOR_AGENCIES];
 var app = new Hono2();
-app.use("*", secureHeaders({
-  contentSecurityPolicy: {
-    defaultSrc: ["'none'"]
-  }
-}));
+app.use("*", secureHeaders());
+app.use("*", cors({ origin: /* @__PURE__ */ __name((origin, c) => c.env.FRONTEND_URL || "", "origin") }));
 app.use("*", cors({ origin: /* @__PURE__ */ __name((origin, c) => c.env.FRONTEND_URL ?? null, "origin") }));
 app.use("*", async (c, next) => {
   if (c.req.path.length > 256) {
@@ -13876,8 +13646,7 @@ function validateLatLon(lat, lon) {
   return null;
 }
 __name(validateLatLon, "validateLatLon");
-var requireAdminToken = createMiddleware(async (c, next) => {
-  c.header("Cache-Control", "no-store");
+app.post("/refresh", async (c) => {
   const authHeader = c.req.header("Authorization");
   const expectedToken = `Bearer ${c.env.ADMIN_TOKEN}`;
   if (!c.env.ADMIN_TOKEN || !authHeader) {
@@ -13888,10 +13657,6 @@ var requireAdminToken = createMiddleware(async (c, next) => {
   if (!isMatch) {
     return c.json({ error: "Unauthorized" }, 401);
   }
-  c.header("Cache-Control", "no-store");
-  await next();
-});
-app.post("/refresh", requireAdminToken, async (c) => {
   await refreshStaticData(c.env.KV);
   return c.json({ status: "refreshed" });
 });
@@ -13903,27 +13668,15 @@ app.get("/nearby", async (c) => {
   if (radius > 1e4) radius = 1e4;
   const coordErr = validateLatLon(lat, lon);
   if (coordErr) return c.json({ error: coordErr }, 400);
-  const [
-    allStops,
-    allRoutes,
-    allTrips,
-    { map: routeMap, shortNameMap },
-    { tripMap, routeTripMap },
-    allTripStops,
-    allCalendar,
-    allFrequencies,
-    vehicles
-  ] = await Promise.all([
-    getAllStops(c.env.KV),
-    getAllRoutes(c.env.KV),
-    getAllTrips(c.env.KV),
-    getRoutesMaps(c.env.KV),
-    getTripsMaps(c.env.KV),
-    getAllTripStops(c.env.KV),
-    getAllCalendar(c.env.KV),
-    getAllFrequencies(c.env.KV),
-    getRealtimeVehicles(c.env.KV)
-  ]);
+  const allStops = await getAllStops(c.env.KV);
+  const allRoutes = await getAllRoutes(c.env.KV);
+  const allTrips = await getAllTrips(c.env.KV);
+  const { map: routeMap } = await getRoutesMaps(c.env.KV);
+  const { tripMap, routeTripMap } = await getTripsMaps(c.env.KV);
+  const allTripStops = await getAllTripStops(c.env.KV);
+  const allCalendar = await getAllCalendar(c.env.KV);
+  const allFrequencies = await getAllFrequencies(c.env.KV);
+  const vehicles = await getRealtimeVehicles(c.env.KV);
   const result = findNearbyStops({
     stops: allStops,
     routes: allRoutes,
@@ -13940,7 +13693,7 @@ app.get("/nearby", async (c) => {
   });
   const busRoutes = findNearbyBusRoutes(allRoutes, allTrips, vehicles, lat, lon, 1e3, routeMap, tripMap);
   const { buses: prasaranaBuses } = await getPrasaranaBuses(c.env.KV);
-  const prasaranaNearby = findNearbyPrasaranaBuses(prasaranaBuses, allRoutes, allTrips, lat, lon, Math.max(radius, 1e3), routeTripMap, shortNameMap);
+  const prasaranaNearby = findNearbyPrasaranaBuses(prasaranaBuses, allRoutes, allTrips, lat, lon, Math.max(radius, 1e3), routeTripMap);
   const mergedBusRoutes = mergeBusRoutes(busRoutes, prasaranaNearby);
   const queries = [];
   const seenQueries = /* @__PURE__ */ new Map();
@@ -14111,23 +13864,13 @@ app.get("/bus/position/:busId", async (c) => {
 app.get("/station/:stopId/schedule", async (c) => {
   const stopId = c.req.param("stopId");
   try {
-    const [
-      allStops,
-      allRoutes,
-      routesMaps,
-      allTrips,
-      allTripStops,
-      allCalendar,
-      allFrequencies
-    ] = await Promise.all([
-      getAllStops(c.env.KV),
-      getAllRoutes(c.env.KV),
-      getRoutesMaps(c.env.KV),
-      getAllTrips(c.env.KV),
-      getAllTripStops(c.env.KV),
-      getAllCalendar(c.env.KV),
-      getAllFrequencies(c.env.KV)
-    ]);
+    const allStops = await getAllStops(c.env.KV);
+    const allRoutes = await getAllRoutes(c.env.KV);
+    const routesMaps = await getRoutesMaps(c.env.KV);
+    const allTrips = await getAllTrips(c.env.KV);
+    const allTripStops = await getAllTripStops(c.env.KV);
+    const allCalendar = await getAllCalendar(c.env.KV);
+    const allFrequencies = await getAllFrequencies(c.env.KV);
     const result = getStationSchedule(stopId, allStops, allRoutes, allTrips, allTripStops, allCalendar, routesMaps.map);
     return c.json(result);
   } catch (err2) {
@@ -14141,21 +13884,12 @@ app.get("/station/:stopId/schedule/toward", async (c) => {
   const parsed = parseInt(c.req.query("limit") || "5", 10);
   const limit = Math.min(Math.max(Number.isFinite(parsed) ? parsed : 5, 1), 50);
   try {
-    const [
-      allStops,
-      allRoutes,
-      routesMaps,
-      allTrips,
-      allTripStops,
-      allCalendar
-    ] = await Promise.all([
-      getAllStops(c.env.KV),
-      getAllRoutes(c.env.KV),
-      getRoutesMaps(c.env.KV),
-      getAllTrips(c.env.KV),
-      getAllTripStops(c.env.KV),
-      getAllCalendar(c.env.KV)
-    ]);
+    const allStops = await getAllStops(c.env.KV);
+    const allRoutes = await getAllRoutes(c.env.KV);
+    const routesMaps = await getRoutesMaps(c.env.KV);
+    const allTrips = await getAllTrips(c.env.KV);
+    const allTripStops = await getAllTripStops(c.env.KV);
+    const allCalendar = await getAllCalendar(c.env.KV);
     const result = getDeparturesTowardDestination(
       stopId,
       destinationStopId,
@@ -14189,7 +13923,17 @@ app.get("/rail/schedule", async (c) => {
   if (!result) return c.json({ error: "Station not found" }, 404);
   return c.json(result);
 });
-app.post("/rail/ingest", requireAdminToken, async (c) => {
+app.post("/rail/ingest", async (c) => {
+  const authHeader = c.req.header("Authorization");
+  const expectedToken = `Bearer ${c.env.ADMIN_TOKEN}`;
+  if (!c.env.ADMIN_TOKEN || !authHeader) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+  const compareStr = authHeader.length === expectedToken.length ? authHeader : expectedToken;
+  const isMatch = await timingSafeEqual(compareStr, expectedToken) && authHeader.length === expectedToken.length;
+  if (!isMatch) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
   try {
     const result = await ingestRailTimetables(c.env);
     return c.json({ status: "ok", inserted: result.inserted });
@@ -14205,17 +13949,10 @@ app.get("/routes", async (c) => {
   if (radius > 1e4) radius = 1e4;
   const coordErr = validateLatLon(lat, lon);
   if (coordErr) return c.json({ error: coordErr }, 400);
-  const [
-    allStops,
-    allRoutes,
-    allTrips,
-    allTripStops
-  ] = await Promise.all([
-    getAllStops(c.env.KV),
-    getAllRoutes(c.env.KV),
-    getAllTrips(c.env.KV),
-    getAllTripStops(c.env.KV)
-  ]);
+  const allStops = await getAllStops(c.env.KV);
+  const allRoutes = await getAllRoutes(c.env.KV);
+  const allTrips = await getAllTrips(c.env.KV);
+  const allTripStops = await getAllTripStops(c.env.KV);
   const result = findNearbyRoutes(allStops, allRoutes, allTrips, allTripStops, lat, lon, radius);
   return c.json({ routes: result });
 });
@@ -14233,21 +13970,16 @@ app.get("/alerts", async (c) => {
 });
 app.get("/route/:routeId", async (c) => {
   const routeId = c.req.param("routeId");
-  const [{ map, shortNameMap }, { buses: prasaranaBuses }] = await Promise.all([
-    getRoutesMaps(c.env.KV),
-    getPrasaranaBuses(c.env.KV)
-  ]);
+  const allRoutes = await getAllRoutes(c.env.KV);
+  const { map, shortNameMap } = await getRoutesMaps(c.env.KV);
   let route = map.get(routeId) || shortNameMap.get(routeId);
+  const { buses: prasaranaBuses } = await getPrasaranaBuses(c.env.KV);
   if (!route) {
     const hasPrasarana = prasaranaBuses.some((b) => b.route === routeId || b.route === routeId + "0");
     if (!hasPrasarana) return c.json({ error: "Route not found" }, 404);
     route = { id: routeId, shortName: routeId, longName: "", type: 3 };
   }
-  const [vehicles, allTrips, allShapes] = await Promise.all([
-    getRealtimeVehicles(c.env.KV),
-    getAllTrips(c.env.KV),
-    getAllShapes(c.env.KV)
-  ]);
+  const vehicles = await getRealtimeVehicles(c.env.KV);
   const gtfsBuses = [];
   const routeShortName = route.shortName || route.longName || "";
   const tgtRouteId = route.id;
@@ -14284,23 +14016,14 @@ app.get("/route/:routeId", async (c) => {
     }
   }
   const mergedBuses = mergeBusRoutes(gtfsBuses, pBuses);
-  const shapeIds = /* @__PURE__ */ new Set();
-  const tgtRouteIdForShapes = route.id;
-  for (let i2 = 0, len = allTrips.length; i2 < len; i2++) {
-    const t = allTrips[i2];
-    if (t.routeId === tgtRouteIdForShapes && t.shapeId) {
-      shapeIds.add(t.shapeId);
-    }
-  }
-  let shapes = [];
-  for (const id of shapeIds) {
-    if (allShapes[id]) {
-      shapes.push({
-        id,
-        points: allShapes[id]
-      });
-    }
-  }
+  const allTrips = await getAllTrips(c.env.KV);
+  const routeTrips = allTrips.filter((t) => t.routeId === route.id && t.shapeId);
+  const allShapes = await getAllShapes(c.env.KV);
+  const shapeIds = Array.from(new Set(routeTrips.map((t) => t.shapeId)));
+  let shapes = shapeIds.filter((id) => allShapes[id]).map((id) => ({
+    id,
+    points: allShapes[id]
+  }));
   let isReconstructed = false;
   if (shapes.length === 0) {
     try {
@@ -14332,12 +14055,7 @@ app.get("/route/:routeId", async (c) => {
             pts.push([row.lat, row.lon]);
           }
         }
-        shapes = [];
-        for (const [busNo, pts] of groups) {
-          if (pts.length >= 2) {
-            shapes.push({ id: `trail_${busNo}`, points: pts });
-          }
-        }
+        shapes = Array.from(groups.entries()).filter(([, pts]) => pts.length >= 2).map(([busNo, pts]) => ({ id: `trail_${busNo}`, points: pts }));
         if (shapes.length > 0) isReconstructed = true;
       }
     } catch (err2) {
