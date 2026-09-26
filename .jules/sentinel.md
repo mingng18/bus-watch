@@ -97,6 +97,10 @@
 **Vulnerability:** Authenticated/administrative endpoints lacked a `Cache-Control: no-store` header, allowing responses (including errors or sensitive data) to potentially be cached by browsers, proxies, or CDNs.
 **Learning:** Even if an endpoint requires authentication, intermediate caches might still store the response if caching directives are not explicitly set, exposing sensitive operations or data.
 **Prevention:** Always apply a `Cache-Control: no-store` header (e.g., via middleware) to responses from authenticated or administrative API endpoints to prevent sensitive data leakage through browser or intermediate caching.
+## 2026-09-26 - Fix HPP / Array DoS Bypass in Hono Input Validation
+**Vulnerability:** HTTP Parameter Pollution (HPP) / Array DoS bypass in input validation because `c.req.query()` only validates the first parameter value.
+**Learning:** In Hono, `c.req.query()` only returns the first string value of a query parameter. When enforcing payload size limits, attackers can bypass checks by passing multiple values (e.g., `?foo=short&foo=looooooooooooong`), leading to DoS.
+**Prevention:** Always use `c.req.queries()` to retrieve the array and validate all elements when enforcing payload size limits.
 
 ## 2025-02-23 - Strict Content Security Policy Headers
 **Vulnerability:** Weak or permissive `secureHeaders` configuration that does not prevent clickjacking or strictly control framing.
