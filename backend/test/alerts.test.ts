@@ -189,12 +189,23 @@ describe("parseAlerts — robustness", () => {
 
     // We expect the first valid <url> to be extracted and correctly classified,
     // and the malformed one to be skipped without throwing.
-    // We expect the first valid <url> to be extracted and correctly classified,
-    // and the malformed one to be skipped without throwing.
     // 'info-penutupan-jalan-laluan-t201' is a valid alert slug that will be parsed.
     expect(alerts).toBeInstanceOf(Array);
     expect(alerts.length).toBeGreaterThan(0);
     expect(alerts[0].title).toContain("Road closure");
+  });
+
+  it("extractUrlEntries handles <url> tags with attributes", () => {
+    const xml = `<?xml version="1.0"?>
+      <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+        <url some-attr="value">
+          <loc>https://myrapid.com.my/info-penutupan-jalan-laluan-t201-22/</loc>
+          <lastmod>2026-06-10T10:00:00+08:00</lastmod>
+        </url>
+      </urlset>`;
+    const alerts = parseAlerts(xml);
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0].id).toBe("info-penutupan-jalan-laluan-t201-22");
   });
 
   describe("fetchAlerts", () => {
