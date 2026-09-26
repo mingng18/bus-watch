@@ -97,7 +97,7 @@
 **Vulnerability:** Authenticated/administrative endpoints lacked a `Cache-Control: no-store` header, allowing responses (including errors or sensitive data) to potentially be cached by browsers, proxies, or CDNs.
 **Learning:** Even if an endpoint requires authentication, intermediate caches might still store the response if caching directives are not explicitly set, exposing sensitive operations or data.
 **Prevention:** Always apply a `Cache-Control: no-store` header (e.g., via middleware) to responses from authenticated or administrative API endpoints to prevent sensitive data leakage through browser or intermediate caching.
-## 2024-05-24 - Hono Query Parameter Array DoS Bypass
-**Vulnerability:** The global DoS protection middleware only checked `c.req.query()` which returns the first value for a query key. An attacker could send `?key=1&key=<huge_payload>` and bypass the length validation.
-**Learning:** Hono's `c.req.query()` is vulnerable to array pollution attacks when validating lengths or formats.
-**Prevention:** Always use `c.req.queries()` and validate all elements in the array when enforcing payload size or string limits.
+## 2026-09-26 - Fix HPP / Array DoS Bypass in Hono Input Validation
+**Vulnerability:** HTTP Parameter Pollution (HPP) / Array DoS bypass in input validation because `c.req.query()` only validates the first parameter value.
+**Learning:** In Hono, `c.req.query()` only returns the first string value of a query parameter. When enforcing payload size limits, attackers can bypass checks by passing multiple values (e.g., `?foo=short&foo=looooooooooooong`), leading to DoS.
+**Prevention:** Always use `c.req.queries()` to retrieve the array and validate all elements when enforcing payload size limits.

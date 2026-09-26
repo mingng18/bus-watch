@@ -39,9 +39,11 @@ app.use('*', async (c, next) => {
   const queries = c.req.queries();
   for (const key in queries) {
     const values = queries[key];
-    for (let i = 0; i < values.length; i++) {
-      if (values[i] && values[i].length > 100) {
-        return c.json({ error: `Parameter ${key} is too long` }, 400);
+    if (values) {
+      for (const value of values) {
+        if (value && value.length > 100) {
+          return c.json({ error: `Parameter ${key} is too long` }, 400);
+        }
       }
     }
   }
