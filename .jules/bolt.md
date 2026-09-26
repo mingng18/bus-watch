@@ -143,7 +143,13 @@
 ## 2024-05-14 - Optimizing array methods over large datasets
 **Learning:** In hot loops dealing with large datasets (like `aggregateTravelTimes` handling historical bus positions or aggregated results), chained or standalone array methods like `.filter()` and `.map()` introduce significant overhead from intermediate array allocations and closure executions.
 **Action:** Replace these methods with pre-allocated manual `for` loops (e.g. `new Array(length)` followed by indexing and `.length` truncation). This pattern reduces memory pressure, GC overhead, and execution time by roughly 50-60%.
+<<<<<<< HEAD
+## 2025-05-24 - Consolidate multiple Date instantiations
+**Learning:** Instantiating `new Date()` multiple times within the same function scope (like in `getDeparturesTowardDestination` and `getStationSchedule`) creates redundant object allocations, GC pressure, and can introduce microscopic time drift between the instantiations if one is used for filtering and another for calculation.
+**Action:** When multiple operations in the same scope require the current time, consolidate them by creating a single shared `const now = new Date();` variable and passing it to all required functions. This prevents redundant allocations and guarantees time consistency across the operations.
+=======
 
 ## 2024-07-25 - Extract helper functions for complex code health
 **Learning:** Large functions with multiple responsibilities can often be split into smaller, more focused helper functions, improving readability and testability.
 **Action:** Extracted `filterAndSortStops`, `getBusArrivalsForStop`, and `getScheduledArrivalsForStop` from the overly complex `findNearbyStops` function to improve maintainability.
+>>>>>>> ab93755 (🧹 Code Health: Extract helpers from findNearbyStops)
