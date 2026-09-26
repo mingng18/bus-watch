@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { sampleBusPositions, aggregateTravelTimes, cleanupOldPositions, aggregateSamples, TravelTimeSample } from '../src/sampling';
-import { Env, VehiclePosition, PrasaranaBus } from '../src/types';
+import { sampleBusPositions, aggregateTravelTimes, cleanupOldPositions, aggregateSamples, TravelTimeSample, canonicalStopSequencesByRoute } from '../src/sampling';
+import { Env, VehiclePosition, PrasaranaBus, TripStopEntry } from '../src/types';
 
 describe('sampling logic', () => {
   describe('aggregateSamples', () => {
@@ -71,6 +71,65 @@ describe('sampling logic', () => {
       const result = aggregateSamples(samples);
       expect(result).toHaveLength(1);
       expect(result[0].sample_count).toBe(3);
+    });
+  });
+
+  describe('canonicalStopSequencesByRoute', () => {
+    it('returns empty map for empty inputs', () => {
+      const result = canonicalStopSequencesByRoute([], {});
+      expect(result.size).toBe(0);
+    });
+
+    it('ignores trips with no stops in tripStops', () => {
+      const trips = [{ id: 't1', routeId: 'r1' }];
+      const tripStops = {};
+      const result = canonicalStopSequencesByRoute(trips, tripStops);
+      expect(result.size).toBe(0);
+    });
+
+    it('ignores trips with empty stop lists', () => {
+      const trips = [{ id: 't1', routeId: 'r1' }];
+      const tripStops = { 't1': [] };
+      const result = canonicalStopSequencesByRoute(trips, tripStops);
+      expect(result.size).toBe(0);
+    });
+
+    it('picks the trip with the most stops for a route', () => {
+      const trips = [
+        { id: 't1_short', routeId: 'r1' },
+        { id: 't2_long', routeId: 'r1' },
+      ];
+      const s1 = { stopId: 's1', sequence: 1 } as TripStopEntry;
+      const s2 = { stopId: 's2', sequence: 2 } as TripStopEntry;
+      const s3 = { stopId: 's3', sequence: 3 } as TripStopEntry;
+
+      const tripStops = {
+        't1_short': [s1, s2],
+        't2_long': [s1, s2, s3],
+      };
+
+      const result = canonicalStopSequencesByRoute(trips, tripStops);
+      expect(result.size).toBe(1);
+      expect(result.get('r1')).toEqual([s1, s2, s3]);
+    });
+
+    it('handles multiple routes independently', () => {
+      const trips = [
+        { id: 't1_r1', routeId: 'r1' },
+        { id: 't2_r2', routeId: 'r2' },
+      ];
+      const s1 = { stopId: 's1', sequence: 1 } as TripStopEntry;
+      const s2 = { stopId: 's2', sequence: 1 } as TripStopEntry;
+
+      const tripStops = {
+        't1_r1': [s1],
+        't2_r2': [s2],
+      };
+
+      const result = canonicalStopSequencesByRoute(trips, tripStops);
+      expect(result.size).toBe(2);
+      expect(result.get('r1')).toEqual([s1]);
+      expect(result.get('r2')).toEqual([s2]);
     });
   });
 
