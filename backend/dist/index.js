@@ -12921,9 +12921,10 @@ function getStationSchedule(stopId, stops, routes, trips, tripStops, calendar, p
       routeMap.set(routes[i2].id, routes[i2]);
     }
   }
-  const activeServiceIds = getActiveServiceIds(calendar, /* @__PURE__ */ new Date());
+  const now = /* @__PURE__ */ new Date();
+  const activeServiceIds = getActiveServiceIds(calendar, now);
   const departures = [];
-  const nowSeconds = klSecondsSinceMidnight(/* @__PURE__ */ new Date());
+  const nowSeconds = klSecondsSinceMidnight(now);
   for (const trip of trips) {
     if (!activeServiceIds.has(trip.serviceId)) continue;
     const stopsForTrip = tripStops[trip.id];
@@ -13604,9 +13605,10 @@ function getDeparturesTowardDestination(stopId, destinationStopId, stops, routes
       routeMap.set(routes[i2].id, routes[i2]);
     }
   }
-  const activeServiceIds = getActiveServiceIds(calendar, /* @__PURE__ */ new Date());
+  const now = /* @__PURE__ */ new Date();
+  const activeServiceIds = getActiveServiceIds(calendar, now);
   const departures = [];
-  const nowSeconds = klSecondsSinceMidnight(/* @__PURE__ */ new Date());
+  const nowSeconds = klSecondsSinceMidnight(now);
   for (const trip of trips) {
     if (!activeServiceIds.has(trip.serviceId)) continue;
     const stopsForTrip = tripStops[trip.id];
@@ -13851,10 +13853,15 @@ app.use("*", async (c, next) => {
   if (c.req.path.length > 256) {
     return c.json({ error: "URI path too long" }, 414);
   }
-  const queries = c.req.query();
+  const queries = c.req.queries();
   for (const key in queries) {
-    if (queries[key] && queries[key].length > 100) {
-      return c.json({ error: `Parameter ${key} is too long` }, 400);
+    const values = queries[key];
+    if (values) {
+      for (const value of values) {
+        if (value && value.length > 100) {
+          return c.json({ error: `Parameter ${key} is too long` }, 400);
+        }
+      }
     }
   }
   await next();
