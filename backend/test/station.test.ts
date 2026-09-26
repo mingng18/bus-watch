@@ -41,8 +41,7 @@ describe('getStationSchedule', () => {
 
   it('returns departures sorted by time', () => {
     const result = getStationSchedule('st1', stops, routes, trips, tripStops, calendar);
-    const isSorted = result.departures[0].departureTime <= result.departures[1].departureTime;
-    expect(isSorted).toBe(true);
+    expect(result.departures[0].departureTime.localeCompare(result.departures[1].departureTime)).toBeLessThanOrEqual(0);
   });
 
   it('throws for unknown stop', () => {

@@ -24,11 +24,7 @@ const REALTIME_AGENCIES = ['rapid-bus-kl', 'rapid-bus-mrtfeeder'];
 const AGENCIES = [...REALTIME_AGENCIES, ...SELANGOR_AGENCIES];
 
 const app = new Hono<{ Bindings: Env }>();
-app.use('*', secureHeaders({
-  contentSecurityPolicy: {
-    defaultSrc: ["'none'"],
-  },
-}));
+app.use('*', secureHeaders());
 app.use('*', cors({ origin: (origin, c) => c.env.FRONTEND_URL ?? null }));
 
 // Security: Global input length validation to prevent DoS via excessively large payloads
@@ -36,15 +32,10 @@ app.use('*', async (c, next) => {
   if (c.req.path.length > 256) {
     return c.json({ error: 'URI path too long' }, 414);
   }
-  const queries = c.req.queries();
+  const queries = c.req.query();
   for (const key in queries) {
-    const values = queries[key];
-    if (values) {
-      for (const value of values) {
-        if (value && value.length > 100) {
-          return c.json({ error: `Parameter ${key} is too long` }, 400);
-        }
-      }
+    if (queries[key] && queries[key].length > 100) {
+      return c.json({ error: `Parameter ${key} is too long` }, 400);
     }
   }
   await next();
@@ -81,9 +72,6 @@ function validateLatLon(lat: number, lon: number): string | null {
 }
 
 const requireAdminToken = createMiddleware<{ Bindings: Env }>(async (c, next) => {
-  // Security: Prevent sensitive data leakage through browser or intermediate caching
-  c.header('Cache-Control', 'no-store');
-
   const authHeader = c.req.header('Authorization');
   const expectedToken = `Bearer ${c.env.ADMIN_TOKEN}`;
   if (!c.env.ADMIN_TOKEN || !authHeader) {
@@ -95,8 +83,6 @@ const requireAdminToken = createMiddleware<{ Bindings: Env }>(async (c, next) =>
   if (!isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
-
-  c.header('Cache-Control', 'no-store');
 
   await next();
 });
