@@ -36,10 +36,15 @@ app.use('*', async (c, next) => {
   if (c.req.path.length > 256) {
     return c.json({ error: 'URI path too long' }, 414);
   }
-  const queries = c.req.query();
+  const queries = c.req.queries();
   for (const key in queries) {
-    if (queries[key] && queries[key].length > 100) {
-      return c.json({ error: `Parameter ${key} is too long` }, 400);
+    const values = queries[key];
+    if (values) {
+      for (const value of values) {
+        if (value && value.length > 100) {
+          return c.json({ error: `Parameter ${key} is too long` }, 400);
+        }
+      }
     }
   }
   await next();
@@ -769,23 +774,27 @@ async function getAllShapes(kv: KVNamespace) {
 }
 
 async function getRealtimeVehicles(kv: KVNamespace): Promise<VehiclePosition[]> {
+  // perf: Consolidate Date.now() instantiations into a single shared variable to prevent redundant system calls
+  const now = Date.now();
   const cached = await getKvJson<{ ts: number; vehicles: VehiclePosition[] } | null>(kv, 'realtime:vehicles');
-  if (cached && Date.now() - cached.ts < 25000) return cached.vehicles;
+  if (cached && now - cached.ts < 25000) return cached.vehicles;
 
   const allVehicles = await Promise.all(REALTIME_AGENCIES.map(a => fetchVehiclePositions(a)));
   const vehicles = allVehicles.flat();
-  await kv.put('realtime:vehicles', JSON.stringify({ ts: Date.now(), vehicles }));
+  await kv.put('realtime:vehicles', JSON.stringify({ ts: now, vehicles }));
   return vehicles;
 }
 
 async function getPrasaranaBuses(kv: KVNamespace): Promise<{ buses: PrasaranaBus[]; error?: string }> {
+  // perf: Consolidate Date.now() instantiations into a single shared variable to prevent redundant system calls
+  const now = Date.now();
   const cached = await getKvJson<{ ts: number; buses: PrasaranaBus[] } | null>(kv, 'prasarana:buses');
-  if (cached && Date.now() - cached.ts < 60000) return { buses: cached.buses };
+  if (cached && now - cached.ts < 60000) return { buses: cached.buses };
 
   try {
     const buses = await fetchPrasaranaBuses('RKL');
     if (buses.length > 0) {
-      await kv.put('prasarana:buses', JSON.stringify({ ts: Date.now(), buses }));
+      await kv.put('prasarana:buses', JSON.stringify({ ts: now, buses }));
     }
     return { buses };
   } catch (err: any) {

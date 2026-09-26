@@ -32,7 +32,7 @@ export function getDeparturesTowardDestination(
       routeMap.set(routes[i].id, routes[i]);
     }
   }
-  // perf: Consolidate new Date() instantiations into a single shared variable to prevent redundant allocations
+  // perf: Consolidate Date allocations into a single shared instance
   const now = new Date();
   const activeServiceIds = getActiveServiceIds(calendar, now);
 

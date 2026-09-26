@@ -143,6 +143,9 @@
 ## 2024-05-14 - Optimizing array methods over large datasets
 **Learning:** In hot loops dealing with large datasets (like `aggregateTravelTimes` handling historical bus positions or aggregated results), chained or standalone array methods like `.filter()` and `.map()` introduce significant overhead from intermediate array allocations and closure executions.
 **Action:** Replace these methods with pre-allocated manual `for` loops (e.g. `new Array(length)` followed by indexing and `.length` truncation). This pattern reduces memory pressure, GC overhead, and execution time by roughly 50-60%.
-## 2024-05-18 - Avoid repeated Date instantiations in hot paths
-**Learning:** Multiple `new Date()` calls within the same function scope create redundant object allocations and trigger multiple system calls to the OS clock, adding small but cumulative latency to API endpoints.
-**Action:** Always capture the current time in a single `const now = new Date();` variable at the beginning of a function and reuse it, especially when fetching current time for loops or downstream formatting.
+## 2025-05-24 - Consolidate multiple Date instantiations
+**Learning:** Instantiating `new Date()` multiple times within the same function scope (like in `getDeparturesTowardDestination` and `getStationSchedule`) creates redundant object allocations, GC pressure, and can introduce microscopic time drift between the instantiations if one is used for filtering and another for calculation.
+**Action:** When multiple operations in the same scope require the current time, consolidate them by creating a single shared `const now = new Date();` variable and passing it to all required functions. This prevents redundant allocations and guarantees time consistency across the operations.
+## 2024-05-18 - Avoid repeated Date.now() calls in hot paths
+**Learning:** Multiple `Date.now()` calls within the same function scope create redundant system calls to the OS clock. While faster than `new Date()`, they still add unnecessary overhead when used repeatedly in quick succession.
+**Action:** Always capture the current time in a single `const now = Date.now();` variable at the beginning of a function and reuse it for comparisons and timestamps within that function's execution context.
