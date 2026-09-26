@@ -96,6 +96,9 @@
 ## 2025-03-02 - Smooth transitions for dynamic times
 **Learning:** Text views that update frequently via timers or live data (like estimated arrival strings e.g. "10:45") can cause visually jarring replacements on-screen, but SwiftUI's `.contentTransition(.numericText())` seamlessly morphs these dynamic strings, even if they aren't purely integers.
 **Action:** Always apply `.contentTransition(.numericText())` paired with `.animation(.default, value: state)` to any dynamically changing numeric or time-based `Text` elements to significantly improve the perceived quality and smoothness of the interface.
+## 2024-09-26 - WatchOS Complication Sizing
+**Learning:** Hardcoding WidgetFamily inside StaticConfiguration (e.g., countdownView(for: .accessoryRectangular)) forces all complication sizes to render the same layout, breaking visuals on non-matching faces.
+**Action:** Always create a dedicated entry view that reads @Environment(\.widgetFamily) to dynamically render the appropriate layout.
 ## 2025-02-12 - Expose active offline states with contrasting icons
 **Learning:** In SwiftUI, banner items conveying disconnected/offline status often blend in with normal text if they use default `.secondary` or simple `.orange` styling. Sighted users might mistake it for a schedule remark rather than an active warning that times might be inaccurate.
 **Action:** When displaying an offline banner, use `Label` with a distinct `wifi.exclamationmark` or `wifi.slash` and give it a prominent contrasting color (like `.red` or `.orange` combined with `.bold()`) so it's impossible to miss visually.
