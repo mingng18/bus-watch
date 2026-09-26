@@ -558,8 +558,11 @@ export async function aggregateTravelTimes(
          sample_count = travel_times.sample_count + excluded.sample_count,
          updated_at = excluded.updated_at`,
   );
-  const upsertStmts = aggregated.map((a) =>
-    travelTimesPrepStmt.bind(
+  // perf: Avoid intermediate array allocation and closure overhead from .map()
+  const upsertStmts = new Array(aggregated.length);
+  for (let i = 0, len = aggregated.length; i < len; i++) {
+    const a = aggregated[i];
+    upsertStmts[i] = travelTimesPrepStmt.bind(
       a.route,
       a.from_stop_id,
       a.to_stop_id,
@@ -573,8 +576,8 @@ export async function aggregateTravelTimes(
       a.day_of_week,
       a.time_bucket,
       a.spread_seconds,
-    ),
-  );
+    );
+  }
 
   // Chunk to stay under D1's per-batch limit.
   // We use bounded concurrency (e.g. 5 concurrent batches) to avoid overwhelming D1 limits
