@@ -38,6 +38,21 @@ export function klDayOfWeek(date: Date): number {
 }
 
 /**
+ * ⚡ Bolt Performance Optimization:
+ * Fast, zero-allocation alternatives for hot loops computing day/hour
+ * from Unix timestamps (seconds) directly, avoiding expensive `new Date()` overhead.
+ */
+export function klDayOfWeekFromUnixSeconds(unixSeconds: number): number {
+  // 1970-01-01 was a Thursday (index 4 in JS getDay()).
+  // Shift by 8 hours for KL time (8 * 3600 = 28800).
+  return Math.floor(((unixSeconds + 28800) / 86400) + 4) % 7;
+}
+
+export function klHourOfDayFromUnixSeconds(unixSeconds: number): number {
+  return Math.floor(((unixSeconds + 28800) % 86400) / 3600);
+}
+
+/**
  * Returns the KL-local calendar date as a `YYYYMMDD` string, matching the
  * `start_date`/`end_date` format used by GTFS `calendar.txt`.
  */

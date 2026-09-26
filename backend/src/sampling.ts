@@ -1,6 +1,6 @@
 import { Env, VehiclePosition, PrasaranaBus, TripStopEntry } from "./types";
 import { haversineDistance, getBoundingBox } from "./haversine";
-import { klDayOfWeek } from "./time-kl";
+import { klDayOfWeek, klDayOfWeekFromUnixSeconds, klHourOfDayFromUnixSeconds } from "./time-kl";
 
 interface LastPosition {
   bus_no: string;
@@ -299,8 +299,9 @@ export function detectStopPassages(
           to_lat: target.lat,
           to_lon: target.lon,
           seconds,
-          day_of_week: klDayOfWeek(new Date(lastPassageTs * 1000)),
-          time_bucket: klHourOfDay(new Date(lastPassageTs * 1000)),
+          // perf: Use zero-allocation arithmetic on Unix timestamps instead of new Date() in this hot loop
+          day_of_week: klDayOfWeekFromUnixSeconds(lastPassageTs),
+          time_bucket: klHourOfDayFromUnixSeconds(lastPassageTs),
         });
       }
       // A seconds gap outside [0, MAX] is treated as noise / out-of-service:
@@ -316,13 +317,6 @@ export function detectStopPassages(
   }
 
   return results;
-}
-
-/** KL-local hour (0..23). Local equivalent of klDayOfWeek in time-kl.ts. */
-function klHourOfDay(date: Date): number {
-  // toKlLocal shifts so UTC fields hold KL wall-clock; read UTC hours.
-  const klOffsetMs = 8 * 60 * 60 * 1000;
-  return new Date(date.getTime() + klOffsetMs).getUTCHours();
 }
 
 /**
@@ -484,12 +478,21 @@ export async function aggregateTravelTimes(
     )
       .bind(since)
       .all<PositionSample>();
-    rows = (results || []).filter(
-      (r) =>
+    // perf: Avoid intermediate array allocation and closure overhead from .filter()
+    const rawResults = results || [];
+    rows = new Array(rawResults.length);
+    let validCount = 0;
+    for (let i = 0, len = rawResults.length; i < len; i++) {
+      const r = rawResults[i];
+      if (
         Number.isFinite(r.lat) &&
         Number.isFinite(r.lon) &&
-        Number.isFinite(r.timestamp),
-    );
+        Number.isFinite(r.timestamp)
+      ) {
+        rows[validCount++] = r;
+      }
+    }
+    rows.length = validCount;
   } catch (err) {
     console.error("aggregateTravelTimes: failed to read bus_positions:", err);
     return;
@@ -560,8 +563,11 @@ export async function aggregateTravelTimes(
          sample_count = travel_times.sample_count + excluded.sample_count,
          updated_at = excluded.updated_at`,
   );
-  const upsertStmts = aggregated.map((a) =>
-    travelTimesPrepStmt.bind(
+  // perf: Avoid intermediate array allocation and closure overhead from .map()
+  const upsertStmts = new Array(aggregated.length);
+  for (let i = 0, len = aggregated.length; i < len; i++) {
+    const a = aggregated[i];
+    upsertStmts[i] = travelTimesPrepStmt.bind(
       a.route,
       a.from_stop_id,
       a.to_stop_id,
@@ -575,8 +581,8 @@ export async function aggregateTravelTimes(
       a.day_of_week,
       a.time_bucket,
       a.spread_seconds,
-    ),
-  );
+    );
+  }
 
   // Chunk to stay under D1's per-batch limit.
   // We use bounded concurrency (e.g. 5 concurrent batches) to avoid overwhelming D1 limits
