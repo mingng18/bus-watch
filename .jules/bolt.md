@@ -143,6 +143,9 @@
 ## 2024-05-14 - Optimizing array methods over large datasets
 **Learning:** In hot loops dealing with large datasets (like `aggregateTravelTimes` handling historical bus positions or aggregated results), chained or standalone array methods like `.filter()` and `.map()` introduce significant overhead from intermediate array allocations and closure executions.
 **Action:** Replace these methods with pre-allocated manual `for` loops (e.g. `new Array(length)` followed by indexing and `.length` truncation). This pattern reduces memory pressure, GC overhead, and execution time by roughly 50-60%.
+## 2025-05-24 - Consolidate multiple Date instantiations
+**Learning:** Instantiating `new Date()` multiple times within the same function scope (like in `getDeparturesTowardDestination` and `getStationSchedule`) creates redundant object allocations, GC pressure, and can introduce microscopic time drift between the instantiations if one is used for filtering and another for calculation.
+**Action:** When multiple operations in the same scope require the current time, consolidate them by creating a single shared `const now = new Date();` variable and passing it to all required functions. This prevents redundant allocations and guarantees time consistency across the operations.
 ## 2025-03-01 - Avoid duplicate string allocations in iterative parsing
 **Learning:** Extracting string chunks using `.slice()` and performing `.toLowerCase()` inside an inner function when iteratively parsing a large XML document causes massive, redundant memory allocations. Each block extraction and case conversion creates temporary string objects that pressure the garbage collector.
 **Action:** When extracting multiple tokens from a large text blob (like a sitemap), convert the entire document to lowercase once. Use `indexOf` iteratively with start indices on the lowercased copy to find block boundaries, and use `.substring()` on the original document to extract final values.
