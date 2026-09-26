@@ -145,6 +145,9 @@
 ## 2024-05-14 - Optimizing array methods over large datasets
 **Learning:** In hot loops dealing with large datasets (like `aggregateTravelTimes` handling historical bus positions or aggregated results), chained or standalone array methods like `.filter()` and `.map()` introduce significant overhead from intermediate array allocations and closure executions.
 **Action:** Replace these methods with pre-allocated manual `for` loops (e.g. `new Array(length)` followed by indexing and `.length` truncation). This pattern reduces memory pressure, GC overhead, and execution time by roughly 50-60%.
+## 2025-05-24 - Consolidate multiple Date instantiations
+**Learning:** Instantiating `new Date()` multiple times within the same function scope (like in `getDeparturesTowardDestination` and `getStationSchedule`) creates redundant object allocations, GC pressure, and can introduce microscopic time drift between the instantiations if one is used for filtering and another for calculation.
+**Action:** When multiple operations in the same scope require the current time, consolidate them by creating a single shared `const now = new Date();` variable and passing it to all required functions. This prevents redundant allocations and guarantees time consistency across the operations.
 
 ## 2024-05-18 - [Testing] 🧪 Testing LocationManager delegate methods
 **Learning:** When writing unit tests for iOS `CLLocationManagerDelegate` methods (like `didFailWithError`), there is no need to expand the mock `CLLocationManager` to internally trigger these callbacks. It is cleaner and more direct to invoke the delegate method directly on the System Under Test (`sut.locationManager(mockManager, didFailWithError: ...)`) and assert the resulting state changes (like verifying that `stopUpdatingLocationCalled` is true on the mock).
