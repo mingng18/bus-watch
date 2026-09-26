@@ -36,13 +36,12 @@ app.use('*', async (c, next) => {
   if (c.req.path.length > 256) {
     return c.json({ error: 'URI path too long' }, 414);
   }
-  // Security: Use queries() to prevent HPP / Array DoS bypasses where c.req.query() only checks the first value
   const queries = c.req.queries();
   for (const key in queries) {
     const values = queries[key];
     if (values) {
-      for (let i = 0, len = values.length; i < len; i++) {
-        if (values[i].length > 100) {
+      for (const value of values) {
+        if (value && value.length > 100) {
           return c.json({ error: `Parameter ${key} is too long` }, 400);
         }
       }
