@@ -96,6 +96,9 @@
 ## 2025-03-02 - Smooth transitions for dynamic times
 **Learning:** Text views that update frequently via timers or live data (like estimated arrival strings e.g. "10:45") can cause visually jarring replacements on-screen, but SwiftUI's `.contentTransition(.numericText())` seamlessly morphs these dynamic strings, even if they aren't purely integers.
 **Action:** Always apply `.contentTransition(.numericText())` paired with `.animation(.default, value: state)` to any dynamically changing numeric or time-based `Text` elements to significantly improve the perceived quality and smoothness of the interface.
+## 2024-09-26 - WatchOS Complication Sizing
+**Learning:** Hardcoding WidgetFamily inside StaticConfiguration (e.g., countdownView(for: .accessoryRectangular)) forces all complication sizes to render the same layout, breaking visuals on non-matching faces.
+**Action:** Always create a dedicated entry view that reads @Environment(\.widgetFamily) to dynamically render the appropriate layout.
 
 ## 2025-02-12 - Empty state headers for VoiceOver
 **Learning:** In watchOS, empty states (like "No active disruptions", "Location access needed", "No stops nearby") are often the primary content on the screen. However, VoiceOver riders may try to navigate using the "Headings" rotor. If these messages aren't marked as headers, they might be skipped or harder to find, leaving the user confused about the screen's state.
