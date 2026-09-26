@@ -1,9 +1,7 @@
 import WidgetKit
 import SwiftUI
 
-/// The BusWatch countdown complication. Shows the next-departure countdown
-/// for the user's home stop across the four watchOS accessory families.
-struct CountdownWidgetEntryView: View {
+struct CountdownEntryView: View {
     var entry: CountdownEntry
     @Environment(\.widgetFamily) var family
 
@@ -13,12 +11,14 @@ struct CountdownWidgetEntryView: View {
     }
 }
 
+/// The BusWatch countdown complication. Shows the next-departure countdown
+/// for the user's home stop across the four watchOS accessory families.
 struct CountdownWidget: Widget {
     let kind = "BusWatchCountdownWidget"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: CountdownTimelineProvider()) { entry in
-            CountdownWidgetEntryView(entry: entry)
+            CountdownEntryView(entry: entry)
         }
         .configurationDisplayName("Next bus")
         .description("Countdown to the next departure at your home stop.")
