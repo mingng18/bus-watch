@@ -99,3 +99,6 @@
 ## 2024-09-26 - WatchOS Complication Sizing
 **Learning:** Hardcoding WidgetFamily inside StaticConfiguration (e.g., countdownView(for: .accessoryRectangular)) forces all complication sizes to render the same layout, breaking visuals on non-matching faces.
 **Action:** Always create a dedicated entry view that reads @Environment(\.widgetFamily) to dynamically render the appropriate layout.
+## 2025-03-03 - Avoid Typographical Symbols in Notification Content
+**Learning:** VoiceOver interprets typographical symbols literally (e.g., reading "→" as "Right arrow") in raw strings, but iOS notifications (`UNNotificationContent.body`) don't support custom `.accessibilityLabel` overrides. Using symbols here results in un-overrideable, poor screen reader phrasing.
+**Action:** Always replace typographical symbols with plain English words (e.g., "to") in `UNNotificationContent` body strings to ensure grammatical correctness for VoiceOver riders without degrading sighted user experience.
