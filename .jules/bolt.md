@@ -146,3 +146,6 @@
 ## 2025-05-24 - Consolidate multiple Date instantiations
 **Learning:** Instantiating `new Date()` multiple times within the same function scope (like in `getDeparturesTowardDestination` and `getStationSchedule`) creates redundant object allocations, GC pressure, and can introduce microscopic time drift between the instantiations if one is used for filtering and another for calculation.
 **Action:** When multiple operations in the same scope require the current time, consolidate them by creating a single shared `const now = new Date();` variable and passing it to all required functions. This prevents redundant allocations and guarantees time consistency across the operations.
+## 2025-06-05 - Avoid array allocation for inclusions in hot loops
+**Learning:** Using `[a, b].includes(x)` inside hot, heavily iterated loops (like parsing GTFS files or mapping hundreds of routes) creates an array object allocation on every iteration, introducing significant garbage collection and execution overhead.
+**Action:** Replace small fixed array `.includes()` calls with direct logical OR equality checks (`===`) in performance critical paths.
