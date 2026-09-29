@@ -99,3 +99,6 @@
 ## 2024-09-26 - WatchOS Complication Sizing
 **Learning:** Hardcoding WidgetFamily inside StaticConfiguration (e.g., countdownView(for: .accessoryRectangular)) forces all complication sizes to render the same layout, breaking visuals on non-matching faces.
 **Action:** Always create a dedicated entry view that reads @Environment(\.widgetFamily) to dynamically render the appropriate layout.
+## 2024-10-18 - Clarify disabled rows with inline badges
+**Learning:** Disabling interactive list rows without providing a visual explanation causes user confusion, as they may guess prerequisites or assume the app is broken.
+**Action:** When a list row must be legitimately disabled due to underlying constraints (e.g. no live data available), add a clear visual indicator (like an inline pill or badge) alongside the text to clarify exactly why the item is unselectable.
