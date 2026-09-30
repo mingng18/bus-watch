@@ -99,3 +99,6 @@
 ## 2024-09-26 - WatchOS Complication Sizing
 **Learning:** Hardcoding WidgetFamily inside StaticConfiguration (e.g., countdownView(for: .accessoryRectangular)) forces all complication sizes to render the same layout, breaking visuals on non-matching faces.
 **Action:** Always create a dedicated entry view that reads @Environment(\.widgetFamily) to dynamically render the appropriate layout.
+## 2024-05-24 - Contextual Disabled States
+**Learning:** Tappable items in lists that are legitimately disabled based on domain constraints (e.g., a manual picker that only supports rail stations) but only rely on visual dimming can leave users confused about why they are inactive.
+**Action:** Always add an inline visual badge (e.g., `Text("Rail only")`) alongside the descriptive `.accessibilityHint` to clarify exactly why the item is unselectable, rather than removing the `.disabled()` state entirely or making blanket assumptions about data states.
