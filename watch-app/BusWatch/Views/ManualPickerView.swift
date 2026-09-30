@@ -68,6 +68,15 @@ struct ManualPickerView: View {
                     .accessibilityHidden(true)
                 Text(stop.name)
                     .font(.caption)
+                if stop.type != "rail" {
+                    Text("Rail only")
+                        .font(.caption2)
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 2)
+                        .background(Color.secondary.opacity(0.2))
+                        .cornerRadius(4)
+                        .accessibilityHidden(true)
+                }
                 Spacer()
                 if AppFeatureFlags.favoritesAndHome,
                    let favorites,
@@ -94,7 +103,7 @@ struct ManualPickerView: View {
         .accessibilityLabel(stopRowLabel(stop))
         .accessibilityHint(stop.type == "rail"
                            ? "Shows arrivals for this station."
-                           : "Bus stop. No live arrivals.")
+                           : "Bus stop. Manual selection supports rail only.")
         .swipeActions(edge: .leading, allowsFullSwipe: true) {
             if AppFeatureFlags.favoritesAndHome, let favorites {
                 Button {
