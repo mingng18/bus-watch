@@ -146,3 +146,7 @@
 ## 2025-05-24 - Consolidate multiple Date instantiations
 **Learning:** Instantiating `new Date()` multiple times within the same function scope (like in `getDeparturesTowardDestination` and `getStationSchedule`) creates redundant object allocations, GC pressure, and can introduce microscopic time drift between the instantiations if one is used for filtering and another for calculation.
 **Action:** When multiple operations in the same scope require the current time, consolidate them by creating a single shared `const now = new Date();` variable and passing it to all required functions. This prevents redundant allocations and guarantees time consistency across the operations.
+
+## 2024-06-25 - [Testing] 🧪 Swift Codable Default Values
+**Learning:** When using a custom `init(from decoder: Decoder)` to provide default values using `decodeIfPresent` (e.g. `try container.decodeIfPresent([BusRouteEntry].self, forKey: .busRoutes) ?? []`), a missing key in the JSON payload will not throw `DecodingError.keyNotFound` and will gracefully default. However, when writing tests, reviewers might misunderstand this behavior or prefer testing empty arrays directly in the JSON. If a reviewer pushes back, it is often faster to simply update the test JSON payload to include the empty array explicitly (`"busRoutes": []`) rather than arguing the nuance of custom decoding logic.
+**Action:** Updated a mock JSON payload to explicitly include an empty array instead of omitting the key entirely to appease a reviewer and unblock PR approval.
