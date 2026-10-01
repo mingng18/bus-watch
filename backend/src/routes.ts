@@ -57,8 +57,7 @@ export function findNearbyRoutes(
         id: route.id,
         shortName: route.shortName,
         longName: route.longName,
-        // perf: Avoid array literal allocation and .includes() overhead in hot loop
-        type: route.type === 0 || route.type === 1 || route.type === 2 ? 'rail' : 'bus',
+        type: [0, 1, 2].includes(route.type) ? 'rail' : 'bus',
       });
     }
   }

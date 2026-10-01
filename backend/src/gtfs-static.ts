@@ -59,8 +59,7 @@ function parseStops(
   // Set stop type based on routes serving it via stop_times → trips → routes
   for (const st of rawStopTimes) {
     const rt = tripToRouteType.get(st.trip_id);
-    // perf: Avoid array literal allocation and .includes() overhead in hot loop
-    if (rt === '0' || rt === '1' || rt === '2') {
+    if (rt && ['0', '1', '2'].includes(rt)) {
       const stop = stopMap.get(st.stop_id);
       if (stop) stop.type = 'rail';
     }
