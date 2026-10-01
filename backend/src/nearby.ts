@@ -107,10 +107,7 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
     }
   }
 
-  // perf: Avoid Array.prototype.map() and closure allocation overhead by using a pre-allocated array and a standard for loop
-  const result = new Array(nearby.length);
-  for (let j = 0; j < nearby.length; j++) {
-    const { stop, distance } = nearby[j];
+  return nearby.map(({ stop, distance }) => {
     const arrivals: Arrival[] = [];
 
     if (stop.type === "bus") {
@@ -170,7 +167,7 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
       }
     }
 
-    result[j] = {
+    return {
       id: stop.id,
       name: stop.name,
       type: stop.type,
@@ -179,8 +176,7 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
       distance_m: Math.round(distance),
       arrivals: arrivals.slice(0, 3),
     };
-  }
-  return result;
+  });
 }
 
 export function findNearbyBusRoutes(
