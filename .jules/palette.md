@@ -99,6 +99,3 @@
 ## 2024-09-26 - WatchOS Complication Sizing
 **Learning:** Hardcoding WidgetFamily inside StaticConfiguration (e.g., countdownView(for: .accessoryRectangular)) forces all complication sizes to render the same layout, breaking visuals on non-matching faces.
 **Action:** Always create a dedicated entry view that reads @Environment(\.widgetFamily) to dynamically render the appropriate layout.
-## 2025-03-02 - Explain disabled states with badges and accessibility hints
-**Learning:** Removing a `.disabled` state entirely from legitimately unsupported items can introduce functional regressions. However, silently disabling an item causes confusion for users because the reason is invisible.
-**Action:** When an interactive element must be legitimately disabled, leave the `.disabled` modifier intact. Improve the UX by adding an explicit visual badge (like "Rail only") and updating the `.accessibilityHint` to clearly explain the reason to screen reader users.
