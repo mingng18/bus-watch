@@ -188,9 +188,9 @@ final class NotificationService: ObservableObject {
         let head = departure.line.isEmpty ? "Service" : departure.line
         let where_ = stopName.map { " at \($0)" } ?? ""
         if leadMinutes > 0 {
-            return "\(head) → \(departure.destination) arriving in \(leadMinutes) min\(where_)."
+            return "\(head) to \(departure.destination) arriving in \(leadMinutes) min\(where_)."
         }
-        return "\(head) → \(departure.destination) arriving now\(where_)."
+        return "\(head) to \(departure.destination) arriving now\(where_)."
     }
 
     static func approachingBody(stopName: String, minutesAway: Int?) -> String {
