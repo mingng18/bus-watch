@@ -102,3 +102,6 @@
 ## 2024-05-18 - Deduplicate overlapping semantic states
 **Learning:** When a domain model enforces that one state is a subset of another (e.g. a "home" stop is always a "favorited" stop), blindly rendering visual indicators for both boolean flags causes UI clutter (two identical yellow icons) and redundant VoiceOver speech ("home stop, favorited").
 **Action:** Use `else if` conditions when rendering visual or audible indicators for cascading semantic states, prioritizing the more specific state (Home) to reduce visual clutter and keep VoiceOver concise.
+## 2025-03-02 - Plain English for VoiceOver in Notifications
+**Learning:** VoiceOver interprets typographical symbols literally (e.g., reading "→" as "Right arrow"). While UI views can use `.accessibilityLabel` to override this, raw strings like `UNNotificationContent.body` cannot.
+**Action:** In contexts without accessibility overrides, avoid typographical symbols entirely and use plain English words (like "to") for correct screen reader phrasing.
