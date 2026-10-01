@@ -12377,7 +12377,7 @@ function parseStops(rawStops, rawRoutes, rawTrips, rawStopTimes) {
   }
   for (const st of rawStopTimes) {
     const rt = tripToRouteType.get(st.trip_id);
-    if (rt && ["0", "1", "2"].includes(rt)) {
+    if (rt === "0" || rt === "1" || rt === "2") {
       const stop = stopMap.get(st.stop_id);
       if (stop) stop.type = "rail";
     }
@@ -12991,7 +12991,8 @@ function findNearbyRoutes(stops, routes, trips, tripStops, lat, lon, radiusM) {
         id: route.id,
         shortName: route.shortName,
         longName: route.longName,
-        type: [0, 1, 2].includes(route.type) ? "rail" : "bus"
+        // perf: Replace inline array allocation and .includes() with direct logical OR to prevent GC overhead
+        type: route.type === 0 || route.type === 1 || route.type === 2 ? "rail" : "bus"
       });
     }
   }
