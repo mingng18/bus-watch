@@ -99,6 +99,9 @@
 ## 2024-09-26 - WatchOS Complication Sizing
 **Learning:** Hardcoding WidgetFamily inside StaticConfiguration (e.g., countdownView(for: .accessoryRectangular)) forces all complication sizes to render the same layout, breaking visuals on non-matching faces.
 **Action:** Always create a dedicated entry view that reads @Environment(\.widgetFamily) to dynamically render the appropriate layout.
+## 2025-03-02 - Plain English for VoiceOver in Notifications
+**Learning:** VoiceOver interprets typographical symbols literally (e.g., reading "→" as "Right arrow"). While UI views can use `.accessibilityLabel` to override this, raw strings like `UNNotificationContent.body` cannot.
+**Action:** In contexts without accessibility overrides, avoid typographical symbols entirely and use plain English words (like "to") for correct screen reader phrasing.
 ## 2025-01-26 - Pull-to-refresh loading state bypass
 **Learning:** In SwiftUI, when using `.refreshable` on a list to provide native pull-to-refresh functionality, replacing the main view with a full-screen loading state (e.g., `ProgressView`) during the refresh event will abruptly interrupt and cancel the native refresh spinner animation.
 **Action:** Conditionally bypass full-screen loading state changes during native `.refreshable` actions to preserve smooth built-in animations.
