@@ -99,6 +99,9 @@
 ## 2024-09-26 - WatchOS Complication Sizing
 **Learning:** Hardcoding WidgetFamily inside StaticConfiguration (e.g., countdownView(for: .accessoryRectangular)) forces all complication sizes to render the same layout, breaking visuals on non-matching faces.
 **Action:** Always create a dedicated entry view that reads @Environment(\.widgetFamily) to dynamically render the appropriate layout.
+## 2025-03-02 - Plain English for VoiceOver in Notifications
+**Learning:** VoiceOver interprets typographical symbols literally (e.g., reading "→" as "Right arrow"). While UI views can use `.accessibilityLabel` to override this, raw strings like `UNNotificationContent.body` cannot.
+**Action:** In contexts without accessibility overrides, avoid typographical symbols entirely and use plain English words (like "to") for correct screen reader phrasing.
 ## 2025-02-12 - Expose active offline states with contrasting icons
 **Learning:** In SwiftUI, banner items conveying disconnected/offline status often blend in with normal text if they use default `.secondary` or simple `.orange` styling. Sighted users might mistake it for a schedule remark rather than an active warning that times might be inaccurate.
 **Action:** When displaying an offline banner, use `Label` with a distinct `wifi.exclamationmark` or `wifi.slash` and give it a prominent contrasting color (like `.red` or `.orange` combined with `.bold()`) so it's impossible to miss visually.
