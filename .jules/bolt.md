@@ -147,9 +147,15 @@
 ## 2025-05-24 - Consolidate multiple Date instantiations
 **Learning:** Instantiating `new Date()` multiple times within the same function scope (like in `getDeparturesTowardDestination` and `getStationSchedule`) creates redundant object allocations, GC pressure, and can introduce microscopic time drift between the instantiations if one is used for filtering and another for calculation.
 **Action:** When multiple operations in the same scope require the current time, consolidate them by creating a single shared `const now = new Date();` variable and passing it to all required functions. This prevents redundant allocations and guarantees time consistency across the operations.
+<<<<<<< HEAD
+## 2024-10-01 - Avoid array literal allocations with .includes() in hot paths
+**Learning:** In hot loops, particularly those iterating over large datasets like GTFS parsing, inline array allocations for `.includes()` checks (e.g. `['0', '1', '2'].includes(rt)`) create severe GC pressure. This is because V8 allocates a new array object on every iteration of the loop, which must then be garbage collected.
+**Action:** Replace inline array `.includes()` with direct logical OR `===` checks (e.g. `rt === '0' || rt === '1' || rt === '2'`) when the array is small and known at compile time. This is zero-allocation and much faster.
+=======
 =======
 
 ## 2024-07-25 - Extract helper functions for complex code health
 **Learning:** Large functions with multiple responsibilities can often be split into smaller, more focused helper functions, improving readability and testability.
 **Action:** Extracted `filterAndSortStops`, `getBusArrivalsForStop`, and `getScheduledArrivalsForStop` from the overly complex `findNearbyStops` function to improve maintainability.
 >>>>>>> ab93755 (🧹 Code Health: Extract helpers from findNearbyStops)
+>>>>>>> 34db510 (🧹 Code Health: Extract helpers from findNearbyStops)
