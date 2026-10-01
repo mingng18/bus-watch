@@ -147,6 +147,6 @@
 **Learning:** Instantiating `new Date()` multiple times within the same function scope (like in `getDeparturesTowardDestination` and `getStationSchedule`) creates redundant object allocations, GC pressure, and can introduce microscopic time drift between the instantiations if one is used for filtering and another for calculation.
 **Action:** When multiple operations in the same scope require the current time, consolidate them by creating a single shared `const now = new Date();` variable and passing it to all required functions. This prevents redundant allocations and guarantees time consistency across the operations.
 
-## 2026-09-27 - Avoid Array.prototype.find() closure overhead in hot endpoints
+## 2026-09-28 - Avoid Array.prototype.find() closure overhead in hot endpoints
 **Learning:** Using `Array.prototype.find()` with an inline lambda creates unnecessary closure allocations and function execution overhead. In heavily hit endpoints iterating over large data arrays (like finding a specific stop among thousands), a standard `for` loop is significantly faster.
 **Action:** Replace `Array.prototype.find()` with a standard manual `for` loop when searching for a single item in large static arrays within hot request paths.
