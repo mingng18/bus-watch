@@ -102,3 +102,6 @@
 ## 2025-03-02 - Plain English for VoiceOver in Notifications
 **Learning:** VoiceOver interprets typographical symbols literally (e.g., reading "→" as "Right arrow"). While UI views can use `.accessibilityLabel` to override this, raw strings like `UNNotificationContent.body` cannot.
 **Action:** In contexts without accessibility overrides, avoid typographical symbols entirely and use plain English words (like "to") for correct screen reader phrasing.
+## 2025-03-09 - Clarify Disabled States with Badges
+**Learning:** Artificially disabling buttons (or disabling them for domain constraints) without clear visual indicators leads to user confusion. Additionally, providing misleading VoiceOver hints (like "No live arrivals" for a bus in a transit app) creates mistrust.
+**Action:** When a list row is disabled due to underlying domain constraints, provide an inline visual badge (like `Text("Nearby only")`) rather than removing the disabled state, and ensure the `.accessibilityHint` strictly matches the domain constraint (e.g. "Must be selected from the nearby list").
