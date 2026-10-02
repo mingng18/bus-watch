@@ -68,14 +68,6 @@ struct ManualPickerView: View {
                     .accessibilityHidden(true)
                 Text(stop.name)
                     .font(.caption)
-                if stop.type != "rail" {
-                    Text("No live arrivals")
-                        .font(.system(size: 10, weight: .medium))
-                        .padding(.horizontal, 4)
-                        .padding(.vertical, 2)
-                        .background(Color.secondary.opacity(0.3))
-                        .clipShape(Capsule())
-                }
                 Spacer()
                 if AppFeatureFlags.favoritesAndHome,
                    let favorites,
