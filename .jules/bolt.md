@@ -149,3 +149,6 @@
 ## 2024-10-01 - Avoid array literal allocations with .includes() in hot paths
 **Learning:** In hot loops, particularly those iterating over large datasets like GTFS parsing, inline array allocations for `.includes()` checks (e.g. `['0', '1', '2'].includes(rt)`) create severe GC pressure. This is because V8 allocates a new array object on every iteration of the loop, which must then be garbage collected.
 **Action:** Replace inline array `.includes()` with direct logical OR `===` checks (e.g. `rt === '0' || rt === '1' || rt === '2'`) when the array is small and known at compile time. This is zero-allocation and much faster.
+## 2024-06-28 - Prevent lambda allocation in .find() for endpoint schedules
+**Learning:** In heavily repeated request handlers (like `/station/:id` and `/departures/:id`), using `Array.prototype.find()` with an inline lambda function allocates a new function per invocation, causing GC overhead.
+**Action:** Replace `Array.prototype.find()` in hot array lookups (`stops`) with standard `for` loops to eliminate intermediate lambda allocations.
