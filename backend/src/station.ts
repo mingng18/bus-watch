@@ -11,7 +11,14 @@ export function getStationSchedule(
   calendar: CalendarEntry[],
   pRouteMap?: Map<string, Route>
 ): StationScheduleResponse {
-  const stop = stops.find(s => s.id === stopId);
+  let stop: Stop | undefined;
+  // perf: Prevent lambda allocation in .find() hot paths
+  for (let i = 0; i < stops.length; i++) {
+    if (stops[i].id === stopId) {
+      stop = stops[i];
+      break;
+    }
+  }
   if (!stop) throw new Error(`Stop not found: ${stopId}`);
 
   const routeMap = pRouteMap || new Map<string, Route>();
