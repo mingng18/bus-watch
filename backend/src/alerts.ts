@@ -145,6 +145,11 @@ function extractUrlEntries(xml: string): SitemapEntry[] {
   const startRe = /<url\b[^>]*>/gi;
   const endRe = /<\/url>/gi;
 
+  // perf: Convert the entire document to lowercase once outside the loop
+  // to avoid extracting chunks and calling .toLowerCase() on each inside the loop,
+  // preventing massive redundant string allocations and GC pressure.
+  const lowerXml = xml.toLowerCase();
+
   let m: RegExpExecArray | null;
   while ((m = startRe.exec(xml)) !== null) {
     endRe.lastIndex = startRe.lastIndex;
@@ -152,31 +157,32 @@ function extractUrlEntries(xml: string): SitemapEntry[] {
     if (!endMatch) {
       break; // Stop parsing if there's no closing tag
     }
-    const block = xml.slice(startRe.lastIndex, endMatch.index);
+    const contentStart = startRe.lastIndex;
+    const contentEnd = endMatch.index;
     startRe.lastIndex = endRe.lastIndex; // Advance start search beyond the closing tag
 
-    const loc = extractTagContent(block, 'loc');
+    const loc = extractTagContent(xml, lowerXml, contentStart, contentEnd, 'loc');
     if (!loc) continue;
 
-    const lastmod = extractTagContent(block, 'lastmod');
+    const lastmod = extractTagContent(xml, lowerXml, contentStart, contentEnd, 'lastmod');
     entries.push({ loc, lastmod: lastmod || null });
   }
   return entries;
 }
 
-/** Extract tag contents robustly. */
-function extractTagContent(block: string, tag: string): string | undefined {
-  const lowerBlock = block.toLowerCase();
+/** Extract tag contents robustly using pre-lowercased document and boundaries. */
+function extractTagContent(xml: string, lowerXml: string, contentStart: number, contentEnd: number, tag: string): string | undefined {
   const startTag = `<${tag}>`;
   const endTag = `</${tag}>`;
 
-  const startIdx = lowerBlock.indexOf(startTag);
-  if (startIdx === -1) return undefined;
+  const startIdx = lowerXml.indexOf(startTag, contentStart);
+  if (startIdx === -1 || startIdx >= contentEnd) return undefined;
 
-  const endIdx = lowerBlock.indexOf(endTag, startIdx + startTag.length);
-  if (endIdx === -1) return undefined;
+  const valStart = startIdx + startTag.length;
+  const endIdx = lowerXml.indexOf(endTag, valStart);
+  if (endIdx === -1 || endIdx > contentEnd) return undefined;
 
-  return block.slice(startIdx + startTag.length, endIdx).trim();
+  return xml.substring(valStart, endIdx).trim();
 }
 
 /** Slugs that do NOT represent service disruptions and must be excluded. */
