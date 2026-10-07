@@ -86,6 +86,10 @@ struct ManualPickerView: View {
                     Image(systemName: "chevron.right")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
+                } else {
+                    Text("Unavailable")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
                 }
             }
         }
@@ -94,7 +98,7 @@ struct ManualPickerView: View {
         .accessibilityLabel(stopRowLabel(stop))
         .accessibilityHint(stop.type == "rail"
                            ? "Shows arrivals for this station."
-                           : "Bus stop. No live arrivals.")
+                           : "Bus stop. Schedule unavailable.")
         .swipeActions(edge: .leading, allowsFullSwipe: true) {
             if AppFeatureFlags.favoritesAndHome, let favorites {
                 Button {
