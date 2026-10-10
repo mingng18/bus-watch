@@ -57,16 +57,20 @@ export function parseCsv(text: string): Record<string, string>[] {
   return rows;
 }
 
+// perf: Replace string indexing with .charCodeAt(i) for faster integer comparisons
+// and avoid single-character string allocations in hot CSV parsing loop.
+// Also cache line.length to prevent repeated property access.
 function parseLine(line: string): string[] {
   const fields: string[] = [];
   let current = '';
   let inQuotes = false;
   let start = 0;
+  const len = line.length;
 
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (ch === '"') {
-      if (inQuotes && i + 1 < line.length && line[i + 1] === '"') {
+  for (let i = 0; i < len; i++) {
+    const code = line.charCodeAt(i);
+    if (code === 34) { // '"'
+      if (inQuotes && i + 1 < len && line.charCodeAt(i + 1) === 34) {
         current += line.substring(start, i) + '"';
         i++;
         start = i + 1;
@@ -75,7 +79,7 @@ function parseLine(line: string): string[] {
         inQuotes = !inQuotes;
         start = i + 1;
       }
-    } else if (ch === ',' && !inQuotes) {
+    } else if (code === 44 && !inQuotes) { // ','
       current += line.substring(start, i);
       fields.push(current);
       current = '';
