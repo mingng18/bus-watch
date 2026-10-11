@@ -102,6 +102,9 @@
 ## 2025-03-02 - Plain English for VoiceOver in Notifications
 **Learning:** VoiceOver interprets typographical symbols literally (e.g., reading "→" as "Right arrow"). While UI views can use `.accessibilityLabel` to override this, raw strings like `UNNotificationContent.body` cannot.
 **Action:** In contexts without accessibility overrides, avoid typographical symbols entirely and use plain English words (like "to") for correct screen reader phrasing.
+## 2024-10-04 - Clarify disabled state and constraints in manual picker
+**Learning:** Do not conflate business-logic restrictions (disabling bus stops in manual picker) with artificial UI friction or contradict app purpose by claiming 'No live arrivals' for buses.
+**Action:** Enhance legitimately disabled list items with clear visual badges (e.g., 'Rail only') and accurate accessibility hints ('Manual selection is for rail stations only') instead of confusing copy.
 ## 2025-01-26 - Pull-to-refresh loading state bypass
 **Learning:** In SwiftUI, when using `.refreshable` on a list to provide native pull-to-refresh functionality, replacing the main view with a full-screen loading state (e.g., `ProgressView`) during the refresh event will abruptly interrupt and cancel the native refresh spinner animation.
 **Action:** Conditionally bypass full-screen loading state changes during native `.refreshable` actions to preserve smooth built-in animations.
