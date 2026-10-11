@@ -95,6 +95,14 @@ struct ManualPickerView: View {
                     Image(systemName: "chevron.right")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
+                } else {
+                    Text("Rail only")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 2)
+                        .background(.quaternary)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
                 }
             }
         }
