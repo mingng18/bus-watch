@@ -12249,14 +12249,18 @@ function parseCsv(text) {
 }
 __name(parseCsv, "parseCsv");
 function parseLine(line) {
+  if (line.indexOf('"') === -1) {
+    return line.split(",");
+  }
   const fields = [];
   let current = "";
   let inQuotes = false;
   let start = 0;
-  for (let i2 = 0; i2 < line.length; i2++) {
-    const ch = line[i2];
-    if (ch === '"') {
-      if (inQuotes && i2 + 1 < line.length && line[i2 + 1] === '"') {
+  const len = line.length;
+  for (let i2 = 0; i2 < len; i2++) {
+    const code = line.charCodeAt(i2);
+    if (code === 34) {
+      if (inQuotes && i2 + 1 < len && line.charCodeAt(i2 + 1) === 34) {
         current += line.substring(start, i2) + '"';
         i2++;
         start = i2 + 1;
@@ -12265,7 +12269,7 @@ function parseLine(line) {
         inQuotes = !inQuotes;
         start = i2 + 1;
       }
-    } else if (ch === "," && !inQuotes) {
+    } else if (code === 44 && !inQuotes) {
       current += line.substring(start, i2);
       fields.push(current);
       current = "";
