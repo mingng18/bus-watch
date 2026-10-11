@@ -149,9 +149,7 @@
 ## 2024-10-01 - Avoid array literal allocations with .includes() in hot paths
 **Learning:** In hot loops, particularly those iterating over large datasets like GTFS parsing, inline array allocations for `.includes()` checks (e.g. `['0', '1', '2'].includes(rt)`) create severe GC pressure. This is because V8 allocates a new array object on every iteration of the loop, which must then be garbage collected.
 **Action:** Replace inline array `.includes()` with direct logical OR `===` checks (e.g. `rt === '0' || rt === '1' || rt === '2'`) when the array is small and known at compile time. This is zero-allocation and much faster.
-## 2024-10-06 - Optimize XML Parsing Memory Allocation
-**Learning:** Iteratively parsing large XML text documents by extracting blocks via `.slice()` and calling `.toLowerCase()` on each extracted block inside the loop creates massive redundant string allocations and intense garbage collection overhead.
-**Action:** Convert the entire text document to lowercase once outside the loop, use iterative `.indexOf()` searches on the lowercased copy to find boundaries, and use `.substring()` on the original document to extract the final values.
-## 2024-10-11 - Unicode Length Mismatches in `.toLowerCase()`
-**Learning:** Using offsets from a `.toLowerCase()` string copy to slice the original mixed-case string is dangerous, as Unicode lowercasing can alter UTF-16 lengths (e.g., `İ` lowercases to multiple code points), shifting all subsequent offsets and corrupting the extracted data.
-**Action:** Avoid cross-string offset matching. Instead, use offset-stable search mechanisms on the original string, such as non-global regexes constrained to bounded substrings or manually managing state on the original string.
+
+## 2025-05-25 - Optimize CSV parsing with charCodeAt and unquoted fast-path
+**Learning:** In hot loops processing character-by-character parsing (like GTFS CSV parsing in `parseLine`), using standard string indexing (`line[i] === '"'`) forces the engine to perform string comparisons and occasionally allocate single-character strings. Furthermore, applying a complex manual parsing loop to every line ignores the fact that many lines in GTFS static files do not contain quoted fields at all.
+**Action:** When writing manual string parsers, replace string indexing with `.charCodeAt(i)` to perform fast integer comparisons (e.g., `code === 34` for `"`). Additionally, implement a fast-path for unquoted lines using `if (line.indexOf('"') === -1) return line.split(',');` to offload parsing of simple lines to heavily optimized native C++ V8 engine routines.
