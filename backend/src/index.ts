@@ -36,10 +36,15 @@ app.use('*', async (c, next) => {
   if (c.req.path.length > 256) {
     return c.json({ error: 'URI path too long' }, 414);
   }
-  const queries = c.req.query();
+  const queries = c.req.queries();
   for (const key in queries) {
-    if (queries[key] && queries[key].length > 100) {
-      return c.json({ error: `Parameter ${key} is too long` }, 400);
+    const values = queries[key];
+    if (values) {
+      for (const value of values) {
+        if (value && value.length > 100) {
+          return c.json({ error: `Parameter ${key} is too long` }, 400);
+        }
+      }
     }
   }
   await next();
@@ -76,6 +81,9 @@ function validateLatLon(lat: number, lon: number): string | null {
 }
 
 const requireAdminToken = createMiddleware<{ Bindings: Env }>(async (c, next) => {
+  // Security: Prevent sensitive data leakage through browser or intermediate caching
+  c.header('Cache-Control', 'no-store');
+
   const authHeader = c.req.header('Authorization');
   const expectedToken = `Bearer ${c.env.ADMIN_TOKEN}`;
   if (!c.env.ADMIN_TOKEN || !authHeader) {
@@ -87,6 +95,8 @@ const requireAdminToken = createMiddleware<{ Bindings: Env }>(async (c, next) =>
   if (!isMatch) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
+
+  c.header('Cache-Control', 'no-store');
 
   await next();
 });

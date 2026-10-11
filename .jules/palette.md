@@ -80,10 +80,26 @@
 **Learning:** Empty string fallbacks for missing route identifiers (like `line.isEmpty ? "Service" : line`) implemented in the main app views weren't carried over to the WatchOS complications, causing visually broken states (e.g. " → Destination") and awkward VoiceOver phrasing on the watch face.
 **Action:** When implementing generic fallbacks for transit identifiers, proactively review and update corresponding complication/widget views to ensure the watch face matches the main app's gracefully degraded experience.
 
-## 2025-02-12 - Preserving Pull-to-Refresh Animations
-**Learning:** In SwiftUI, when using `.refreshable` on a list to provide native pull-to-refresh functionality, re-triggering a full-screen loading state (e.g., `ProgressView`) immediately aborts and cancels the native refresh spinner animation, creating a jarring visual flash.
-**Action:** Always conditionally bypass replacing the main view with a full-screen loading state when the reload is initiated via a pull-to-refresh gesture.
+## 2025-02-12 - Pull-to-refresh on watchOS Lists
+**Learning:** In watchOS SwiftUI, applying `.refreshable` to a `List` provides a native, highly expected pull-to-refresh interaction. However, if the data loading function unconditionally transitions the view into a full-screen loading state (e.g. `ProgressView`), it will instantly replace the `List`, thereby destroying the native pull-to-refresh spinner animation mid-flight and creating a jarring experience.
+**Action:** When adding `.refreshable` to a `List` that drives a state machine, update the loading function to accept an `isRefresh` boolean. Conditionally bypass the full-screen `.loading` state transition when `isRefresh` is true, allowing the native refresh spinner to render over the existing list until the new data arrives.
 
-## 2025-02-12 - Empty State Manual Refresh
-**Learning:** Native pull-to-refresh (`.refreshable`) in SwiftUI requires a scrollable container like a `List`. When a view is completely empty or encounters an error, it often displays a non-scrollable view (like a centered `VStack`), entirely preventing the user from refreshing.
-**Action:** When designing `.empty` or `.error` states that replace the main scrollable list, always provide an explicit manual 'Refresh' or 'Retry' `Button` so users aren't left stranded without a way to request updated data.
+## 2025-02-12 - Manual refresh for non-scrollable empty states
+**Learning:** In SwiftUI, native pull-to-refresh (`.refreshable`) only functions on scrollable containers like `List` or `ScrollView`. When a view is in a non-scrollable `.empty` state (like a `VStack`), users cannot trigger the native gesture.
+**Action:** Always provide an explicit, manual "Refresh" or "Retry" `Button` when presenting non-scrollable empty states, ensuring users have an accessible way to re-fetch data.
+## 2025-02-12 - Expand domain abbreviations for better UX
+**Learning:** Using raw text abbreviations like "sched" for domain-specific data states harms readability and accessibility.
+**Action:** Replace text abbreviations with `Label` components containing expanded text and standard SF Symbols (e.g., 'clock'). For dynamic text combinations, concatenate `Text` views directly with the `+` operator.
+## 2025-02-12 - Remove artificial flow friction from buttons
+**Learning:** Artificially disabling buttons (e.g. "Set Home" being disabled until a stop is favorited) forces users to guess prerequisites and perform multi-step interactions, increasing cognitive load and friction.
+**Action:** When the underlying domain model (e.g., `setHome`) safely handles cascading state changes (like auto-favoriting), remove the `.disabled` modifier to allow one-tap semantic shortcuts.
+## 2025-03-02 - Smooth transitions for dynamic times
+**Learning:** Text views that update frequently via timers or live data (like estimated arrival strings e.g. "10:45") can cause visually jarring replacements on-screen, but SwiftUI's `.contentTransition(.numericText())` seamlessly morphs these dynamic strings, even if they aren't purely integers.
+**Action:** Always apply `.contentTransition(.numericText())` paired with `.animation(.default, value: state)` to any dynamically changing numeric or time-based `Text` elements to significantly improve the perceived quality and smoothness of the interface.
+## 2024-09-26 - WatchOS Complication Sizing
+**Learning:** Hardcoding WidgetFamily inside StaticConfiguration (e.g., countdownView(for: .accessoryRectangular)) forces all complication sizes to render the same layout, breaking visuals on non-matching faces.
+**Action:** Always create a dedicated entry view that reads @Environment(\.widgetFamily) to dynamically render the appropriate layout.
+
+## 2026-10-11 - Delightful State Animations with Symbol Effects
+**Learning:** In SwiftUI (iOS 17/watchOS 10+), interactive icon buttons (like favorites or alerts) transition instantly between states, which can feel visually abrupt.
+**Action:** Always append `.symbolEffect(.bounce, value: stateVariable)` to interactive `Button` components containing SF Symbols to provide a smooth, delightful native bounce animation whenever the bound state variable changes.

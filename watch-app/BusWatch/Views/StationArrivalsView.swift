@@ -75,7 +75,7 @@ struct StationArrivalsView: View {
                 }
 
                 if !stop.arrivals.contains(where: { $0.isRealtime }) {
-                    Text("sched")
+                    Label("Scheduled", systemImage: "clock")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .accessibilityLabel("Scheduled arrivals")
@@ -139,6 +139,7 @@ struct StationArrivalsView: View {
                 }
                 .buttonStyle(.bordered)
                 .disabled(isSchedulingReminder)
+                .symbolEffect(.bounce, value: scheduledReminderId)
                 .accessibilityLabel(scheduledReminderId == nil ? "Set alert" : "Alert set")
                 .accessibilityValue(scheduledReminderId == nil ? "Off" : "On")
                 .accessibilityHint(reminderMinutes == 1 ? "Schedules a notification 1 minute before arrival." : "Schedules a notification \(reminderMinutes) minutes before arrival.")
@@ -201,6 +202,7 @@ struct StationArrivalsView: View {
                         .foregroundStyle(favorites.contains(stop.id) ? .yellow : .secondary)
                 }
                 .buttonStyle(.plain)
+                .symbolEffect(.bounce, value: favorites.contains(stop.id))
                 .accessibilityLabel("Favorite")
                 .accessibilityValue(favorites.contains(stop.id) ? "On" : "Off")
                 .accessibilityHint("Saves this stop to your favorites.")
@@ -214,7 +216,7 @@ struct StationArrivalsView: View {
                         .foregroundStyle(favorites.isHome(stop.id) ? .yellow : .secondary)
                 }
                 .buttonStyle(.plain)
-                .disabled(!favorites.contains(stop.id))
+                .symbolEffect(.bounce, value: favorites.isHome(stop.id))
                 .accessibilityLabel(favorites.isHome(stop.id) ? "Home" : "Set Home")
                 .accessibilityValue(favorites.isHome(stop.id) ? "On" : "Off")
                 .accessibilityHint("Marks this stop as your home for quick access.")
