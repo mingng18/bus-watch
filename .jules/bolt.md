@@ -149,3 +149,7 @@
 ## 2024-10-01 - Avoid array literal allocations with .includes() in hot paths
 **Learning:** In hot loops, particularly those iterating over large datasets like GTFS parsing, inline array allocations for `.includes()` checks (e.g. `['0', '1', '2'].includes(rt)`) create severe GC pressure. This is because V8 allocates a new array object on every iteration of the loop, which must then be garbage collected.
 **Action:** Replace inline array `.includes()` with direct logical OR `===` checks (e.g. `rt === '0' || rt === '1' || rt === '2'`) when the array is small and known at compile time. This is zero-allocation and much faster.
+
+## 2025-05-25 - Avoid string allocation and indexing in hot parsing loops
+**Learning:** In heavily iterated parsing loops (like `parseLine` in `backend/src/csv-parser.ts`), iterating over a string using index access (e.g., `line[i]`) and performing string comparisons allocates numerous short-lived single-character string objects.
+**Action:** When performing character-by-character parsing on large inputs, use `.charCodeAt(i)` and integer comparisons (e.g., ASCII `34` for quotes, `44` for commas) instead of string comparisons. Additionally, cache `line.length` into a local variable before the loop to reduce property lookup overhead. This approach eliminates intermediate string allocations and significantly speeds up parsing operations.

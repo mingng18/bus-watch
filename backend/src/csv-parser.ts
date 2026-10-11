@@ -63,10 +63,12 @@ function parseLine(line: string): string[] {
   let inQuotes = false;
   let start = 0;
 
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (ch === '"') {
-      if (inQuotes && i + 1 < line.length && line[i + 1] === '"') {
+  // perf: use charCodeAt for integer comparisons instead of string indexing and cache length for hot loop
+  const len = line.length;
+  for (let i = 0; i < len; i++) {
+    const chCode = line.charCodeAt(i);
+    if (chCode === 34) {
+      if (inQuotes && i + 1 < len && line.charCodeAt(i + 1) === 34) {
         current += line.substring(start, i) + '"';
         i++;
         start = i + 1;
@@ -75,7 +77,7 @@ function parseLine(line: string): string[] {
         inQuotes = !inQuotes;
         start = i + 1;
       }
-    } else if (ch === ',' && !inQuotes) {
+    } else if (chCode === 44 && !inQuotes) {
       current += line.substring(start, i);
       fields.push(current);
       current = '';
