@@ -91,7 +91,7 @@ final class NotificationServiceTests: XCTestCase {
         let body = NotificationService.arrivalBody(
             departure: dep, leadMinutes: 3, stopName: "Titiwangsa"
         )
-        XCTAssertEqual(body, "U82 → Sentul Timur arriving in 3 min at Titiwangsa.")
+        XCTAssertEqual(body, "U82 to Sentul Timur arriving in 3 min at Titiwangsa.")
     }
 
     func testArrivalBodyFallsBackWhenLineEmpty() {
@@ -100,7 +100,7 @@ final class NotificationServiceTests: XCTestCase {
         let body = NotificationService.arrivalBody(
             departure: dep, leadMinutes: 0, stopName: nil
         )
-        XCTAssertEqual(body, "Service → Sentul arriving now.")
+        XCTAssertEqual(body, "Service to Sentul arriving now.")
     }
 
     func testApproachingBodyIncludesMinutesWhenKnown() {
