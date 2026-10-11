@@ -92,8 +92,8 @@ struct ManualPickerView: View {
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 4)
                         .padding(.vertical, 2)
-                        .background(Color.secondary.opacity(0.2))
-                        .cornerRadius(4)
+                        .background(.quaternary)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
                 }
             }
         }
@@ -102,7 +102,7 @@ struct ManualPickerView: View {
         .accessibilityLabel(stopRowLabel(stop))
         .accessibilityHint(stop.type == "rail"
                            ? "Shows arrivals for this station."
-                           : "Manual selection requires a rail station.")
+                           : "Bus stop. Manual selection is for rail stations only.")
         .swipeActions(edge: .leading, allowsFullSwipe: true) {
             if AppFeatureFlags.favoritesAndHome, let favorites {
                 Button {
