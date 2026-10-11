@@ -87,13 +87,13 @@ struct ManualPickerView: View {
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 } else {
-                    Text("No schedule")
+                    Text("Rail only")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 4)
                         .padding(.vertical, 2)
-                        .background(Color.secondary.opacity(0.2))
-                        .clipShape(Capsule())
+                        .background(.quaternary)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
                 }
             }
         }
@@ -102,7 +102,7 @@ struct ManualPickerView: View {
         .accessibilityLabel(stopRowLabel(stop))
         .accessibilityHint(stop.type == "rail"
                            ? "Shows arrivals for this station."
-                           : "Bus stop. No schedule available.")
+                           : "Bus stop. Manual selection is for rail stations only.")
         .swipeActions(edge: .leading, allowsFullSwipe: true) {
             if AppFeatureFlags.favoritesAndHome, let favorites {
                 Button {
