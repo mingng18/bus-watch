@@ -102,6 +102,9 @@
 ## 2025-03-02 - Plain English for VoiceOver in Notifications
 **Learning:** VoiceOver interprets typographical symbols literally (e.g., reading "→" as "Right arrow"). While UI views can use `.accessibilityLabel` to override this, raw strings like `UNNotificationContent.body` cannot.
 **Action:** In contexts without accessibility overrides, avoid typographical symbols entirely and use plain English words (like "to") for correct screen reader phrasing.
+## 2024-10-04 - Clarify disabled state and constraints in manual picker
+**Learning:** Do not conflate business-logic restrictions (disabling bus stops in manual picker) with artificial UI friction or contradict app purpose by claiming 'No live arrivals' for buses.
+**Action:** Enhance legitimately disabled list items with clear visual badges (e.g., 'Rail only') and accurate accessibility hints ('Manual selection is for rail stations only') instead of confusing copy.
 
 ## 2025-02-12 - Empty state headers for VoiceOver
 **Learning:** In watchOS, empty states (like "No active disruptions", "Location access needed", "No stops nearby") are often the primary content on the screen. However, VoiceOver riders may try to navigate using the "Headings" rotor. If these messages aren't marked as headers, they might be skipped or harder to find, leaving the user confused about the screen's state.
