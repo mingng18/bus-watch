@@ -105,3 +105,7 @@
 **Vulnerability:** A previous mitigation attempted to manual string padding/length checking alongside `timingSafeEqual`.
 **Learning:** `timingSafeEqual` in `hono/utils/buffer` internally hashes inputs and securely handles strings of differing lengths without throwing. Manual workarounds are unnecessary and potentially insecure.
 **Prevention:** Rely on the built-in properties of robust cryptographic comparison functions (like Hono's `timingSafeEqual`) without attempting manual length-matching workarounds or redundant hashing.
+## 2025-02-28 - Token Comparison Timing Attack (Update)
+**Vulnerability:** A previous mitigation attempted to manual string padding/length checking alongside `timingSafeEqual`.
+**Learning:** `timingSafeEqual` in `hono/utils/buffer` internally hashes inputs and securely handles strings of differing lengths without throwing. Manual workarounds are unnecessary and potentially insecure.
+**Prevention:** Rely on the built-in properties of robust cryptographic comparison functions (like Hono's `timingSafeEqual`) without attempting manual length-matching workarounds or redundant hashing.
