@@ -267,21 +267,23 @@ export function detectStopPassages(
   let stopIdx = 0;
   let lastPassageTs: number | null = null; // timestamp the previous stop was hit
   let lastPassageStop: TripStopEntry | null = null;
-  let targetBox = getBoundingBox(stops[0].lat, stops[0].lon, STOP_PASSAGE_RADIUS_M);
-
   for (const s of ordered) {
     // Only test against the next expected stop. This enforces in-order
     // passage and makes a far-ahead outlier unable to skip stops.
     const target = stops[stopIdx];
 
-    if (
-      s.lat < targetBox.minLat ||
-      s.lat > targetBox.maxLat ||
-      s.lon < targetBox.minLon ||
-      s.lon > targetBox.maxLon
-    ) {
-      continue;
-    }
+    // Fast-fail bounding box check to avoid expensive haversine calculation.
+    // 1 degree latitude is approx 111,320m.
+    // 1 degree longitude shrinks away from the equator (distance ≈ 111,320m * cos(lat)).
+    // We derive the thresholds dynamically from STOP_PASSAGE_RADIUS_M to ensure safety if it changes.
+    // We use a generous 3x multiplier for longitude to safely cover up to ~70 degrees latitude.
+    // Note: This simple subtraction does not handle crossing the 180th meridian (dateline),
+    // but KL transit data is nowhere near it.
+    const latThreshold = STOP_PASSAGE_RADIUS_M / 111000;
+    const lonThreshold = (STOP_PASSAGE_RADIUS_M / 111000) * 3;
+    const latDiff = Math.abs(s.lat - target.lat);
+    const lonDiff = Math.abs(s.lon - target.lon);
+    if (latDiff > latThreshold || lonDiff > lonThreshold) continue;
 
     const d = haversineDistance(s.lat, s.lon, target.lat, target.lon);
     if (d > STOP_PASSAGE_RADIUS_M) continue;
@@ -313,7 +315,6 @@ export function detectStopPassages(
     lastPassageStop = target;
     stopIdx++;
     if (stopIdx >= stops.length) break; // reached the terminus
-    targetBox = getBoundingBox(stops[stopIdx].lat, stops[stopIdx].lon, STOP_PASSAGE_RADIUS_M);
   }
 
   return results;
