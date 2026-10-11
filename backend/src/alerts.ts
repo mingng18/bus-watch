@@ -145,10 +145,11 @@ function extractUrlEntries(xml: string): SitemapEntry[] {
   const startRe = /<url\b[^>]*>/gi;
   const endRe = /<\/url>/gi;
 
-  // perf: Convert the entire document to lowercase once outside the loop
-  // to avoid extracting chunks and calling .toLowerCase() on each inside the loop,
-  // preventing massive redundant string allocations and GC pressure.
-  const lowerXml = xml.toLowerCase();
+  // perf: Cache regexes to avoid compiling them on every tag extraction.
+  // We use non-global regexes with bounded substrings to prevent extracting
+  // chunks that cause large redundant string allocations.
+  const locRe = /<loc>([\s\S]*?)<\/loc>/i;
+  const lastmodRe = /<lastmod>([\s\S]*?)<\/lastmod>/i;
 
   let m: RegExpExecArray | null;
   while ((m = startRe.exec(xml)) !== null) {
@@ -157,32 +158,23 @@ function extractUrlEntries(xml: string): SitemapEntry[] {
     if (!endMatch) {
       break; // Stop parsing if there's no closing tag
     }
-    const contentStart = startRe.lastIndex;
-    const contentEnd = endMatch.index;
+
+    // We must slice a bounded chunk to prevent the regex from scanning
+    // the rest of the document, but we avoid the massive GC pressure
+    // of calling .toLowerCase() on each chunk.
+    const block = xml.substring(startRe.lastIndex, endMatch.index);
     startRe.lastIndex = endRe.lastIndex; // Advance start search beyond the closing tag
 
-    const loc = extractTagContent(xml, lowerXml, contentStart, contentEnd, 'loc');
-    if (!loc) continue;
+    const locMatch = locRe.exec(block);
+    if (!locMatch) continue;
 
-    const lastmod = extractTagContent(xml, lowerXml, contentStart, contentEnd, 'lastmod');
-    entries.push({ loc, lastmod: lastmod || null });
+    const lastmodMatch = lastmodRe.exec(block);
+    entries.push({
+      loc: locMatch[1].trim(),
+      lastmod: lastmodMatch ? lastmodMatch[1].trim() : null
+    });
   }
   return entries;
-}
-
-/** Extract tag contents robustly using pre-lowercased document and boundaries. */
-function extractTagContent(xml: string, lowerXml: string, contentStart: number, contentEnd: number, tag: string): string | undefined {
-  const startTag = `<${tag}>`;
-  const endTag = `</${tag}>`;
-
-  const startIdx = lowerXml.indexOf(startTag, contentStart);
-  if (startIdx === -1 || startIdx >= contentEnd) return undefined;
-
-  const valStart = startIdx + startTag.length;
-  const endIdx = lowerXml.indexOf(endTag, valStart);
-  if (endIdx === -1 || endIdx > contentEnd) return undefined;
-
-  return xml.substring(valStart, endIdx).trim();
 }
 
 /** Slugs that do NOT represent service disruptions and must be excluded. */

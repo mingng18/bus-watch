@@ -152,3 +152,6 @@
 ## 2024-10-06 - Optimize XML Parsing Memory Allocation
 **Learning:** Iteratively parsing large XML text documents by extracting blocks via `.slice()` and calling `.toLowerCase()` on each extracted block inside the loop creates massive redundant string allocations and intense garbage collection overhead.
 **Action:** Convert the entire text document to lowercase once outside the loop, use iterative `.indexOf()` searches on the lowercased copy to find boundaries, and use `.substring()` on the original document to extract the final values.
+## 2024-10-11 - Unicode Length Mismatches in `.toLowerCase()`
+**Learning:** Using offsets from a `.toLowerCase()` string copy to slice the original mixed-case string is dangerous, as Unicode lowercasing can alter UTF-16 lengths (e.g., `İ` lowercases to multiple code points), shifting all subsequent offsets and corrupting the extracted data.
+**Action:** Avoid cross-string offset matching. Instead, use offset-stable search mechanisms on the original string, such as non-global regexes constrained to bounded substrings or manually managing state on the original string.
