@@ -96,3 +96,12 @@
 ## 2025-03-02 - Smooth transitions for dynamic times
 **Learning:** Text views that update frequently via timers or live data (like estimated arrival strings e.g. "10:45") can cause visually jarring replacements on-screen, but SwiftUI's `.contentTransition(.numericText())` seamlessly morphs these dynamic strings, even if they aren't purely integers.
 **Action:** Always apply `.contentTransition(.numericText())` paired with `.animation(.default, value: state)` to any dynamically changing numeric or time-based `Text` elements to significantly improve the perceived quality and smoothness of the interface.
+## 2024-09-26 - WatchOS Complication Sizing
+**Learning:** Hardcoding WidgetFamily inside StaticConfiguration (e.g., countdownView(for: .accessoryRectangular)) forces all complication sizes to render the same layout, breaking visuals on non-matching faces.
+**Action:** Always create a dedicated entry view that reads @Environment(\.widgetFamily) to dynamically render the appropriate layout.
+## 2025-03-02 - Plain English for VoiceOver in Notifications
+**Learning:** VoiceOver interprets typographical symbols literally (e.g., reading "→" as "Right arrow"). While UI views can use `.accessibilityLabel` to override this, raw strings like `UNNotificationContent.body` cannot.
+**Action:** In contexts without accessibility overrides, avoid typographical symbols entirely and use plain English words (like "to") for correct screen reader phrasing.
+## 2024-10-04 - Clarify disabled state and constraints in manual picker
+**Learning:** Do not conflate business-logic restrictions (disabling bus stops in manual picker) with artificial UI friction or contradict app purpose by claiming 'No live arrivals' for buses.
+**Action:** Enhance legitimately disabled list items with clear visual badges (e.g., 'Rail only') and accurate accessibility hints ('Manual selection is for rail stations only') instead of confusing copy.
