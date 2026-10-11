@@ -152,6 +152,10 @@
 **Learning:** In hot loops, particularly those iterating over large datasets like GTFS parsing, inline array allocations for `.includes()` checks (e.g. `['0', '1', '2'].includes(rt)`) create severe GC pressure. This is because V8 allocates a new array object on every iteration of the loop, which must then be garbage collected.
 **Action:** Replace inline array `.includes()` with direct logical OR `===` checks (e.g. `rt === '0' || rt === '1' || rt === '2'`) when the array is small and known at compile time. This is zero-allocation and much faster.
 
+## 2025-05-25 - Optimize CSV parsing with charCodeAt and unquoted fast-path
+**Learning:** In hot loops processing character-by-character parsing (like GTFS CSV parsing in `parseLine`), using standard string indexing (`line[i] === '"'`) forces the engine to perform string comparisons and occasionally allocate single-character strings. Furthermore, applying a complex manual parsing loop to every line ignores the fact that many lines in GTFS static files do not contain quoted fields at all.
+**Action:** When writing manual string parsers, replace string indexing with `.charCodeAt(i)` to perform fast integer comparisons (e.g., `code === 34` for `"`). Additionally, implement a fast-path for unquoted lines using `if (line.indexOf('"') === -1) return line.split(',');` to offload parsing of simple lines to heavily optimized native C++ V8 engine routines.
+
 ## 2024-05-18 - [Testing] 🧪 Testing LocationManager delegate methods
 **Learning:** When writing unit tests for iOS `CLLocationManagerDelegate` methods (like `didFailWithError`), there is no need to expand the mock `CLLocationManager` to internally trigger these callbacks. It is cleaner and more direct to invoke the delegate method directly on the System Under Test (`sut.locationManager(mockManager, didFailWithError: ...)`) and assert the resulting state changes (like verifying that `stopUpdatingLocationCalled` is true on the mock).
 **Action:** Always prefer direct invocation of delegate methods on the SUT to simulate lifecycle events instead of over-complicating mock objects with internal simulation logic.
