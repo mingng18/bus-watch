@@ -102,3 +102,6 @@
 ## 2025-03-02 - Plain English for VoiceOver in Notifications
 **Learning:** VoiceOver interprets typographical symbols literally (e.g., reading "→" as "Right arrow"). While UI views can use `.accessibilityLabel` to override this, raw strings like `UNNotificationContent.body` cannot.
 **Action:** In contexts without accessibility overrides, avoid typographical symbols entirely and use plain English words (like "to") for correct screen reader phrasing.
+## 2025-03-02 - Explain disabled states with inline badges
+**Learning:** Artificially disabling interactive elements (e.g., using `.disabled`) without providing a visual explanation forces users to guess prerequisites and perform multi-step interactions, increasing cognitive load and friction.
+**Action:** When a button must be legitimately disabled due to business logic (e.g. invalid options in a picker), do not remove the `.disabled()` modifier. Instead, enhance the UX by adding a clear visual indicator (like an inline badge `Text("Nearby only")` inside the item) alongside a descriptive `.accessibilityHint` to clarify to the user exactly why the item is unselectable.
