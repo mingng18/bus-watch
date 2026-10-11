@@ -102,6 +102,6 @@
 ## 2025-03-02 - Plain English for VoiceOver in Notifications
 **Learning:** VoiceOver interprets typographical symbols literally (e.g., reading "→" as "Right arrow"). While UI views can use `.accessibilityLabel` to override this, raw strings like `UNNotificationContent.body` cannot.
 **Action:** In contexts without accessibility overrides, avoid typographical symbols entirely and use plain English words (like "to") for correct screen reader phrasing.
-## 2025-03-02 - Explain disabled states
-**Learning:** Artificially disabling buttons without explanation is confusing. When an interactive element must be legitimately disabled due to underlying constraints, do not just remove the `.disabled()` modifier. Add a clear visual indicator alongside a descriptive `.accessibilityHint` to clarify to the user exactly why the item is unselectable.
-**Action:** Replace just `Image(systemName: "chevron.right")` with a `Text` indicating "Unavailable" or similar, and add an accessibility hint.
+## 2024-10-04 - Clarify disabled state and constraints in manual picker
+**Learning:** Do not conflate business-logic restrictions (disabling bus stops in manual picker) with artificial UI friction or contradict app purpose by claiming 'No live arrivals' for buses.
+**Action:** Enhance legitimately disabled list items with clear visual badges (e.g., 'Rail only') and accurate accessibility hints ('Manual selection is for rail stations only') instead of confusing copy.
