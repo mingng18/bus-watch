@@ -145,6 +145,12 @@ function extractUrlEntries(xml: string): SitemapEntry[] {
   const startRe = /<url\b[^>]*>/gi;
   const endRe = /<\/url>/gi;
 
+  // perf: Cache regexes to avoid compiling them on every tag extraction.
+  // We use non-global regexes with bounded substrings to prevent extracting
+  // chunks that cause large redundant string allocations.
+  const locRe = /<loc>([\s\S]*?)<\/loc>/i;
+  const lastmodRe = /<lastmod>([\s\S]*?)<\/lastmod>/i;
+
   let m: RegExpExecArray | null;
   while ((m = startRe.exec(xml)) !== null) {
     endRe.lastIndex = startRe.lastIndex;
@@ -152,31 +158,23 @@ function extractUrlEntries(xml: string): SitemapEntry[] {
     if (!endMatch) {
       break; // Stop parsing if there's no closing tag
     }
-    const block = xml.slice(startRe.lastIndex, endMatch.index);
+
+    // We must slice a bounded chunk to prevent the regex from scanning
+    // the rest of the document, but we avoid the massive GC pressure
+    // of calling .toLowerCase() on each chunk.
+    const block = xml.substring(startRe.lastIndex, endMatch.index);
     startRe.lastIndex = endRe.lastIndex; // Advance start search beyond the closing tag
 
-    const lowerBlock = block.toLowerCase();
-    const loc = extractTagContent(block, lowerBlock, 'loc');
-    if (!loc) continue;
+    const locMatch = locRe.exec(block);
+    if (!locMatch) continue;
 
-    const lastmod = extractTagContent(block, lowerBlock, 'lastmod');
-    entries.push({ loc, lastmod: lastmod || null });
+    const lastmodMatch = lastmodRe.exec(block);
+    entries.push({
+      loc: locMatch[1].trim(),
+      lastmod: lastmodMatch ? lastmodMatch[1].trim() : null
+    });
   }
   return entries;
-}
-
-/** Extract tag contents robustly. */
-function extractTagContent(block: string, lowerBlock: string, tag: string): string | undefined {
-  const startTag = `<${tag}>`;
-  const endTag = `</${tag}>`;
-
-  const startIdx = lowerBlock.indexOf(startTag);
-  if (startIdx === -1) return undefined;
-
-  const endIdx = lowerBlock.indexOf(endTag, startIdx + startTag.length);
-  if (endIdx === -1) return undefined;
-
-  return block.slice(startIdx + startTag.length, endIdx).trim();
 }
 
 /** Slugs that do NOT represent service disruptions and must be excluded. */
