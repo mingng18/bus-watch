@@ -184,6 +184,8 @@ private struct TripStopRow: View {
                 Text(stop.arrivalTime)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
+                    .contentTransition(.numericText())
+                    .animation(.default, value: stop.arrivalTime)
             }
         }
         .accessibilityElement(children: .ignore)
