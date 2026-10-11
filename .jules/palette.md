@@ -99,6 +99,9 @@
 ## 2024-09-26 - WatchOS Complication Sizing
 **Learning:** Hardcoding WidgetFamily inside StaticConfiguration (e.g., countdownView(for: .accessoryRectangular)) forces all complication sizes to render the same layout, breaking visuals on non-matching faces.
 **Action:** Always create a dedicated entry view that reads @Environment(\.widgetFamily) to dynamically render the appropriate layout.
-## 2025-03-03 - Avoid Typographical Symbols in Notification Content
-**Learning:** VoiceOver interprets typographical symbols literally (e.g., reading "→" as "Right arrow") in raw strings, but iOS notifications (`UNNotificationContent.body`) don't support custom `.accessibilityLabel` overrides. Using symbols here results in un-overrideable, poor screen reader phrasing.
-**Action:** Always replace typographical symbols with plain English words (e.g., "to") in `UNNotificationContent` body strings to ensure grammatical correctness for VoiceOver riders without degrading sighted user experience.
+## 2025-03-02 - Plain English for VoiceOver in Notifications
+**Learning:** VoiceOver interprets typographical symbols literally (e.g., reading "→" as "Right arrow"). While UI views can use `.accessibilityLabel` to override this, raw strings like `UNNotificationContent.body` cannot.
+**Action:** In contexts without accessibility overrides, avoid typographical symbols entirely and use plain English words (like "to") for correct screen reader phrasing.
+## 2025-03-03 - Visual indicators for disabled constraints
+**Learning:** Artificially disabling buttons causes friction, but buttons legitimately disabled due to domain constraints (like unsupported data types) cause confusion for sighted users if they lack visual explanation (even if VoiceOver has an `accessibilityHint`).
+**Action:** When legitimately disabling a list item due to constraints, pair the `.disabled()` state with an inline visual badge (e.g., "No live arrivals") alongside the `accessibilityHint` to clarify the reason to all users without removing the domain protection.
