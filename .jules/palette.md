@@ -102,6 +102,7 @@
 ## 2025-03-02 - Plain English for VoiceOver in Notifications
 **Learning:** VoiceOver interprets typographical symbols literally (e.g., reading "→" as "Right arrow"). While UI views can use `.accessibilityLabel` to override this, raw strings like `UNNotificationContent.body` cannot.
 **Action:** In contexts without accessibility overrides, avoid typographical symbols entirely and use plain English words (like "to") for correct screen reader phrasing.
+
 ## 2025-02-12 - Expanded Labels for Status Abbreviations
 **Learning:** In SwiftUI, using raw text abbreviations (like "sched") for domain-specific data states is hard to parse visually and lacks polish.
 **Action:** Always avoid raw text abbreviations. Use `Label` components with expanded text and standard SF Symbols (e.g., 'clock' for scheduled times) to improve visual comprehension and accessibility without taking up much more space. If embedding in strings, prefer `Text` interpolation with `Image(systemName:)`.
