@@ -13723,6 +13723,8 @@ function extractUrlEntries(xml) {
   const entries = [];
   const startRe = /<url\b[^>]*>/gi;
   const endRe = /<\/url>/gi;
+  const locRe = /<loc>([\s\S]*?)<\/loc>/i;
+  const lastmodRe = /<lastmod>([\s\S]*?)<\/lastmod>/i;
   let m;
   while ((m = startRe.exec(xml)) !== null) {
     endRe.lastIndex = startRe.lastIndex;
@@ -13730,27 +13732,19 @@ function extractUrlEntries(xml) {
     if (!endMatch) {
       break;
     }
-    const block = xml.slice(startRe.lastIndex, endMatch.index);
+    const block = xml.substring(startRe.lastIndex, endMatch.index);
     startRe.lastIndex = endRe.lastIndex;
-    const loc = extractTagContent(block, "loc");
-    if (!loc) continue;
-    const lastmod = extractTagContent(block, "lastmod");
-    entries.push({ loc, lastmod: lastmod || null });
+    const locMatch = locRe.exec(block);
+    if (!locMatch) continue;
+    const lastmodMatch = lastmodRe.exec(block);
+    entries.push({
+      loc: locMatch[1].trim(),
+      lastmod: lastmodMatch ? lastmodMatch[1].trim() : null
+    });
   }
   return entries;
 }
 __name(extractUrlEntries, "extractUrlEntries");
-function extractTagContent(block, tag) {
-  const lowerBlock = block.toLowerCase();
-  const startTag = `<${tag}>`;
-  const endTag = `</${tag}>`;
-  const startIdx = lowerBlock.indexOf(startTag);
-  if (startIdx === -1) return void 0;
-  const endIdx = lowerBlock.indexOf(endTag, startIdx + startTag.length);
-  if (endIdx === -1) return void 0;
-  return block.slice(startIdx + startTag.length, endIdx).trim();
-}
-__name(extractTagContent, "extractTagContent");
 var NON_DISRUPTION_SLUGS = [
   "malaysian-philharmonic",
   "mrt-"
