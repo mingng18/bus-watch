@@ -58,15 +58,22 @@ export function parseCsv(text: string): Record<string, string>[] {
 }
 
 function parseLine(line: string): string[] {
+  // perf: Fast-path for unquoted lines using split, avoiding manual iteration
+  if (line.indexOf('"') === -1) {
+    return line.split(',');
+  }
+
   const fields: string[] = [];
   let current = '';
   let inQuotes = false;
   let start = 0;
+  const len = line.length;
 
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (ch === '"') {
-      if (inQuotes && i + 1 < line.length && line[i + 1] === '"') {
+  for (let i = 0; i < len; i++) {
+    // perf: Use charCodeAt instead of string indexing for faster integer comparisons
+    const code = line.charCodeAt(i);
+    if (code === 34) { // '"'
+      if (inQuotes && i + 1 < len && line.charCodeAt(i + 1) === 34) {
         current += line.substring(start, i) + '"';
         i++;
         start = i + 1;
@@ -75,7 +82,7 @@ function parseLine(line: string): string[] {
         inQuotes = !inQuotes;
         start = i + 1;
       }
-    } else if (ch === ',' && !inQuotes) {
+    } else if (code === 44 && !inQuotes) { // ','
       current += line.substring(start, i);
       fields.push(current);
       current = '';
