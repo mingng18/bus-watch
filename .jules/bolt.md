@@ -154,6 +154,6 @@
 **Learning:** In hot loops processing character-by-character parsing (like GTFS CSV parsing in `parseLine`), using standard string indexing (`line[i] === '"'`) forces the engine to perform string comparisons and occasionally allocate single-character strings. Furthermore, applying a complex manual parsing loop to every line ignores the fact that many lines in GTFS static files do not contain quoted fields at all.
 **Action:** When writing manual string parsers, replace string indexing with `.charCodeAt(i)` to perform fast integer comparisons (e.g., `code === 34` for `"`). Additionally, implement a fast-path for unquoted lines using `if (line.indexOf('"') === -1) return line.split(',');` to offload parsing of simple lines to heavily optimized native C++ V8 engine routines.
 
-## 2026-10-11 - Avoid Array.prototype.find() closure overhead in hot endpoints
+## 2026-10-12 - Avoid Array.prototype.find() closure overhead in hot endpoints
 **Learning:** Using `Array.prototype.find()` with an inline lambda creates unnecessary closure allocations and function execution overhead. In heavily hit endpoints iterating over large data arrays (like finding a specific stop among thousands), a standard `for` loop is significantly faster.
 **Action:** Replace `Array.prototype.find()` with a standard manual `for` loop when searching for a single item in large static arrays within hot request paths.
