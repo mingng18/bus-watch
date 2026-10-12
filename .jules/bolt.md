@@ -154,6 +154,6 @@
 **Learning:** In hot loops processing character-by-character parsing (like GTFS CSV parsing in `parseLine`), using standard string indexing (`line[i] === '"'`) forces the engine to perform string comparisons and occasionally allocate single-character strings. Furthermore, applying a complex manual parsing loop to every line ignores the fact that many lines in GTFS static files do not contain quoted fields at all.
 **Action:** When writing manual string parsers, replace string indexing with `.charCodeAt(i)` to perform fast integer comparisons (e.g., `code === 34` for `"`). Additionally, implement a fast-path for unquoted lines using `if (line.indexOf('"') === -1) return line.split(',');` to offload parsing of simple lines to heavily optimized native C++ V8 engine routines.
 
-## 2026-10-11 - [Refactoring] 🧪 Extracting KV Caching Logic
+## 2026-10-12 - [Refactoring] 🧪 Extracting KV Caching Logic
 **Learning:** When refactoring a large Cloudflare Worker file (like `index.ts`), extracting module-scoped variables (like `let cachedStopsPromise: ...`) into a separate module (e.g., `kv.ts`) perfectly preserves their state across warm invocations. The Node.js/V8 module system inherently ensures these variables act as singletons per isolate, keeping caching logic intact without needing complex dependency injection.
 **Action:** Extracted 160 lines of KV data helpers and their associated module-scoped cache maps from `index.ts` to `kv.ts` to improve file length and code readability.
