@@ -135,6 +135,7 @@ struct StationArrivalsView: View {
                         Label(scheduledReminderId == nil ? "Set alert" : "Alert set",
                               systemImage: scheduledReminderId == nil ? "bell" : "bell.badge.fill")
                             .font(.caption)
+                        .symbolEffect(.bounce, value: scheduledReminderId != nil)
                     }
                 }
                 .buttonStyle(.bordered)
@@ -199,6 +200,7 @@ struct StationArrivalsView: View {
                           systemImage: favorites.contains(stop.id) ? "star.fill" : "star")
                         .font(.caption)
                         .foregroundStyle(favorites.contains(stop.id) ? .yellow : .secondary)
+                    .symbolEffect(.bounce, value: favorites.contains(stop.id))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Favorite")
@@ -212,6 +214,7 @@ struct StationArrivalsView: View {
                           systemImage: favorites.isHome(stop.id) ? "house.fill" : "house")
                         .font(.caption)
                         .foregroundStyle(favorites.isHome(stop.id) ? .yellow : .secondary)
+                    .symbolEffect(.bounce, value: favorites.isHome(stop.id))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(favorites.isHome(stop.id) ? "Home" : "Set Home")
