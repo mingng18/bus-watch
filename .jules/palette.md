@@ -1,3 +1,7 @@
+## 2024-08-30 - Add loading state to async list interactions
+**Learning:** In SwiftUI, `Button` actions that trigger async operations (like network fetches for detailed views) without transitioning to a loading state leave the user looking at a static screen, wondering if their tap was registered.
+**Action:** When transitioning between major states via async network calls (e.g. tapping a bus stop to load its schedule), explicitly set the app state to `.loading(message)` immediately before the `await` to provide instant visual feedback.
+
 ## 2024-06-14 - Add accessibility label to icon-only button
 **Learning:** In SwiftUI, icon-only toolbar buttons using `Image(systemName:)` do not automatically receive an accessible label and must be explicitly tagged with `.accessibilityLabel()`.
 **Action:** Always add `.accessibilityLabel` to icon-only buttons to ensure VoiceOver users can understand their purpose.
@@ -105,6 +109,9 @@
 ## 2024-10-04 - Clarify disabled state and constraints in manual picker
 **Learning:** Do not conflate business-logic restrictions (disabling bus stops in manual picker) with artificial UI friction or contradict app purpose by claiming 'No live arrivals' for buses.
 **Action:** Enhance legitimately disabled list items with clear visual badges (e.g., 'Rail only') and accurate accessibility hints ('Manual selection is for rail stations only') instead of confusing copy.
-## 2025-02-12 - Expose active offline states with contrasting icons
-**Learning:** In SwiftUI, banner items conveying disconnected/offline status often blend in with normal text if they use default `.secondary` or simple `.orange` styling. Sighted users might mistake it for a schedule remark rather than an active warning that times might be inaccurate.
-**Action:** When displaying an offline banner, use `Label` with a distinct `wifi.exclamationmark` or `wifi.slash` and give it a prominent contrasting color (like `.red` or `.orange` combined with `.bold()`) so it's impossible to miss visually.
+## 2025-02-12 - Add delightful bounce animations to interactive toggles
+**Learning:** Adding `.symbolEffect(.bounce, value: stateVariable)` to SwiftUI `Label`s provides immediate, satisfying visual feedback for state changes, enhancing the perceived responsiveness of the application.
+**Action:** Apply this pattern to interactive icon buttons (like toggles) where appropriate to improve the user experience.
+## 2025-02-12 - Empty states for Lists should not have list style backgrounds
+**Learning:** In SwiftUI, `List` sections automatically apply a rounded card-like background to their items. If an empty state placeholder like a plain text message is placed inside a `Section`, it will render weirdly inside one of these detached cards.
+**Action:** When creating text-only placeholders or simple empty state icons inside a SwiftUI `List` `Section`, always append `.listRowBackground(Color.clear)` to remove the default card styling.
