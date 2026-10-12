@@ -1,3 +1,7 @@
+## 2024-08-30 - Add loading state to async list interactions
+**Learning:** In SwiftUI, `Button` actions that trigger async operations (like network fetches for detailed views) without transitioning to a loading state leave the user looking at a static screen, wondering if their tap was registered.
+**Action:** When transitioning between major states via async network calls (e.g. tapping a bus stop to load its schedule), explicitly set the app state to `.loading(message)` immediately before the `await` to provide instant visual feedback.
+
 ## 2024-06-14 - Add accessibility label to icon-only button
 **Learning:** In SwiftUI, icon-only toolbar buttons using `Image(systemName:)` do not automatically receive an accessible label and must be explicitly tagged with `.accessibilityLabel()`.
 **Action:** Always add `.accessibilityLabel` to icon-only buttons to ensure VoiceOver users can understand their purpose.
@@ -105,6 +109,3 @@
 ## 2024-10-04 - Clarify disabled state and constraints in manual picker
 **Learning:** Do not conflate business-logic restrictions (disabling bus stops in manual picker) with artificial UI friction or contradict app purpose by claiming 'No live arrivals' for buses.
 **Action:** Enhance legitimately disabled list items with clear visual badges (e.g., 'Rail only') and accurate accessibility hints ('Manual selection is for rail stations only') instead of confusing copy.
-## 2024-05-24 - Contextual Disabled States
-**Learning:** Tappable items in lists that are legitimately disabled based on domain constraints (e.g., a manual picker that only supports rail stations) but only rely on visual dimming can leave users confused about why they are inactive.
-**Action:** Always add an inline visual badge (e.g., `Text("Rail only")`) alongside the descriptive `.accessibilityHint` to clarify exactly why the item is unselectable, rather than removing the `.disabled()` state entirely or making blanket assumptions about data states.
