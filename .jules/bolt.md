@@ -153,6 +153,7 @@
 ## 2025-05-25 - Optimize CSV parsing with charCodeAt and unquoted fast-path
 **Learning:** In hot loops processing character-by-character parsing (like GTFS CSV parsing in `parseLine`), using standard string indexing (`line[i] === '"'`) forces the engine to perform string comparisons and occasionally allocate single-character strings. Furthermore, applying a complex manual parsing loop to every line ignores the fact that many lines in GTFS static files do not contain quoted fields at all.
 **Action:** When writing manual string parsers, replace string indexing with `.charCodeAt(i)` to perform fast integer comparisons (e.g., `code === 34` for `"`). Additionally, implement a fast-path for unquoted lines using `if (line.indexOf('"') === -1) return line.split(',');` to offload parsing of simple lines to heavily optimized native C++ V8 engine routines.
+
 ## 2025-03-01 - Avoid flat() intermediate array allocation
 **Learning:** Chaining `.flat()` creates unnecessary intermediate array allocations, taking double the time of using `.flatMap()`.
 **Action:** Replaced `.flat()` with `.flatMap(r => r || [])` in `backend/src/index.ts` to perform flattening without extra overhead.
