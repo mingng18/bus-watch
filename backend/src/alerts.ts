@@ -145,6 +145,7 @@ function extractUrlEntries(xml: string): SitemapEntry[] {
   const lowerXml = xml.toLowerCase();
   let searchIdx = 0;
 
+
   while (true) {
     // Some sitemaps might have attributes like <url ...> but `indexOf` looks for exactly `<url>`.
     // The previous implementation used `/<url\b[^>]*>/gi` which handles attributes.
@@ -189,6 +190,7 @@ function extractUrlEntries(xml: string): SitemapEntry[] {
     }
 
     entries.push({ loc, lastmod });
+
   }
 
   return entries;
