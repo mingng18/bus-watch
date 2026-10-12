@@ -157,3 +157,7 @@
 ## 2024-10-04 - Avoid Array.prototype.find() in hot paths
 **Learning:** Using `Array.prototype.find()` with inline arrow functions creates closure allocation and garbage collection overhead, especially in hot paths.
 **Action:** Replace `Array.prototype.find()` with inline arrow functions with standard `for` loops to prevent continuous memory allocation and garbage collection overhead.
+
+## 2024-10-04 - Avoid Array.prototype.find() in hot paths
+**Learning:** Using `Array.prototype.find()` with inline arrow functions creates closure allocation and garbage collection overhead, especially in hot paths.
+**Action:** Replace `Array.prototype.find()` with inline arrow functions with standard `for` loops to prevent continuous memory allocation and garbage collection overhead.
