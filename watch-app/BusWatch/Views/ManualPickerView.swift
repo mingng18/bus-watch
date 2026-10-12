@@ -101,7 +101,7 @@ struct ManualPickerView: View {
         .accessibilityLabel(stopRowLabel(stop))
         .accessibilityHint(stop.type == "rail"
                            ? "Shows arrivals for this station."
-                           : "Bus stop. No live arrivals.")
+                           : "Bus stop. Manual selection is for rail stations only.")
         .swipeActions(edge: .leading, allowsFullSwipe: true) {
             if AppFeatureFlags.favoritesAndHome, let favorites {
                 Button {
