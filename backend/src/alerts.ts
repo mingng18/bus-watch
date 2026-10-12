@@ -144,7 +144,7 @@ function extractUrlEntries(xml: string): SitemapEntry[] {
   const entries: SitemapEntry[] = [];
 
   // perf: Convert the entire document to lowercase once outside the loop
-  // and use manual indexOf searches to avoid Regex allocation and repeated .slice() calls.
+  // and use manual indexOf searches to avoid Regex allocation and repeated .substring() calls.
   const lowerXml = xml.toLowerCase();
 
   const startTag = '<url';
