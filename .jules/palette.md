@@ -1,3 +1,7 @@
+## 2024-08-30 - Add loading state to async list interactions
+**Learning:** In SwiftUI, `Button` actions that trigger async operations (like network fetches for detailed views) without transitioning to a loading state leave the user looking at a static screen, wondering if their tap was registered.
+**Action:** When transitioning between major states via async network calls (e.g. tapping a bus stop to load its schedule), explicitly set the app state to `.loading(message)` immediately before the `await` to provide instant visual feedback.
+
 ## 2024-06-14 - Add accessibility label to icon-only button
 **Learning:** In SwiftUI, icon-only toolbar buttons using `Image(systemName:)` do not automatically receive an accessible label and must be explicitly tagged with `.accessibilityLabel()`.
 **Action:** Always add `.accessibilityLabel` to icon-only buttons to ensure VoiceOver users can understand their purpose.
