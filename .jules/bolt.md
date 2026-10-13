@@ -157,7 +157,3 @@
 ## 2024-05-18 - [Testing] 🧪 Direct testing of validateLatLon
 **Learning:** Testing functions that validate input internally within an endpoint is better done with direct unit tests than via full request tests, requiring the function to be exported. Direct unit tests cover more edge cases precisely without requiring mocking the entire `fetch` routing and environment.
 **Action:** Exported the `validateLatLon` function and tested it directly in `backend/test/index.test.ts`.
-
-## 2024-05-18 - [Testing] 🧪 Direct testing of validateLatLon
-**Learning:** Testing functions that validate input internally within an endpoint is better done with direct unit tests than via full request tests, requiring the function to be exported. Direct unit tests cover more edge cases precisely without requiring mocking the entire `fetch` routing and environment.
-**Action:** Exported the `validateLatLon` function and tested it directly in `backend/test/index.test.ts`.
