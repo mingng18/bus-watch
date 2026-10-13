@@ -13,7 +13,6 @@ struct MainView: View {
                 ProgressView(message)
                     .accessibilityLabel("Locating nearby stops")
                     .accessibilityHidden(false)
-
             case .noLocation:
                 noLocationView
             case .station(let stop, let schedule, let isOffline):
