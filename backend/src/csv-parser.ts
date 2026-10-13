@@ -9,7 +9,11 @@ export function parseCsv(text: string): Record<string, string>[] {
   if (!trimmed) return [];
 
   const lines = trimmed.split('\n');
-  const headers = parseLine(lines[0]).map(h => h.trim());
+  const firstLineParts = parseLine(lines[0]);
+  const headers = new Array(firstLineParts.length);
+  for (let i = 0; i < firstLineParts.length; i++) {
+    headers[i] = firstLineParts[i].trim();
+  }
   const rows: Record<string, string>[] = [];
   const headerLen = headers.length;
 
