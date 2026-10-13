@@ -87,12 +87,13 @@ struct ManualPickerView: View {
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 } else {
-                    Text("No live arrivals")
+                    Text("Rail only")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 4)
-                        .background(Color.secondary.opacity(0.2))
-                        .cornerRadius(4)
+                        .padding(.vertical, 2)
+                        .background(.quaternary)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
                 }
             }
         }

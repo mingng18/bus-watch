@@ -112,6 +112,3 @@
 ## 2025-02-12 - Add delightful bounce animations to interactive toggles
 **Learning:** Adding `.symbolEffect(.bounce, value: stateVariable)` to SwiftUI `Label`s provides immediate, satisfying visual feedback for state changes, enhancing the perceived responsiveness of the application.
 **Action:** Apply this pattern to interactive icon buttons (like toggles) where appropriate to improve the user experience.
-## 2025-03-02 - Visual Indicators for Disabled States
-**Learning:** Conditionally disabled list items that only dim out without context can confuse users as to why they are unselectable, even if they have an accessibilityHint.
-**Action:** When legitimately disabling a button due to underlying constraints (e.g., missing live data), maintain the .disabled() modifier but add a clear inline visual badge (e.g., Text("No live arrivals")) to visually clarify the restriction to sighted users.
