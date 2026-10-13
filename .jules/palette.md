@@ -106,9 +106,15 @@
 ## 2025-03-02 - Plain English for VoiceOver in Notifications
 **Learning:** VoiceOver interprets typographical symbols literally (e.g., reading "→" as "Right arrow"). While UI views can use `.accessibilityLabel` to override this, raw strings like `UNNotificationContent.body` cannot.
 **Action:** In contexts without accessibility overrides, avoid typographical symbols entirely and use plain English words (like "to") for correct screen reader phrasing.
+<<<<<<< HEAD
+## 2025-03-09 - Clarify Disabled States with Badges
+**Learning:** Artificially disabling buttons (or disabling them for domain constraints) without clear visual indicators leads to user confusion. Additionally, providing misleading VoiceOver hints (like "No live arrivals" for a bus in a transit app) creates mistrust.
+**Action:** When a list row is disabled due to underlying domain constraints, provide an inline visual badge (like `Text("Nearby only")`) rather than removing the disabled state, and ensure the `.accessibilityHint` strictly matches the domain constraint (e.g. "Must be selected from the nearby list").
+=======
 ## 2024-10-04 - Clarify disabled state and constraints in manual picker
 **Learning:** Do not conflate business-logic restrictions (disabling bus stops in manual picker) with artificial UI friction or contradict app purpose by claiming 'No live arrivals' for buses.
 **Action:** Enhance legitimately disabled list items with clear visual badges (e.g., 'Rail only') and accurate accessibility hints ('Manual selection is for rail stations only') instead of confusing copy.
 ## 2025-02-12 - Add delightful bounce animations to interactive toggles
 **Learning:** Adding `.symbolEffect(.bounce, value: stateVariable)` to SwiftUI `Label`s provides immediate, satisfying visual feedback for state changes, enhancing the perceived responsiveness of the application.
 **Action:** Apply this pattern to interactive icon buttons (like toggles) where appropriate to improve the user experience.
+>>>>>>> origin/master
