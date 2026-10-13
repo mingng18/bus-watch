@@ -13993,7 +13993,10 @@ app.get("/nearby", async (c) => {
 app.get("/bus/trip/:tripId/progress", async (c) => {
   const tripId = c.req.param("tripId");
   try {
-    const vehicles = await getRealtimeVehicles(c.env.KV);
+    const [vehicles, allTripStops] = await Promise.all([
+      getRealtimeVehicles(c.env.KV),
+      getAllTripStops(c.env.KV)
+    ]);
     let vehicle = null;
     for (let i2 = 0, len = vehicles.length; i2 < len; i2++) {
       if (vehicles[i2].tripId === tripId) {
@@ -14001,7 +14004,6 @@ app.get("/bus/trip/:tripId/progress", async (c) => {
         break;
       }
     }
-    const allTripStops = await getAllTripStops(c.env.KV);
     const { map: routeMap } = await getRoutesMaps(c.env.KV);
     const result = getBusTripProgress(tripId, routeMap, allTripStops, vehicle);
     return c.json(result);
@@ -14478,14 +14480,16 @@ async function getPrasaranaBuses(kv) {
 }
 __name(getPrasaranaBuses, "getPrasaranaBuses");
 function mergeBusRoutes(gtfsRoutes, prasaranaRoutes) {
-  const seen = /* @__PURE__ */ new Set();
+  const seen = /* @__PURE__ */ Object.create(null);
   const merged = [];
-  for (const r of gtfsRoutes) {
-    seen.add(r.routeShortName);
+  for (let i2 = 0; i2 < gtfsRoutes.length; i2++) {
+    const r = gtfsRoutes[i2];
+    seen[r.routeShortName] = true;
     merged.push(r);
   }
-  for (const r of prasaranaRoutes) {
-    if (!seen.has(r.routeShortName)) {
+  for (let i2 = 0; i2 < prasaranaRoutes.length; i2++) {
+    const r = prasaranaRoutes[i2];
+    if (seen[r.routeShortName] !== true) {
       merged.push(r);
     }
   }
@@ -14565,7 +14569,8 @@ var index_default = {
   }, "scheduled")
 };
 export {
-  index_default as default
+  index_default as default,
+  mergeBusRoutes
 };
 /*! Bundled license information:
 

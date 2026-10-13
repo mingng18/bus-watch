@@ -225,7 +225,10 @@ app.get('/nearby', async (c) => {
 app.get('/bus/trip/:tripId/progress', async (c) => {
   const tripId = c.req.param('tripId');
   try {
-    const vehicles = await getRealtimeVehicles(c.env.KV);
+    const [vehicles, allTripStops] = await Promise.all([
+      getRealtimeVehicles(c.env.KV),
+      getAllTripStops(c.env.KV)
+    ]);
     // Optimization: Prevent lambda allocation in hot path
     let vehicle = null;
     for (let i = 0, len = vehicles.length; i < len; i++) {
@@ -234,7 +237,6 @@ app.get('/bus/trip/:tripId/progress', async (c) => {
         break;
       }
     }
-    const allTripStops = await getAllTripStops(c.env.KV);
     const { map: routeMap } = await getRoutesMaps(c.env.KV);
     const result = getBusTripProgress(tripId, routeMap, allTripStops, vehicle);
     return c.json(result);
@@ -797,16 +799,18 @@ async function getPrasaranaBuses(kv: KVNamespace): Promise<{ buses: PrasaranaBus
   }
 }
 
-function mergeBusRoutes(gtfsRoutes: BusRouteEntry[], prasaranaRoutes: BusRouteEntry[]): BusRouteEntry[] {
-  const seen = new Set<string>();
+export function mergeBusRoutes(gtfsRoutes: BusRouteEntry[], prasaranaRoutes: BusRouteEntry[]): BusRouteEntry[] {
+  const seen = Object.create(null) as Record<string, boolean>;
   const merged: BusRouteEntry[] = [];
 
-  for (const r of gtfsRoutes) {
-    seen.add(r.routeShortName);
+  for (let i = 0; i < gtfsRoutes.length; i++) {
+    const r = gtfsRoutes[i];
+    seen[r.routeShortName] = true;
     merged.push(r);
   }
-  for (const r of prasaranaRoutes) {
-    if (!seen.has(r.routeShortName)) {
+  for (let i = 0; i < prasaranaRoutes.length; i++) {
+    const r = prasaranaRoutes[i];
+    if (seen[r.routeShortName] !== true) {
       merged.push(r);
     }
   }
