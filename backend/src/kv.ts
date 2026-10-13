@@ -151,15 +151,17 @@ export async function getPrasaranaBuses(kv: KVNamespace): Promise<{ buses: Prasa
 }
 
 export function mergeBusRoutes(gtfsRoutes: BusRouteEntry[], prasaranaRoutes: BusRouteEntry[]): BusRouteEntry[] {
-  const seen = new Set<string>();
+  const seen = Object.create(null) as Record<string, boolean>;
   const merged: BusRouteEntry[] = [];
 
-  for (const r of gtfsRoutes) {
-    seen.add(r.routeShortName);
+  for (let i = 0; i < gtfsRoutes.length; i++) {
+    const r = gtfsRoutes[i];
+    seen[r.routeShortName] = true;
     merged.push(r);
   }
-  for (const r of prasaranaRoutes) {
-    if (!seen.has(r.routeShortName)) {
+  for (let i = 0; i < prasaranaRoutes.length; i++) {
+    const r = prasaranaRoutes[i];
+    if (seen[r.routeShortName] !== true) {
       merged.push(r);
     }
   }
