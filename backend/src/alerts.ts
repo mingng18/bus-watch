@@ -177,7 +177,7 @@ function extractUrlEntries(xml: string): SitemapEntry[] {
     const blockStart = lowerXml.indexOf('>', startIdx + 4) + 1;
     if (blockStart === 0) break; // malformed tag, missing >
 
-    const endIdx = lowerXml.indexOf(endTag, blockStart);
+    const endIdx = lowerXml.indexOf(endTag, startIdx);
     if (endIdx === -1) break;
 
     // Find loc
