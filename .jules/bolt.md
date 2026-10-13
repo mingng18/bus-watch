@@ -154,6 +154,6 @@
 **Learning:** In hot loops processing character-by-character parsing (like GTFS CSV parsing in `parseLine`), using standard string indexing (`line[i] === '"'`) forces the engine to perform string comparisons and occasionally allocate single-character strings. Furthermore, applying a complex manual parsing loop to every line ignores the fact that many lines in GTFS static files do not contain quoted fields at all.
 **Action:** When writing manual string parsers, replace string indexing with `.charCodeAt(i)` to perform fast integer comparisons (e.g., `code === 34` for `"`). Additionally, implement a fast-path for unquoted lines using `if (line.indexOf('"') === -1) return line.split(',');` to offload parsing of simple lines to heavily optimized native C++ V8 engine routines.
 
-## 2024-09-25 - Avoid Regex extraction loops for large XML parsing
-**Learning:** Using `RegExp.exec()` combined with `.slice()` and `.toLowerCase()` inside a loop to extract data from a large string (like a 50k+ node XML sitemap) causes massive intermediate string allocations and severe garbage collection pressure.
-**Action:** Convert the entire document to lowercase once outside the loop and use manual `indexOf` bounds searching instead of Regex to locate nodes, which reduced processing time by ~45%.
+## 2024-05-30 - Replace Regex XML parsing with bounds search
+**Learning:** In hot loops parsing large text files (like XML sitemaps with 50,000+ items), using `RegExp.exec` combined with per-chunk string methods like `.slice()` or `.toLowerCase()` inside the loop causes massive, unnecessary GC pressure due to repeated intermediate allocations.
+**Action:** When extracting data from large structured text docs without a dedicated parser, convert the entire string once (`.toLowerCase()`) and use precise manual `indexOf` bounds searching combined with boundary `charCodeAt` checks instead of regex.
