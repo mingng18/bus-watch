@@ -56,12 +56,19 @@ struct BusProgressView: View {
                 HStack {
                     Spacer()
                     let remaining = progress.stops.filter { !$0.passed }.count
-                    Text("\(remaining) stop\(remaining == 1 ? "" : "s") remaining")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .contentTransition(.numericText())
-                        .animation(.default, value: remaining)
-                        .accessibilityLabel(remaining == 1 ? "1 stop remaining" : "\(remaining) stops remaining")
+                    if remaining == 0 {
+                        Text("Arrived at final destination")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .accessibilityLabel("Arrived at final destination")
+                    } else {
+                        Text("\(remaining) stop\(remaining == 1 ? "" : "s") remaining")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .contentTransition(.numericText())
+                            .animation(.default, value: remaining)
+                            .accessibilityLabel(remaining == 1 ? "1 stop remaining" : "\(remaining) stops remaining")
+                    }
                 }
             }
             .padding()
