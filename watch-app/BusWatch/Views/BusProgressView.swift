@@ -160,7 +160,7 @@ private struct TripStopRow: View {
                     .foregroundStyle(.green)
             } else if stop.passed {
                 Circle()
-                    .fill(Color.gray)
+                    .fill(Color.secondary.opacity(0.5))
                     .frame(width: 8, height: 8)
             } else {
                 Circle()
