@@ -122,7 +122,6 @@
 ## 2024-10-24 - Optimize array allocations when processing raw GTFS sets
 **Learning:** Chaining `.filter().map()` inside array to `Set` instantiations in data ingest paths (like `rail-ingest.ts`) causes the engine to allocate intermediate array structures. A standard `for` loop pushing directly to the `Set` reduces execution time and garbage collection pressure on large datasets.
 **Action:** Replace functional `.filter().map()` chains with standard `for` loops when instantiating `Set` objects from large arrays.
-
 ## 2024-09-12 - String Sorting Optimization
 **Learning:** Using `String.prototype.localeCompare` to sort strictly formatted ASCII strings (like "HH:MM:SS") applies complex I18N collation rules that add noticeable performance overhead.
 **Action:** Use simple lexicographical comparison operators (`a < b ? -1 : a > b ? 1 : 0`) for much faster sorting when dealing with strictly formatted time strings.
@@ -141,7 +140,6 @@
 ## 2025-05-24 - Pre-allocate arrays for map transformations in nearby stops
 **Learning:** In hot loops parsing array data (like processing nearby stops), using `Array.prototype.map()` creates array allocation overhead and closure allocations which can be slow down API response.
 **Action:** When transforming arrays in hot paths (like in `/nearby` processing), prefer a standard `for` loop pushing to or mutating a pre-allocated array `new Array(length)` to avoid `Array.prototype.map()` and closure allocation overhead.
-
 ## 2024-05-14 - Optimizing array methods over large datasets
 **Learning:** In hot loops dealing with large datasets (like `aggregateTravelTimes` handling historical bus positions or aggregated results), chained or standalone array methods like `.filter()` and `.map()` introduce significant overhead from intermediate array allocations and closure executions.
 **Action:** Replace these methods with pre-allocated manual `for` loops (e.g. `new Array(length)` followed by indexing and `.length` truncation). This pattern reduces memory pressure, GC overhead, and execution time by roughly 50-60%.
