@@ -202,6 +202,7 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
       arrivals: arrivals.slice(0, 3),
     };
   }
+
   return result;
 }
 
