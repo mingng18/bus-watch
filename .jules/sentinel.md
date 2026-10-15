@@ -101,8 +101,3 @@
 **Vulnerability:** HTTP Parameter Pollution (HPP) / Array DoS bypass in input validation because `c.req.query()` only validates the first parameter value.
 **Learning:** In Hono, `c.req.query()` only returns the first string value of a query parameter. When enforcing payload size limits, attackers can bypass checks by passing multiple values (e.g., `?foo=short&foo=looooooooooooong`), leading to DoS.
 **Prevention:** Always use `c.req.queries()` to retrieve the array and validate all elements when enforcing payload size limits.
-
-## 2025-02-23 - Strict Content Security Policy Headers
-**Vulnerability:** Weak or permissive `secureHeaders` configuration that does not prevent clickjacking or strictly control framing.
-**Learning:** Even when `defaultSrc: ["'none'"]` is used, the CSP should also explicitly enforce `frameAncestors: ["'none'"]` and headers like `xFrameOptions: 'DENY'` and `xContentTypeOptions: 'nosniff'` should be set in Hono middleware to prevent content sniffing and clickjacking, effectively securing a purely JSON API.
-**Prevention:** Always configure `secureHeaders` explicitly with both a restrictive CSP (including `frameAncestors`) and companion HTTP security headers.
