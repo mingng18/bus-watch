@@ -112,6 +112,6 @@
 ## 2025-02-12 - Add delightful bounce animations to interactive toggles
 **Learning:** Adding `.symbolEffect(.bounce, value: stateVariable)` to SwiftUI `Label`s provides immediate, satisfying visual feedback for state changes, enhancing the perceived responsiveness of the application.
 **Action:** Apply this pattern to interactive icon buttons (like toggles) where appropriate to improve the user experience.
-## 2025-02-12 - Empty states for Lists should not have list style backgrounds
-**Learning:** In SwiftUI, `List` sections automatically apply a rounded card-like background to their items. If an empty state placeholder like a plain text message is placed inside a `Section`, it will render weirdly inside one of these detached cards.
-**Action:** When creating text-only placeholders or simple empty state icons inside a SwiftUI `List` `Section`, always append `.listRowBackground(Color.clear)` to remove the default card styling.
+## 2025-02-12 - Expose active offline states with contrasting icons
+**Learning:** In SwiftUI, banner items conveying disconnected/offline status often blend in with normal text if they use default `.secondary` or simple `.orange` styling. Sighted users might mistake it for a schedule remark rather than an active warning that times might be inaccurate.
+**Action:** When displaying an offline banner, use `Label` with a distinct `wifi.exclamationmark` or `wifi.slash` and give it a prominent contrasting color (like `.red` or `.orange` combined with `.bold()`) so it's impossible to miss visually.

@@ -49,7 +49,6 @@ struct ManualPickerView: View {
                 } else {
                     ProgressView("Loading...")
                         .foregroundStyle(.secondary)
-                        .listRowBackground(Color.clear)
                 }
             }
         }
