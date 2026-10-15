@@ -112,6 +112,6 @@
 ## 2025-02-12 - Add delightful bounce animations to interactive toggles
 **Learning:** Adding `.symbolEffect(.bounce, value: stateVariable)` to SwiftUI `Label`s provides immediate, satisfying visual feedback for state changes, enhancing the perceived responsiveness of the application.
 **Action:** Apply this pattern to interactive icon buttons (like toggles) where appropriate to improve the user experience.
-## 2025-03-05 - Avoid confusing 0-count final states
-**Learning:** Hardcoding a static summary string for dynamic counts, like "\(count) stops remaining", leads to awkward final states (e.g. "0 stops remaining") when the count reaches zero.
-**Action:** Always provide an explicit branch (`if count == 0`) for empty/final states in dynamic counters to ensure the text remains meaningful and human-readable (e.g., "Arrived at final destination").
+## 2025-03-05 - Center standalone loading indicators
+**Learning:** A standalone `ProgressView` in a `List` or `Form` defaults to leading alignment, which looks visually imbalanced when acting as the sole content placeholder for an entire section.
+**Action:** Always wrap standalone loading indicators inside an `HStack` with leading and trailing `Spacer()`s, and apply `.listRowBackground(Color.clear)` to ensure they appear perfectly centered and visually harmonious within the list block.

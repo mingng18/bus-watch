@@ -47,8 +47,13 @@ struct ManualPickerView: View {
                         }
                     }
                 } else {
-                    ProgressView("Loading...")
-                        .foregroundStyle(.secondary)
+                    HStack {
+                        Spacer()
+                        ProgressView("Loading...")
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                    }
+                    .listRowBackground(Color.clear)
                 }
             }
         }
