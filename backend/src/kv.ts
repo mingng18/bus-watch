@@ -1,20 +1,19 @@
 import type { KVNamespace } from '@cloudflare/workers-types';
+import type { Route, Trip, VehiclePosition, BusRouteEntry, PrasaranaBus } from './types';
 import { fetchVehiclePositions } from './gtfs-realtime';
 // @ts-ignore
 import { fetchPrasaranaBuses } from './prasarana-socketio';
-import { VehiclePosition, PrasaranaBus, BusRouteEntry, Route, Trip } from './types';
 
 export const SELANGOR_AGENCIES = ['selangor-mobility']; // optional, may be unavailable
 export const REALTIME_AGENCIES = ['rapid-bus-kl', 'rapid-bus-mrtfeeder'];
 export const AGENCIES = [...REALTIME_AGENCIES, ...SELANGOR_AGENCIES];
-
 
 export async function getKvJson<T>(kv: KVNamespace, key: string): Promise<T> {
   const val = await kv.get(key, 'json');
   return val as T;
 }
 
-const CACHE_TTL_MS = 60000; // 1 minute TTL
+export const CACHE_TTL_MS = 60000; // 1 minute TTL
 
 let cachedStopsPromise: { promise: Promise<any[]>, expires: number } | null = null;
 export async function getAllStops(kv: KVNamespace) {
