@@ -41,6 +41,7 @@ struct StationArrivalsView: View {
                         Text("No upcoming departures")
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
                     }
                     .padding(.vertical, 4)
                 }
@@ -135,11 +136,11 @@ struct StationArrivalsView: View {
                         Label(scheduledReminderId == nil ? "Set alert" : "Alert set",
                               systemImage: scheduledReminderId == nil ? "bell" : "bell.badge.fill")
                             .font(.caption)
+                        .symbolEffect(.bounce, value: scheduledReminderId != nil)
                     }
                 }
                 .buttonStyle(.bordered)
                 .disabled(isSchedulingReminder)
-                .symbolEffect(.bounce, value: scheduledReminderId)
                 .accessibilityLabel(scheduledReminderId == nil ? "Set alert" : "Alert set")
                 .accessibilityValue(scheduledReminderId == nil ? "Off" : "On")
                 .accessibilityHint(reminderMinutes == 1 ? "Schedules a notification 1 minute before arrival." : "Schedules a notification \(reminderMinutes) minutes before arrival.")
@@ -200,9 +201,9 @@ struct StationArrivalsView: View {
                           systemImage: favorites.contains(stop.id) ? "star.fill" : "star")
                         .font(.caption)
                         .foregroundStyle(favorites.contains(stop.id) ? .yellow : .secondary)
+                    .symbolEffect(.bounce, value: favorites.contains(stop.id))
                 }
                 .buttonStyle(.plain)
-                .symbolEffect(.bounce, value: favorites.contains(stop.id))
                 .accessibilityLabel("Favorite")
                 .accessibilityValue(favorites.contains(stop.id) ? "On" : "Off")
                 .accessibilityHint("Saves this stop to your favorites.")
@@ -214,9 +215,9 @@ struct StationArrivalsView: View {
                           systemImage: favorites.isHome(stop.id) ? "house.fill" : "house")
                         .font(.caption)
                         .foregroundStyle(favorites.isHome(stop.id) ? .yellow : .secondary)
+                    .symbolEffect(.bounce, value: favorites.isHome(stop.id))
                 }
                 .buttonStyle(.plain)
-                .symbolEffect(.bounce, value: favorites.isHome(stop.id))
                 .accessibilityLabel(favorites.isHome(stop.id) ? "Home" : "Set Home")
                 .accessibilityValue(favorites.isHome(stop.id) ? "On" : "Off")
                 .accessibilityHint("Marks this stop as your home for quick access.")
