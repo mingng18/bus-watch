@@ -355,16 +355,16 @@ export function aggregateSamples(
     for (let i = 0; i < arr.length; i++) seconds[i] = arr[i].seconds;
     const cleaned = rejectOutliers(seconds);
 
-    const len = cleaned.length;
-    if (len === 0) continue;
+    const cleanedLen = cleaned.length;
+    if (cleanedLen === 0) continue;
 
     let sum = 0;
-    for (let i = 0; i < len; i++) sum += cleaned[i];
-    const avg = sum / len;
+    for (let i = 0; i < cleanedLen; i++) sum += cleaned[i];
+    const avg = sum / cleanedLen;
 
     let madSum = 0;
-    for (let i = 0; i < len; i++) madSum += Math.abs(cleaned[i] - avg);
-    const mad = madSum / len;
+    for (let i = 0; i < cleanedLen; i++) madSum += Math.abs(cleaned[i] - avg);
+    const mad = madSum / cleanedLen;
 
     const first = arr[0];
     out.push({
@@ -392,9 +392,7 @@ export function aggregateSamples(
  */
 function rejectOutliers(values: number[], threshold = 3): number[] {
   if (values.length <= 3) return values;
-
-  // Use Float64Array for fast contiguous mathematical sorting
-  const sorted = new Float64Array(values).sort();
+  const sorted = [...values].sort((a, b) => a - b);
   const median = sorted[Math.floor(sorted.length / 2)];
 
   // Performance optimization:
