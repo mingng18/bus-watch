@@ -157,7 +157,3 @@
 ## 2025-02-18 - Optimize GTFS Rail Ingestion Array Allocations
 **Learning:** During GTFS data ingestion (`rail-ingest.ts`), chaining `.filter().map()` arrays to extract required IDs (`railRouteIds`, `railTripIds`, `railStopIds`, etc.) from massive datasets (like `stops.txt`, `routes.txt`, `trips.txt`, `stop_times.txt` which can contain millions of rows) causes significant intermediate array allocations in memory.
 **Action:** Replace the chained array methods with standard `for...of` loops and pre-instantiated arrays (`any[]`) to parse and populate the required data in a single iteration. This minimizes memory consumption and reduces garbage collection pressure when executing within constrained Cloudflare Worker limits.
-
-## 2025-02-18 - Optimize Array Allocations in D1 Bindings
-**Learning:** During GTFS data ingestion (`rail-ingest.ts`), chaining `.filter().map()` arrays to extract required statement bindings from massive datasets (like `stops.txt`, `routes.txt`, `trips.txt`, `stop_times.txt` which can contain millions of rows) causes significant intermediate array allocations in memory.
-**Action:** Replace the chained array methods with standard `for...of` loops and pre-instantiated arrays (`any[]`) to populate D1PreparedStatement bindings in a single iteration. This minimizes memory consumption and reduces garbage collection pressure when executing within constrained Cloudflare Worker limits.
