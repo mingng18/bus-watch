@@ -27,7 +27,11 @@ const app = new Hono<{ Bindings: Env }>();
 app.use('*', secureHeaders({
   contentSecurityPolicy: {
     defaultSrc: ["'none'"],
+    frameAncestors: ["'none'"], // Prevent clickjacking
+    upgradeInsecureRequests: [],
   },
+  xFrameOptions: 'DENY',
+  xContentTypeOptions: 'nosniff',
 }));
 app.use('*', cors({ origin: (origin, c) => c.env.FRONTEND_URL ?? null }));
 
