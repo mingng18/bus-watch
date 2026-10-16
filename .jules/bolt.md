@@ -153,7 +153,3 @@
 ## 2025-05-25 - Optimize CSV parsing with charCodeAt and unquoted fast-path
 **Learning:** In hot loops processing character-by-character parsing (like GTFS CSV parsing in `parseLine`), using standard string indexing (`line[i] === '"'`) forces the engine to perform string comparisons and occasionally allocate single-character strings. Furthermore, applying a complex manual parsing loop to every line ignores the fact that many lines in GTFS static files do not contain quoted fields at all.
 **Action:** When writing manual string parsers, replace string indexing with `.charCodeAt(i)` to perform fast integer comparisons (e.g., `code === 34` for `"`). Additionally, implement a fast-path for unquoted lines using `if (line.indexOf('"') === -1) return line.split(',');` to offload parsing of simple lines to heavily optimized native C++ V8 engine routines.
-
-## 2026-10-18 - Pre-allocate arrays for simple map transformations
-**Learning:** In hot loops parsing raw data, using `Array.prototype.map()` creates array allocation overhead and closure allocations. Pre-allocating an array with `new Array(length)` and using a standard `for` loop provides a measurable performance boost (up to ~50% faster) compared to `Array.prototype.map()`.
-**Action:** When transforming arrays of raw data (like CSV headers), prefer a standard `for` loop pushing to or mutating a pre-allocated array `new Array(length)` to avoid `Array.prototype.map()` and closure allocation overhead.
