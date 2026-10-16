@@ -267,23 +267,21 @@ export function detectStopPassages(
   let stopIdx = 0;
   let lastPassageTs: number | null = null; // timestamp the previous stop was hit
   let lastPassageStop: TripStopEntry | null = null;
+  let targetBox = getBoundingBox(stops[0].lat, stops[0].lon, STOP_PASSAGE_RADIUS_M);
+
   for (const s of ordered) {
     // Only test against the next expected stop. This enforces in-order
     // passage and makes a far-ahead outlier unable to skip stops.
     const target = stops[stopIdx];
 
-    // Fast-fail bounding box check to avoid expensive haversine calculation.
-    // 1 degree latitude is approx 111,320m.
-    // 1 degree longitude shrinks away from the equator (distance ≈ 111,320m * cos(lat)).
-    // We derive the thresholds dynamically from STOP_PASSAGE_RADIUS_M to ensure safety if it changes.
-    // We use a generous 3x multiplier for longitude to safely cover up to ~70 degrees latitude.
-    // Note: This simple subtraction does not handle crossing the 180th meridian (dateline),
-    // but KL transit data is nowhere near it.
-    const latThreshold = STOP_PASSAGE_RADIUS_M / 111000;
-    const lonThreshold = (STOP_PASSAGE_RADIUS_M / 111000) * 3;
-    const latDiff = Math.abs(s.lat - target.lat);
-    const lonDiff = Math.abs(s.lon - target.lon);
-    if (latDiff > latThreshold || lonDiff > lonThreshold) continue;
+    if (
+      s.lat < targetBox.minLat ||
+      s.lat > targetBox.maxLat ||
+      s.lon < targetBox.minLon ||
+      s.lon > targetBox.maxLon
+    ) {
+      continue;
+    }
 
     const d = haversineDistance(s.lat, s.lon, target.lat, target.lon);
     if (d > STOP_PASSAGE_RADIUS_M) continue;
@@ -315,6 +313,7 @@ export function detectStopPassages(
     lastPassageStop = target;
     stopIdx++;
     if (stopIdx >= stops.length) break; // reached the terminus
+    targetBox = getBoundingBox(stops[stopIdx].lat, stops[stopIdx].lon, STOP_PASSAGE_RADIUS_M);
   }
 
   return results;
@@ -479,12 +478,21 @@ export async function aggregateTravelTimes(
     )
       .bind(since)
       .all<PositionSample>();
-    rows = (results || []).filter(
-      (r) =>
+    // perf: Avoid intermediate array allocation and closure overhead from .filter()
+    const rawResults = results || [];
+    rows = new Array(rawResults.length);
+    let validCount = 0;
+    for (let i = 0, len = rawResults.length; i < len; i++) {
+      const r = rawResults[i];
+      if (
         Number.isFinite(r.lat) &&
         Number.isFinite(r.lon) &&
-        Number.isFinite(r.timestamp),
-    );
+        Number.isFinite(r.timestamp)
+      ) {
+        rows[validCount++] = r;
+      }
+    }
+    rows.length = validCount;
   } catch (err) {
     console.error("aggregateTravelTimes: failed to read bus_positions:", err);
     return;
@@ -555,8 +563,11 @@ export async function aggregateTravelTimes(
          sample_count = travel_times.sample_count + excluded.sample_count,
          updated_at = excluded.updated_at`,
   );
-  const upsertStmts = aggregated.map((a) =>
-    travelTimesPrepStmt.bind(
+  // perf: Avoid intermediate array allocation and closure overhead from .map()
+  const upsertStmts = new Array(aggregated.length);
+  for (let i = 0, len = aggregated.length; i < len; i++) {
+    const a = aggregated[i];
+    upsertStmts[i] = travelTimesPrepStmt.bind(
       a.route,
       a.from_stop_id,
       a.to_stop_id,
@@ -570,8 +581,8 @@ export async function aggregateTravelTimes(
       a.day_of_week,
       a.time_bucket,
       a.spread_seconds,
-    ),
-  );
+    );
+  }
 
   // Chunk to stay under D1's per-batch limit.
   // We use bounded concurrency (e.g. 5 concurrent batches) to avoid overwhelming D1 limits
