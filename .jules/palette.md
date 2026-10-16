@@ -112,6 +112,6 @@
 ## 2025-02-12 - Add delightful bounce animations to interactive toggles
 **Learning:** Adding `.symbolEffect(.bounce, value: stateVariable)` to SwiftUI `Label`s provides immediate, satisfying visual feedback for state changes, enhancing the perceived responsiveness of the application.
 **Action:** Apply this pattern to interactive icon buttons (like toggles) where appropriate to improve the user experience.
-## 2025-03-05 - Subheaders require explicit accessibility traits
-**Learning:** In SwiftUI, secondary contextual text that acts as a subtitle or subheader (e.g. "Towards Destination" under the main stop name) is read as standard text by VoiceOver unless explicitly marked, making it harder for users navigating by headings to understand the full context.
-**Action:** Always append `.accessibilityAddTraits(.isHeader)` to subtitle or subheader texts that establish the context for the content below them.
+## 2025-03-05 - Avoid confusing 0-count final states
+**Learning:** Hardcoding a static summary string for dynamic counts, like "\(count) stops remaining", leads to awkward final states (e.g. "0 stops remaining") when the count reaches zero.
+**Action:** Always provide an explicit branch (`if count == 0`) for empty/final states in dynamic counters to ensure the text remains meaningful and human-readable (e.g., "Arrived at final destination").
