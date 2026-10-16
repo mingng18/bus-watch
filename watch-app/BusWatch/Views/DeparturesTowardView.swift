@@ -20,6 +20,7 @@ struct DeparturesTowardView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .accessibilityLabel("Towards \(destinationName)")
+                    .accessibilityAddTraits(.isHeader)
 
                 Divider()
 
