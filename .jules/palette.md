@@ -112,6 +112,6 @@
 ## 2025-02-12 - Add delightful bounce animations to interactive toggles
 **Learning:** Adding `.symbolEffect(.bounce, value: stateVariable)` to SwiftUI `Label`s provides immediate, satisfying visual feedback for state changes, enhancing the perceived responsiveness of the application.
 **Action:** Apply this pattern to interactive icon buttons (like toggles) where appropriate to improve the user experience.
-## 2025-03-05 - Avoid confusing 0-count final states
-**Learning:** Hardcoding a static summary string for dynamic counts, like "\(count) stops remaining", leads to awkward final states (e.g. "0 stops remaining") when the count reaches zero.
-**Action:** Always provide an explicit branch (`if count == 0`) for empty/final states in dynamic counters to ensure the text remains meaningful and human-readable (e.g., "Arrived at final destination").
+## 2025-03-05 - Accurate empty states for complex map labels
+**Learning:** VoiceOver strings that combine dynamic counts and static context (like "Live bus map with \(count) buses and your current location") can result in confusing phrasing (e.g. "Live bus map with 0 buses and your current location") when the collection is empty.
+**Action:** Always provide explicit ternary or `if count == 0` checks when generating complex accessibility labels that summarize dynamically populated map views, ensuring the empty state reads naturally (e.g. "Live bus map showing your current location").
