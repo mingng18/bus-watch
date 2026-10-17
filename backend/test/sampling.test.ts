@@ -159,6 +159,46 @@ describe('sampling logic', () => {
     expect(mockEnv.DB.prepare).toHaveBeenCalledWith(expect.stringContaining('DELETE FROM bus_positions'));
   });
 
+
+  describe('canonicalStopSequencesByRoute', () => {
+    it('should find the longest stop sequence for each route', () => {
+      const trips = [
+        { id: 't1', routeId: 'r1' },
+        { id: 't2', routeId: 'r1' },
+        { id: 't3', routeId: 'r2' }
+      ];
+      const tripStops = {
+        't1': [{ stopId: 's1' }, { stopId: 's2' }],
+        't2': [{ stopId: 's1' }, { stopId: 's2' }, { stopId: 's3' }],
+        't3': [{ stopId: 's4' }]
+      } as any;
+      const result = canonicalStopSequencesByRoute(trips, tripStops);
+      expect(result.get('r1')).toHaveLength(3);
+      expect(result.get('r1')?.[2].stopId).toBe('s3');
+      expect(result.get('r2')).toHaveLength(1);
+    });
+
+    it('should ignore trips with missing or empty stops', () => {
+      const trips = [
+        { id: 't1', routeId: 'r1' },
+        { id: 't2', routeId: 'r1' },
+        { id: 't3', routeId: 'r1' }
+      ];
+      const tripStops = {
+        't1': [],
+        // t2 is missing
+        't3': [{ stopId: 's1' }]
+      } as any;
+      const result = canonicalStopSequencesByRoute(trips, tripStops);
+      expect(result.get('r1')).toHaveLength(1);
+      expect(result.get('r1')?.[0].stopId).toBe('s1');
+    });
+
+    it('should handle empty inputs', () => {
+      expect(canonicalStopSequencesByRoute([], {}).size).toBe(0);
+    });
+  });
+
   it('uses a deterministic ROW_NUMBER() window query (issue #132)', async () => {
     // The old `GROUP BY bus_no HAVING timestamp = MAX(timestamp)` was
     // non-standard and selected an indeterminate row. The new query must use
