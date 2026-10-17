@@ -9,8 +9,8 @@ struct MainView: View {
     var body: some View {
         Group {
             switch engine.state {
-            case .loading(let message):
-                ProgressView(message)
+            case .loading:
+                ProgressView("Locating...")
             case .noLocation:
                 noLocationView
             case .station(let stop, let schedule, let isOffline):

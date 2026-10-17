@@ -1,7 +1,3 @@
-## 2024-08-30 - Add loading state to async list interactions
-**Learning:** In SwiftUI, `Button` actions that trigger async operations (like network fetches for detailed views) without transitioning to a loading state leave the user looking at a static screen, wondering if their tap was registered.
-**Action:** When transitioning between major states via async network calls (e.g. tapping a bus stop to load its schedule), explicitly set the app state to `.loading(message)` immediately before the `await` to provide instant visual feedback.
-
 ## 2024-06-14 - Add accessibility label to icon-only button
 **Learning:** In SwiftUI, icon-only toolbar buttons using `Image(systemName:)` do not automatically receive an accessible label and must be explicitly tagged with `.accessibilityLabel()`.
 **Action:** Always add `.accessibilityLabel` to icon-only buttons to ensure VoiceOver users can understand their purpose.
@@ -100,15 +96,3 @@
 ## 2025-03-02 - Smooth transitions for dynamic times
 **Learning:** Text views that update frequently via timers or live data (like estimated arrival strings e.g. "10:45") can cause visually jarring replacements on-screen, but SwiftUI's `.contentTransition(.numericText())` seamlessly morphs these dynamic strings, even if they aren't purely integers.
 **Action:** Always apply `.contentTransition(.numericText())` paired with `.animation(.default, value: state)` to any dynamically changing numeric or time-based `Text` elements to significantly improve the perceived quality and smoothness of the interface.
-## 2024-09-26 - WatchOS Complication Sizing
-**Learning:** Hardcoding WidgetFamily inside StaticConfiguration (e.g., countdownView(for: .accessoryRectangular)) forces all complication sizes to render the same layout, breaking visuals on non-matching faces.
-**Action:** Always create a dedicated entry view that reads @Environment(\.widgetFamily) to dynamically render the appropriate layout.
-## 2025-03-02 - Plain English for VoiceOver in Notifications
-**Learning:** VoiceOver interprets typographical symbols literally (e.g., reading "→" as "Right arrow"). While UI views can use `.accessibilityLabel` to override this, raw strings like `UNNotificationContent.body` cannot.
-**Action:** In contexts without accessibility overrides, avoid typographical symbols entirely and use plain English words (like "to") for correct screen reader phrasing.
-## 2024-10-04 - Clarify disabled state and constraints in manual picker
-**Learning:** Do not conflate business-logic restrictions (disabling bus stops in manual picker) with artificial UI friction or contradict app purpose by claiming 'No live arrivals' for buses.
-**Action:** Enhance legitimately disabled list items with clear visual badges (e.g., 'Rail only') and accurate accessibility hints ('Manual selection is for rail stations only') instead of confusing copy.
-## 2025-02-12 - Add delightful bounce animations to interactive toggles
-**Learning:** Adding `.symbolEffect(.bounce, value: stateVariable)` to SwiftUI `Label`s provides immediate, satisfying visual feedback for state changes, enhancing the perceived responsiveness of the application.
-**Action:** Apply this pattern to interactive icon buttons (like toggles) where appropriate to improve the user experience.
