@@ -228,7 +228,7 @@ app.get('/bus/trip/:tripId/progress', async (c) => {
     const [allRoutes, vehicles, allTripStops] = await Promise.all([
       getAllRoutes(c.env.KV),
       getRealtimeVehicles(c.env.KV),
-      getAllTripStops(c.env.KV)
+      getAllTripStops(c.env.KV),
     ]);
     // Optimization: Prevent lambda allocation in hot path
     let vehicle = null;
