@@ -22,7 +22,7 @@ struct NearbyListView: View {
     var body: some View {
         List {
             if AppFeatureFlags.liveBusMap, !response.busRoutes.isEmpty {
-                Section("Live buses") {
+                Section {
                     NearbyBusMapView(response: response)
                         .frame(height: 128)
                         .listRowInsets(EdgeInsets())
@@ -50,6 +50,13 @@ struct NearbyListView: View {
                         .accessibilityElement(children: .ignore)
                         .accessibilityLabel(trackedTripLabel(bus))
                         .accessibilityHint("Shows live trip progress.")
+                    }
+                } header: {
+                    HStack {
+                        Image(systemName: "bus.fill")
+                            .foregroundStyle(.orange)
+                            .accessibilityHidden(true)
+                        Text("Live buses")
                     }
                 }
             }
@@ -86,7 +93,12 @@ struct NearbyListView: View {
                     }
                 }
             } header: {
-                Text("Nearby")
+                HStack {
+                    Image(systemName: "location.fill")
+                        .foregroundStyle(.blue)
+                        .accessibilityHidden(true)
+                    Text("Nearby")
+                }
             }
         }
         .listStyle(.plain)
