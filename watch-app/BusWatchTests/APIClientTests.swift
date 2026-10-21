@@ -52,6 +52,10 @@ final class APIClientTests: XCTestCase {
         super.tearDown()
     }
 
+    func testDefaultBaseURLTargetsProductionWorker() {
+        XCTAssertEqual(APIClient.shared.baseURL, "https://bus-watch.nggihming123.workers.dev")
+    }
+
     func testFetchNearbySuccess() async throws {
         // Given
         let expectedJSON = """
@@ -126,7 +130,7 @@ final class APIClientTests: XCTestCase {
 
     func testInvalidURLHandling() async {
         // Given
-        let invalidClient = APIClient(baseURL: "https://test.api/invalid char", session: session)
+        let invalidClient = APIClient(baseURL: "https://[invalid", session: session)
 
         // When
         do {

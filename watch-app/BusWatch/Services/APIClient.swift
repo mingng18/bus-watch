@@ -7,7 +7,7 @@ class APIClient {
 
     private let session: URLSession
 
-    private init(baseURL: String = "https://bus-watch.nggihming123.workers.dev", session: URLSession = .shared) {
+    init(baseURL: String = "https://bus-watch.nggihming123.workers.dev", session: URLSession = .shared) {
         self.session = session
         self.baseURL = baseURL
     }

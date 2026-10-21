@@ -189,9 +189,16 @@ app.get('/nearby', async (c) => {
     }
   }
 
-  // Fetch all ETAs in a single batch
+  // Historical ETAs are optional enrichment. If D1 is temporarily behind a
+  // migration (for example missing spread_seconds), keep /nearby serving live
+  // arrivals instead of failing the whole endpoint.
   if (queries.length > 0) {
-    const etas = await getBatchedHistoricalETAs(c.env.DB, queries);
+    let etas = new Map();
+    try {
+      etas = await getBatchedHistoricalETAs(c.env.DB, queries);
+    } catch (err) {
+      console.error('Failed to enrich nearby ETAs:', err);
+    }
     for (const stop of result) {
       if (stop.type === 'bus') {
         for (const arrival of stop.arrivals) {

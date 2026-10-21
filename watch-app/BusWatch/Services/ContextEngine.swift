@@ -24,7 +24,7 @@ class ContextEngine: ObservableObject {
     @Published var state: AppState = .loading("Locating...")
     @Published var nearbyStops: NearbyResponse?
 
-    private let api = APIClient.shared
+    private let api: APIClient
     private let locationManager = LocationManager()
     /// On-device timetable cache so favorite stops still show scheduled times
     /// when the network is unavailable or a fetch is stale. Backed by the
@@ -44,7 +44,8 @@ class ContextEngine: ObservableObject {
     /// other state stops the timer.
     var isAutoRefreshing: Bool { refreshTimer != nil }
 
-    init() {
+    init(api: APIClient = .shared) {
+        self.api = api
         locationManager.$location
             .compactMap { $0 }
             .removeDuplicates { $0.distance(from: $1) < 30 }
@@ -119,8 +120,10 @@ class ContextEngine: ObservableObject {
             await MainActor.run { self.setState(.loading("Loading...")) }
             do {
                 let progress = try await api.fetchBusProgress(tripId: tripId)
-                await MainActor.run { self.setState(.onBus(progress)) }
-                startAutoRefresh(tripId: tripId)
+                await MainActor.run {
+                    self.startAutoRefresh(tripId: tripId)
+                    self.setState(.onBus(progress))
+                }
             } catch {
                 await MainActor.run { self.setState(.error(friendlyMessage(for: error))) }
             }
