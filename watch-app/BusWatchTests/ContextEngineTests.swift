@@ -1,5 +1,6 @@
 import XCTest
 import Combine
+import CoreLocation
 @testable import BusWatch
 
 class ContextEngineMockURLProtocol: URLProtocol {
@@ -204,4 +205,57 @@ final class ContextEngineTests: XCTestCase {
         engine.selectBusTrip("trip1")
         wait(for: [exp], timeout: 1.0)
     }
+
+    @MainActor
+    func testRefreshRetriesFromTheSameLocationAfterAnError() async throws {
+        let manager = LocationManager(manager: MockCLLocationManager())
+        manager.authorizationStatus = .authorizedWhenInUse
+        let engine = ContextEngine(api: APIClient(baseURL: "https://test.api", session: session), locationManager: manager)
+        ContextEngineMockURLProtocol.mockData["/nearby"] = try JSONEncoder().encode(makeNearbyResponse())
+        let initial = expectState(engine, matching: {
+            if case .nearby = $0 { return true }
+            return false
+        }) { _ in }
+        manager.location = CLLocation(latitude: 3.14, longitude: 101.68)
+        await fulfillment(of: [initial], timeout: 2)
+
+        engine.setState(.error("Connection failed"))
+        // No new location event: Retry must perform the request itself.
+        await engine.refresh()
+        if case .nearby(let response) = engine.state {
+            XCTAssertEqual(response.stops.first?.id, "stop1")
+        } else {
+            XCTFail("Retry must fetch again while the rider is stationary")
+        }
+    }
+
+
+    @MainActor
+    func testRefreshWithoutLocationRestartsLocationUpdates() async {
+        let mock = MockCLLocationManager()
+        let manager = LocationManager(manager: mock)
+        manager.authorizationStatus = .authorizedWhenInUse
+        let engine = ContextEngine(api: APIClient(baseURL: "https://test.api", session: session), locationManager: manager)
+        engine.setState(.error("Connection failed"))
+        await engine.refresh()
+        XCTAssertTrue(mock.startUpdatingLocationCalled)
+        if case .loading(let message) = engine.state {
+            XCTAssertEqual(message, "Locating...")
+        } else {
+            XCTFail("Retry without a location must resume locating")
+        }
+    }
+
+    @MainActor
+    func testRefreshRespectsRestrictedLocationAccess() async {
+        let manager = LocationManager(manager: MockCLLocationManager())
+        manager.authorizationStatus = .restricted
+        let engine = ContextEngine(api: APIClient(baseURL: "https://test.api", session: session), locationManager: manager)
+        await engine.refresh()
+        if case .noLocation = engine.state {} else {
+            XCTFail("Restricted location access must show the location guidance")
+        }
+        XCTAssertFalse(engine.isRefreshing)
+    }
+
 }
