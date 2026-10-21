@@ -41,6 +41,7 @@ struct StationArrivalsView: View {
                         Text("No upcoming departures")
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
                     }
                     .padding(.vertical, 4)
                 }

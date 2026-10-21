@@ -103,18 +103,16 @@ struct NearbyListView: View {
                     Text(stop.name)
                         .font(.caption)
                     Spacer()
-                    if AppFeatureFlags.favoritesAndHome,
-                       let favorites,
-                       favorites.isHome(stop.id) {
-                        Image(systemName: "house.fill")
-                            .foregroundStyle(.yellow)
-                            .accessibilityLabel("Home stop")
-                    }
-                    if AppFeatureFlags.favoritesAndHome,
-                       favorites?.contains(stop.id) == true {
-                        Image(systemName: "star.fill")
-                            .foregroundStyle(.yellow)
-                            .accessibilityHidden(true)
+                    if AppFeatureFlags.favoritesAndHome, let favorites {
+                        if favorites.isHome(stop.id) {
+                            Image(systemName: "house.fill")
+                                .foregroundStyle(.yellow)
+                                .accessibilityLabel("Home stop")
+                        } else if favorites.contains(stop.id) {
+                            Image(systemName: "star.fill")
+                                .foregroundStyle(.yellow)
+                                .accessibilityHidden(true)
+                        }
                     }
                     Text("\(stop.distanceM)m")
                         .font(.caption2)
@@ -191,8 +189,11 @@ struct NearbyListView: View {
             parts.append("\(source)\(spokenRoute) to \(first.destination), \(approx)\(minText)")
         }
         if AppFeatureFlags.favoritesAndHome, let favorites {
-            if favorites.isHome(stop.id) { parts.append("home stop") }
-            if favorites.contains(stop.id) { parts.append("favorited") }
+            if favorites.isHome(stop.id) {
+                parts.append("home stop")
+            } else if favorites.contains(stop.id) {
+                parts.append("favorited")
+            }
         }
         return parts.joined(separator: ", ")
     }

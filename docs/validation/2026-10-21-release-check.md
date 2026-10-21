@@ -54,6 +54,14 @@ The archive produced the standard warning that App Intents metadata extraction w
 
 ## Reproduce
 
+### PR consolidation follow-up
+
+The subsequent consolidation in PR #511 passed 207 backend tests, TypeScript checks, and 116 watch tests. All five migrations applied to a fresh SQLite schema, and retention cleanup used the new timestamp index. A new device Release archive succeeded and its development signatures verified. The updated archive is saved at `/Users/ming/.codex/visualizations/2026/10/21/01a15ed2-e800-7b43-ae00-1e1a713f9850/BusWatch-consolidated.xcarchive`; test results and logs are `/tmp/bus-watch-consolidation-tests.xcresult`, `/tmp/bus-watch-consolidation-tests.log`, and `/tmp/bus-watch-consolidation-archive.log`.
+
+The original live Simulator smoke check above preceded consolidation. The retained native changes affect empty-state alignment and home/favorite labels; the live-map implementation is unchanged. See the [backlog decision report](../maintenance/pr-consolidation-2026-10-21.md) for the selected changes and retained proposals.
+
+### Commands
+
 From `backend/`, install using `pnpm install --frozen-lockfile`, then run `pnpm test` and `pnpm exec tsc --noEmit`.
 
 From `watch-app/`, run `xcodegen generate`, then:

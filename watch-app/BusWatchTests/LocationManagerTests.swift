@@ -87,4 +87,16 @@ final class LocationManagerTests: XCTestCase {
         XCTAssertEqual(sut.authorizationStatus, .denied)
         XCTAssertFalse(mockManager.startUpdatingLocationCalled)
     }
+
+    func testDidChangeAuthorizationDoesNotStartUpdatingWhenRestricted() {
+        sut.locationManager(mockManager, didChangeAuthorization: .restricted)
+        XCTAssertEqual(sut.authorizationStatus, .restricted)
+        XCTAssertFalse(mockManager.startUpdatingLocationCalled)
+    }
+
+    func testDidChangeAuthorizationDoesNotStartUpdatingWhenNotDetermined() {
+        sut.locationManager(mockManager, didChangeAuthorization: .notDetermined)
+        XCTAssertEqual(sut.authorizationStatus, .notDetermined)
+        XCTAssertFalse(mockManager.startUpdatingLocationCalled)
+    }
 }

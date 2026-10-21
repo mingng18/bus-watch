@@ -1,0 +1,2517 @@
+{
+  "date": "2026-10-21",
+  "repository": "mingng18/bus-watch",
+  "canonical_pr": 511,
+  "baseline_master": "4b458058e510bf437c1acf3e23980845ad2353df",
+  "original_open_count": 103,
+  "method": "Review immutable head snapshots; use reverse-apply and three-way merge evidence, excluding bot journals and obsolete backend/dist. Resolve substantive conflicts by inspection and port selected changes without merging stale branches. PR titles are not used as proof. Retain distinct higher-risk proposals.",
+  "counts": {
+    "already_present": 58,
+    "declined": 15,
+    "duplicate_proposal": 7,
+    "retained": 12,
+    "consolidated": 11
+  },
+  "pull_requests": [
+    {
+      "number": 304,
+      "url": "https://github.com/mingng18/bus-watch/pull/304",
+      "title": "\ud83d\udee1\ufe0f Sentinel: [HIGH] Fix ReDoS in XML parsing",
+      "head_sha": "05249f64f93d75ef9c9520acde87cf2a878e07fa",
+      "disposition": "already_present",
+      "reason": "XML parsing has already moved to fast-xml-parser. Current residual instead rewrites the existing timing-safe authorization comparison; retain the established tested guard.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/index.ts"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 308,
+      "url": "https://github.com/mingng18/bus-watch/pull/308",
+      "title": "\ud83c\udfa8 Palette: Remove duplicate map renderings in BusProgressView",
+      "head_sha": "d87008da46eebf9df27d30d875a44f7878b41112",
+      "disposition": "already_present",
+      "reason": "The substantive patch reverse-applies to current master or the three-way merge has no substantive changes. Bot journals and obsolete generated backend bundles are excluded.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [],
+        "source_conflicts": [],
+        "reverse_applies": true
+      }
+    },
+    {
+      "number": 309,
+      "url": "https://github.com/mingng18/bus-watch/pull/309",
+      "title": "\u26a1 Bolt: Replace intermediate array allocations with manual loop",
+      "head_sha": "124386e5bb23619789f273ed96ceb632100bca5f",
+      "disposition": "already_present",
+      "reason": "Route shapes already avoid intermediate filter/map arrays. Older variant only renames variables and restores sequential fetching.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/scripts/inspect-feeds.ts",
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/haversine.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/csv-parser.test.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/nearby.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/AlertsView.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/DeparturesTowardView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyBusMapView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownViews.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "backend/src/index.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 310,
+      "url": "https://github.com/mingng18/bus-watch/pull/310",
+      "title": "\ud83c\udfa8 Palette: Improve empty and error state layouts",
+      "head_sha": "c9df84875022caae138a98a8610262481cce3ece",
+      "disposition": "already_present",
+      "reason": "Current empty/error screens already include the proposed centered labels and retry behavior. Remaining AlertsView conflict removes its explicit Refresh button; retain the current control.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/scripts/inspect-feeds.ts",
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/haversine.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/csv-parser.test.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/nearby.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/AlertsView.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/DeparturesTowardView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyBusMapView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownViews.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "watch-app/BusWatch/Views/AlertsView.swift"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 311,
+      "url": "https://github.com/mingng18/bus-watch/pull/311",
+      "title": "\u26a1 Bolt: Optimize shape array mapping in route endpoint",
+      "head_sha": "15f0723d8dd29020592c8327e5dea34a9486ed54",
+      "disposition": "already_present",
+      "reason": "Route shapes already use direct loops and a Set while fetching data concurrently. Older variant reintroduces sequential fetches.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/scripts/inspect-feeds.ts",
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/haversine.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/csv-parser.test.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/nearby.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/AlertsView.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/DeparturesTowardView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyBusMapView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownViews.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "backend/src/index.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 314,
+      "url": "https://github.com/mingng18/bus-watch/pull/314",
+      "title": "\ud83e\uddea Add test for DB insert failure during rail timetable ingestion",
+      "head_sha": "9376cc2a0095788c5d0c341540e5dfffcf6ebede",
+      "disposition": "consolidated",
+      "reason": "Ported the partial-ingestion DB failure regression test.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/test/rail-ingest.test.ts"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 315,
+      "url": "https://github.com/mingng18/bus-watch/pull/315",
+      "title": "\ud83e\uddea Add tests for canonicalStopSequencesByRoute in sampling logic",
+      "head_sha": "30766ae2007ce479a17dfc4105482ea3c0f4c9fe",
+      "disposition": "already_present",
+      "reason": "Current sampling tests already cover empty inputs, missing/empty stop lists, longest sequence selection, and independent routes; proposed cases duplicate that coverage.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/test/sampling.test.ts"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 316,
+      "url": "https://github.com/mingng18/bus-watch/pull/316",
+      "title": "\u26a1 Bolt: Optimize routeMap instantiation in trip progress endpoint",
+      "head_sha": "48c66965e8dfdeaf2beb936b49c6510a60dd0fd9",
+      "disposition": "retained",
+      "reason": "Retain route-map reuse proposal; verify duplicate-route precedence before replacing per-request maps.",
+      "action": "keep_open",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/index.ts"
+        ],
+        "source_conflicts": [
+          "backend/src/index.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 317,
+      "url": "https://github.com/mingng18/bus-watch/pull/317",
+      "title": "\u26a1 Bolt: Fetch GTFS data concurrently for station schedule",
+      "head_sha": "e6ab4494f4910e0e47bf00445650f55672380d63",
+      "disposition": "already_present",
+      "reason": "Station schedule already fetches independent KV inputs concurrently. Preserve newer canonical sequence tests and UI features omitted by the older branch.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/index.ts",
+          "backend/src/routes.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "backend/test/sampling.test.ts",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 320,
+      "url": "https://github.com/mingng18/bus-watch/pull/320",
+      "title": "\u26a1 Bolt: Parallelize independent KV fetches in Nearby endpoint",
+      "head_sha": "97d9d186a789d7ba098618409c24ac24d170594d",
+      "disposition": "consolidated",
+      "reason": "Ported concurrent Prasarana fetching into the existing nearby Promise.all batch.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/index.ts"
+        ],
+        "source_conflicts": [
+          "backend/src/index.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 321,
+      "url": "https://github.com/mingng18/bus-watch/pull/321",
+      "title": "\u26a1 Bolt: Optimize sequential fetches in trip progress endpoint",
+      "head_sha": "ce4024f586bc332a5f366e95ed2d0c6bb5d735cb",
+      "disposition": "already_present",
+      "reason": "Trip progress already fetches its independent inputs with Promise.all; remaining snapshot delta is a trailing comma.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/index.ts"
+        ],
+        "source_conflicts": [
+          "backend/src/index.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 323,
+      "url": "https://github.com/mingng18/bus-watch/pull/323",
+      "title": "\ud83e\uddea [testing improvement] Add unit tests for detectStopPassages",
+      "head_sha": "749abd10e37fdfbf3eca9deecc3e042868da6c12",
+      "disposition": "consolidated",
+      "reason": "Ported the unique out-of-sequence recovery case into #378 coverage; fixed its PositionSample type source and avoided duplicate tests.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/test/sampling.test.ts"
+        ],
+        "source_conflicts": [
+          "backend/test/sampling.test.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 324,
+      "url": "https://github.com/mingng18/bus-watch/pull/324",
+      "title": "\u26a1 Bolt: Optimize Nearby Routes endpoint with Promise.all",
+      "head_sha": "652fa06ba5df3dcfffc518e7189b63d99587c5cd",
+      "disposition": "already_present",
+      "reason": "Nearby route data is already fetched concurrently. Older branch also drops newer sampling/route-map/test changes; retain current master.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/scripts/inspect-feeds.ts",
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/haversine.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/csv-parser.test.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/nearby.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/AlertsView.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/DeparturesTowardView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyBusMapView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownViews.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "backend/src/index.ts",
+          "backend/src/sampling.ts",
+          "backend/test/sampling.test.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 326,
+      "url": "https://github.com/mingng18/bus-watch/pull/326",
+      "title": "\ud83e\uddf9 Code Health: Extract helpers from findNearbyStops",
+      "head_sha": "a2f498271c6e757d98cd9120c106b43a9bb67d0f",
+      "disposition": "retained",
+      "reason": "Retain one proposal for decomposing findNearbyStops; requires focused behavior-preservation review.",
+      "action": "keep_open",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/nearby.ts"
+        ],
+        "source_conflicts": [
+          "backend/src/nearby.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 329,
+      "url": "https://github.com/mingng18/bus-watch/pull/329",
+      "title": "\u26a1 Bolt: Add spatial bounding box pre-filter for nearby queries",
+      "head_sha": "409744c6a2a67e231fd36422c7d50444e6963783",
+      "disposition": "already_present",
+      "reason": "The substantive patch reverse-applies to current master or the three-way merge has no substantive changes. Bot journals and obsolete generated backend bundles are excluded.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [],
+        "source_conflicts": [],
+        "reverse_applies": true
+      }
+    },
+    {
+      "number": 330,
+      "url": "https://github.com/mingng18/bus-watch/pull/330",
+      "title": "\ud83c\udfa8 Palette: Add iconOnly label style to MainView back button",
+      "head_sha": "88e47894066442bc6c21fc7df2217a808ba34c8c",
+      "disposition": "declined",
+      "reason": "Back navigation is already icon-only. Residual fixed Locating label would misdescribe shared loading states used for station/trip requests; retain the visible state message.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "watch-app/BusWatch/Views/AlertsView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift"
+        ],
+        "source_conflicts": [
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 332,
+      "url": "https://github.com/mingng18/bus-watch/pull/332",
+      "title": "\ud83c\udfa8 Palette: Conserve watchOS screen space by making Back button icon-only",
+      "head_sha": "0c1e510b4765f36d07fa49bc1ede8e47cadf9e00",
+      "disposition": "already_present",
+      "reason": "Back navigation is already icon-only. Residual hides a chevron whose parent row already ignores child accessibility elements.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "watch-app/BusWatch/Views/ManualPickerView.swift"
+        ],
+        "source_conflicts": [
+          "watch-app/BusWatch/Views/ManualPickerView.swift"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 334,
+      "url": "https://github.com/mingng18/bus-watch/pull/334",
+      "title": "\ud83e\uddea Add tests for validateLatLon",
+      "head_sha": "b8f1de3e74fba49cae96f5134de9506c31d7b50a",
+      "disposition": "declined",
+      "reason": "Existing endpoint tests exercise coordinate validation. Do not export an internal validation helper solely for a second set of implementation-level assertions.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/index.ts",
+          "backend/test/index.test.ts"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 336,
+      "url": "https://github.com/mingng18/bus-watch/pull/336",
+      "title": "\ud83e\uddf9 Refactor ContextEngine error handling to reduce deep nesting",
+      "head_sha": "cc86a0e61f6a5bce4f71c391ab4512dbf122aa4c",
+      "disposition": "declined",
+      "reason": "Only replaces a two-way cache fallback with an equivalent guard. Keep the tested fallback while #511 fixes its actual refresh ordering and test seam.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "watch-app/BusWatch/Services/ContextEngine.swift"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 337,
+      "url": "https://github.com/mingng18/bus-watch/pull/337",
+      "title": "\ud83e\uddea Add CountdownSnapshot tests",
+      "head_sha": "343b61752dd946fb8b3dc5d697ad354b12e760a1",
+      "disposition": "declined",
+      "reason": "Adds stored-property, synthesized equality, and placeholder-literal assertions. Existing countdown resolver/cache coverage exercises the behavior; omit implementation-mirroring tests.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "watch-app/BusWatchTests/CountdownSnapshotTests.swift"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 339,
+      "url": "https://github.com/mingng18/bus-watch/pull/339",
+      "title": "\u26a1 Add index on timestamp for bus_positions",
+      "head_sha": "36328a4d1c596d966a1f55acbd2187ef341d3bfe",
+      "disposition": "consolidated",
+      "reason": "Ported the timestamp-only retention index; verified all migrations and the SQLite query plan.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/migrations/0005_bus_positions_timestamp_index.sql"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 340,
+      "url": "https://github.com/mingng18/bus-watch/pull/340",
+      "title": "\ud83e\uddea Add tests for APIClient friendlyMessage helper",
+      "head_sha": "47c505f675bd5c446e88b9b598d4c3f45b916409",
+      "disposition": "consolidated",
+      "reason": "Ported friendly error-message coverage into the repaired APIClient test target.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "watch-app/BusWatchTests/APIClientTests.swift"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 341,
+      "url": "https://github.com/mingng18/bus-watch/pull/341",
+      "title": "\u26a1 Optimize array methods in rejectOutliers",
+      "head_sha": "a401db5d68c33a7e843eacb20b5433db98c26bc4",
+      "disposition": "already_present",
+      "reason": "Current outlier rejection already uses manual loops. Older branch also reverts newer time helpers, badges, and reminder polish; retain current master.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "backend/src/sampling.ts",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 342,
+      "url": "https://github.com/mingng18/bus-watch/pull/342",
+      "title": "\u26a1 Optimize array allocations in sampling pipeline",
+      "head_sha": "3c44614565495ee87e8da33cd8aa79cb0ba4d237",
+      "disposition": "already_present",
+      "reason": "Current aggregateSamples already uses manual accumulation loops; remaining conflict renames cleaned length and changes formatting.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/sampling.ts"
+        ],
+        "source_conflicts": [
+          "backend/src/sampling.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 344,
+      "url": "https://github.com/mingng18/bus-watch/pull/344",
+      "title": "\ud83e\uddf9 [Refactor] Extract helper functions to simplify aggregateTravelTimes",
+      "head_sha": "76bccae4550b9cc00989b1d5b5a5620cee721da5",
+      "disposition": "retained",
+      "reason": "Retain sampling aggregation helper refactor for separate structural review.",
+      "action": "keep_open",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/sampling.ts"
+        ],
+        "source_conflicts": [
+          "backend/src/sampling.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 346,
+      "url": "https://github.com/mingng18/bus-watch/pull/346",
+      "title": "\u26a1 Optimize stop lookup in getStationSchedule",
+      "head_sha": "247c63c942783507a51686494065594b336687bf",
+      "disposition": "duplicate_proposal",
+      "reason": "Keep #349 as the canonical stop-lookup optimization proposal; defer its duplicate-ID/cache semantics review rather than adding competing linear-loop variants.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/station.ts"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      },
+      "canonical_proposal": 349
+    },
+    {
+      "number": 348,
+      "url": "https://github.com/mingng18/bus-watch/pull/348",
+      "title": "\ud83e\uddea [testing improvement] Add LocationManager error/denied state tests",
+      "head_sha": "ee33151dc5adf4590a1fcc86e8e16154874aad31",
+      "disposition": "consolidated",
+      "reason": "Ported restricted/not-determined authorization tests only. Omitted unconditional location-error shutdown so transient location errors can recover.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "watch-app/BusWatch/Services/LocationManager.swift",
+          "watch-app/BusWatchTests/LocationManagerTests.swift"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 349,
+      "url": "https://github.com/mingng18/bus-watch/pull/349",
+      "title": "\u26a1 Replace array scan with O(1) map lookup for stop routing",
+      "head_sha": "ba823343317ea387097e62e0ade9ff305f4b0770",
+      "disposition": "retained",
+      "reason": "Retain cached stop lookup proposal; duplicate-ID precedence and cache invalidation need explicit validation.",
+      "action": "keep_open",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/departures-toward.ts",
+          "backend/src/index.ts",
+          "backend/src/station.ts"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 350,
+      "url": "https://github.com/mingng18/bus-watch/pull/350",
+      "title": "\u26a1 Optimize haversine calculation with bounding box pre-filter",
+      "head_sha": "54742ff21f4505bd903d1b22fdc1223bcaf7253c",
+      "disposition": "already_present",
+      "reason": "Current sampling uses a precomputed getBoundingBox for each target stop; retain this over a second coarse fixed-multiplier implementation.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/sampling.ts"
+        ],
+        "source_conflicts": [
+          "backend/src/sampling.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 352,
+      "url": "https://github.com/mingng18/bus-watch/pull/352",
+      "title": "\ud83e\uddf9 [Extract KV logic from index.ts]",
+      "head_sha": "6994c3d5cec9867a5b3b4529244b748c1ffc7177",
+      "disposition": "retained",
+      "reason": "Retain KV module extraction; moving shared caches and test mocks needs a dedicated review.",
+      "action": "keep_open",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/index.ts",
+          "backend/src/kv.ts",
+          "backend/src/types.ts",
+          "backend/test/merge.test.ts"
+        ],
+        "source_conflicts": [
+          "backend/src/index.ts",
+          "backend/test/merge.test.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 358,
+      "url": "https://github.com/mingng18/bus-watch/pull/358",
+      "title": "\u26a1 Bolt: Optimize array allocations during GTFS rail ingestion",
+      "head_sha": "4410f8962b00900775be80257ef674bdf258581f",
+      "disposition": "already_present",
+      "reason": "The substantive patch reverse-applies to current master or the three-way merge has no substantive changes. Bot journals and obsolete generated backend bundles are excluded.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [],
+        "source_conflicts": [],
+        "reverse_applies": true
+      }
+    },
+    {
+      "number": 366,
+      "url": "https://github.com/mingng18/bus-watch/pull/366",
+      "title": "\ud83e\uddf9 Remove leftover console.log in inspect-feeds script",
+      "head_sha": "8e85cf13cab35d9f35818ceb1441e632aeaa171f",
+      "disposition": "declined",
+      "reason": "The remaining console.log is an intentional human-facing feed-probe progress message in the inspection CLI, not a production Worker log.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/scripts/inspect-feeds.ts"
+        ],
+        "source_conflicts": [
+          "backend/scripts/inspect-feeds.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 368,
+      "url": "https://github.com/mingng18/bus-watch/pull/368",
+      "title": "\ud83e\uddf9 [Code Health] Refactor long findNearbyStops function into smaller helpers",
+      "head_sha": "d2f180580c68023bdf99cbc55793586028397160",
+      "disposition": "duplicate_proposal",
+      "reason": "Keep #326 as the canonical findNearbyStops decomposition proposal instead of two competing structural rewrites.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/nearby.ts"
+        ],
+        "source_conflicts": [
+          "backend/src/nearby.ts"
+        ],
+        "reverse_applies": false
+      },
+      "canonical_proposal": 326
+    },
+    {
+      "number": 374,
+      "url": "https://github.com/mingng18/bus-watch/pull/374",
+      "title": "\u26a1 Bolt: Optimize array allocations in rejectOutliers",
+      "head_sha": "62c7d6784fd6a8480782179d88ae4817870953db",
+      "disposition": "already_present",
+      "reason": "The substantive patch reverse-applies to current master or the three-way merge has no substantive changes. Bot journals and obsolete generated backend bundles are excluded.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [],
+        "source_conflicts": [],
+        "reverse_applies": true
+      }
+    },
+    {
+      "number": 376,
+      "url": "https://github.com/mingng18/bus-watch/pull/376",
+      "title": "\ud83e\uddea [testing] add missing getBoundingBox tests",
+      "head_sha": "c951a528793f0bdfbc0877d267b4e052d14afada",
+      "disposition": "declined",
+      "reason": "The actual remaining patch adds an unused getBoundingBox import and no bounding-box tests.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/test/haversine.test.ts"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 377,
+      "url": "https://github.com/mingng18/bus-watch/pull/377",
+      "title": "\u26a1 Bolt: Optimize getStationSchedule array find",
+      "head_sha": "27d481c836375cc6932bad1c3eb2d25650e5e8fe",
+      "disposition": "duplicate_proposal",
+      "reason": "Keep #349 as the canonical stop-lookup optimization proposal; defer its duplicate-ID/cache semantics review rather than adding competing linear-loop variants.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/station.ts"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      },
+      "canonical_proposal": 349
+    },
+    {
+      "number": 378,
+      "url": "https://github.com/mingng18/bus-watch/pull/378",
+      "title": "\ud83e\uddea Add comprehensive tests for detectStopPassages",
+      "head_sha": "f8a8de6e98adc630be72721b3d2e0b403d71ea21",
+      "disposition": "consolidated",
+      "reason": "Ported passage ordering, outliers, invalid durations, and input-order regression coverage.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/test/sampling.test.ts"
+        ],
+        "source_conflicts": [
+          "backend/test/sampling.test.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 380,
+      "url": "https://github.com/mingng18/bus-watch/pull/380",
+      "title": "\ud83e\uddea [testing improvement] Add tests for confidenceFromSamples",
+      "head_sha": "bc56e5a874de9d6489d1df28018dc07195e18077",
+      "disposition": "consolidated",
+      "reason": "Ported ETA confidence sample-count/spread boundary coverage.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/test/nearby.test.ts"
+        ],
+        "source_conflicts": [
+          "backend/test/nearby.test.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 383,
+      "url": "https://github.com/mingng18/bus-watch/pull/383",
+      "title": "\ud83c\udfa8 Palette: Add explicit navigation chevrons to list rows",
+      "head_sha": "2cdb7a132bbf4dc5e035f77a79a1fc8475f85f41",
+      "disposition": "consolidated",
+      "reason": "Its remaining empty-state text alignment is included through #422; no separate duplicate change.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "watch-app/BusWatch/Views/DeparturesTowardView.swift"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 387,
+      "url": "https://github.com/mingng18/bus-watch/pull/387",
+      "title": "\ud83c\udfa8 Palette: Add pull-to-refresh to Service Alerts",
+      "head_sha": "55e4159987433a24fa17e8e42eed7a0837b8ebea",
+      "disposition": "retained",
+      "reason": "Retain error-screen refresh/layout change for focused interaction review.",
+      "action": "keep_open",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "watch-app/BusWatch/Views/MainView.swift"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 388,
+      "url": "https://github.com/mingng18/bus-watch/pull/388",
+      "title": "\u26a1 Bolt: Cache canonical stop sequence transformations globally",
+      "head_sha": "66d3eafda417901618cdc7d9f364a80f7e90481e",
+      "disposition": "retained",
+      "reason": "Retain canonical-sequence cache proposal; rejected promises and invalidation need a dedicated review.",
+      "action": "keep_open",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/index.ts"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 390,
+      "url": "https://github.com/mingng18/bus-watch/pull/390",
+      "title": "\ud83c\udfa8 Palette: Add native pull-to-refresh to Service Alerts",
+      "head_sha": "0366982fcf9387b6f89560efbe9f333fe5b3b852",
+      "disposition": "already_present",
+      "reason": "The substantive patch reverse-applies to current master or the three-way merge has no substantive changes. Bot journals and obsolete generated backend bundles are excluded.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [],
+        "source_conflicts": [],
+        "reverse_applies": true
+      }
+    },
+    {
+      "number": 391,
+      "url": "https://github.com/mingng18/bus-watch/pull/391",
+      "title": "\u26a1 Bolt: Optimize Object.keys allocation in GTFS ingest",
+      "head_sha": "801f776afd604added4a478b7bdffcb69eb687f8",
+      "disposition": "declined",
+      "reason": "Claimed Object.keys optimization is already represented upstream. Remaining flat-to-flatMap rewrite adds no needed behavior or demonstrated allocation benefit.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/index.ts"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 398,
+      "url": "https://github.com/mingng18/bus-watch/pull/398",
+      "title": "\u26a1 Bolt: Optimize departure time sorting by removing localeCompare",
+      "head_sha": "b19e9101c338896e348aa6a7d308caed00ad2d19",
+      "disposition": "already_present",
+      "reason": "Station and toward-destination schedules already sort GTFS time strings with comparison operators. Remaining conflict is comments/parentheses or equivalent sorted assertions.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/AlertsView.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownViews.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "backend/src/departures-toward.ts",
+          "backend/src/station.ts",
+          "backend/test/station.test.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 400,
+      "url": "https://github.com/mingng18/bus-watch/pull/400",
+      "title": "\ud83c\udfa8 Palette: Add pull-to-refresh to Service Alerts",
+      "head_sha": "a2537c7f9f4104b057a72d3a9434ce417771d98b",
+      "disposition": "declined",
+      "reason": "Refresh behavior is already present. Residual only changes the offline banner from orange to red; retain the current offline indicator.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "watch-app/BusWatch/Views/StationArrivalsView.swift"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 402,
+      "url": "https://github.com/mingng18/bus-watch/pull/402",
+      "title": "\ud83c\udfa8 Palette: Add pull-to-refresh and manual refresh to AlertsView",
+      "head_sha": "3238a8ae481c77c016d226d6cf461ac9b84ccdbc",
+      "disposition": "retained",
+      "reason": "Retain refresh-state behavior change in AlertsView for focused interaction review.",
+      "action": "keep_open",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "watch-app/BusWatch/Views/AlertsView.swift"
+        ],
+        "source_conflicts": [
+          "watch-app/BusWatch/Views/AlertsView.swift"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 403,
+      "url": "https://github.com/mingng18/bus-watch/pull/403",
+      "title": "\ud83d\udee1\ufe0f Sentinel: [HIGH] Fix XSS Vulnerability via Strict CSP",
+      "head_sha": "a9c9ec3311844446b349cbcf7ff1b3e56c59e85b",
+      "disposition": "already_present",
+      "reason": "The same default-src none CSP is already configured; the source conflict is trailing-comma formatting.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/index.ts",
+          "backend/test/csp.test.ts"
+        ],
+        "source_conflicts": [
+          "backend/src/index.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 405,
+      "url": "https://github.com/mingng18/bus-watch/pull/405",
+      "title": "\u26a1 Bolt: Replace localeCompare with simple string comparison for faster sorting",
+      "head_sha": "33605e5659c395edffdc1083359af5d27eef0c68",
+      "disposition": "already_present",
+      "reason": "Station and toward-destination schedules already sort GTFS time strings with comparison operators. Remaining conflict is comments/parentheses or equivalent sorted assertions.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "backend/src/departures-toward.ts",
+          "backend/src/station.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 406,
+      "url": "https://github.com/mingng18/bus-watch/pull/406",
+      "title": "\ud83c\udfa8 Palette: Add refresh actions to AlertsView",
+      "head_sha": "621fb2572d8b77793ccc830837484dfb82c7b3b1",
+      "disposition": "declined",
+      "reason": "Refresh behavior is already present. The only residual changes the passed-stop dot color; keep current visual treatment.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "watch-app/BusWatch/Views/BusProgressView.swift"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 407,
+      "url": "https://github.com/mingng18/bus-watch/pull/407",
+      "title": "\u26a1 Bolt: Optimize string sorting in departures",
+      "head_sha": "40702acbd765de6220754b0f56231924262d528b",
+      "disposition": "already_present",
+      "reason": "The substantive patch reverse-applies to current master or the three-way merge has no substantive changes. Bot journals and obsolete generated backend bundles are excluded.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 408,
+      "url": "https://github.com/mingng18/bus-watch/pull/408",
+      "title": "\ud83d\udee1\ufe0f Sentinel: [security improvement] Add no-store cache control for admin endpoints",
+      "head_sha": "9aa341277e215002707c66d2e4cc7b7fca4278ea",
+      "disposition": "retained",
+      "reason": "Retain distinct header-hardening proposal; current head changes frame/CSP policy rather than the cache behavior in its title.",
+      "action": "keep_open",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/index.ts"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 409,
+      "url": "https://github.com/mingng18/bus-watch/pull/409",
+      "title": "\u26a1 Bolt: Optimize XML sitemap parsing allocations",
+      "head_sha": "46707a4f6b69b2da042d80348f1049a481b702c7",
+      "disposition": "retained",
+      "reason": "Retain alternate XML optimization; compare allocation behavior and parser semantics with #451.",
+      "action": "keep_open",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/test/alerts.test.ts"
+        ],
+        "source_conflicts": [
+          "backend/src/alerts.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 410,
+      "url": "https://github.com/mingng18/bus-watch/pull/410",
+      "title": "\ud83d\udee1\ufe0f Sentinel: [security improvement] Prevent sensitive data leak in admin endpoints",
+      "head_sha": "3aad6a99ca086229307b83897cb78a1d7548d82d",
+      "disposition": "already_present",
+      "reason": "Admin middleware already sets no-store before authorization and after successful authorization; remaining conflict is redundant header placement/comments.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/AlertsView.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "backend/src/index.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 411,
+      "url": "https://github.com/mingng18/bus-watch/pull/411",
+      "title": "\ud83d\udee1\ufe0f Sentinel: [security improvement] Prevent caching on administrative endpoints",
+      "head_sha": "c6f0700d90dda6257e24d8d32e4c23659b3debba",
+      "disposition": "already_present",
+      "reason": "requireAdminToken already sets Cache-Control: no-store before authorization. Extra per-path middleware duplicates that policy.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/index.ts"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 412,
+      "url": "https://github.com/mingng18/bus-watch/pull/412",
+      "title": "\ud83c\udfa8 Palette: Add native pull-to-refresh and empty state reload for Alerts",
+      "head_sha": "f8d8d1dd12bbc6338df86ac1f1bdc37df0d04ebb",
+      "disposition": "already_present",
+      "reason": "Alerts refresh is already implemented; the only effective diff rewords README_OBSOLETE.md.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "README_OBSOLETE.md"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 414,
+      "url": "https://github.com/mingng18/bus-watch/pull/414",
+      "title": "\u26a1 Bolt: Optimize departure time sorting performance",
+      "head_sha": "e41d075fdc4655f580b16058530ae28d676eb696",
+      "disposition": "already_present",
+      "reason": "The substantive patch reverse-applies to current master or the three-way merge has no substantive changes. Bot journals and obsolete generated backend bundles are excluded.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 415,
+      "url": "https://github.com/mingng18/bus-watch/pull/415",
+      "title": "\ud83c\udfa8 Palette: Add pull-to-refresh to AlertsView",
+      "head_sha": "b96f2f3ac0816e7261f6125c590f7eea871a0891",
+      "disposition": "already_present",
+      "reason": "The substantive patch reverse-applies to current master or the three-way merge has no substantive changes. Bot journals and obsolete generated backend bundles are excluded.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [],
+        "source_conflicts": [],
+        "reverse_applies": true
+      }
+    },
+    {
+      "number": 417,
+      "url": "https://github.com/mingng18/bus-watch/pull/417",
+      "title": "\u26a1 Bolt: Optimize string sorting for departure times",
+      "head_sha": "2716724ef54ff9d3be4794b15473d8b301fe8026",
+      "disposition": "already_present",
+      "reason": "Station and toward-destination schedules already sort GTFS time strings with comparison operators. Remaining conflict is comments/parentheses or equivalent sorted assertions.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "backend/src/departures-toward.ts",
+          "backend/src/station.ts",
+          "backend/test/station.test.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 418,
+      "url": "https://github.com/mingng18/bus-watch/pull/418",
+      "title": "\ud83d\udee1\ufe0f Sentinel: [security improvement]",
+      "head_sha": "ebb6c3b4d5bf2502f5faae2f34c95f87027f38b7",
+      "disposition": "already_present",
+      "reason": "Admin middleware already sets no-store before authorization and after successful authorization; remaining conflict is redundant header placement/comments.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/AlertsView.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "backend/src/index.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 419,
+      "url": "https://github.com/mingng18/bus-watch/pull/419",
+      "title": "\ud83c\udfa8 Palette: Add native pull-to-refresh to AlertsView",
+      "head_sha": "5c17eabf3c9148193fd478bd9c1edad6a69064b7",
+      "disposition": "declined",
+      "reason": "Alerts already support refresh and empty-state retry. Residual adds top padding only.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/AlertsView.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "watch-app/BusWatch/Views/AlertsView.swift"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 420,
+      "url": "https://github.com/mingng18/bus-watch/pull/420",
+      "title": "\u26a1 Bolt: [performance improvement] Avoid Object.keys().find() array allocation",
+      "head_sha": "8f24274caefea2fd748253e48df6631279c70bb5",
+      "disposition": "declined",
+      "reason": "Actual residual replaces flat() with flatMap(r => r || []). Vehicle fetches already return arrays; this does not implement the claimed Object.keys optimization or remove the output allocation.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/index.ts"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 422,
+      "url": "https://github.com/mingng18/bus-watch/pull/422",
+      "title": "\ud83c\udfa8 Palette: Add pull-to-refresh and empty state reload for Alerts view",
+      "head_sha": "588e9a7a25d47d1743b432f5f97ce1d247794864",
+      "disposition": "consolidated",
+      "reason": "Ported multiline alignment for empty rail departure states.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "watch-app/BusWatch/Views/DeparturesTowardView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 423,
+      "url": "https://github.com/mingng18/bus-watch/pull/423",
+      "title": "\ud83c\udfa8 Palette: Add refresh affordances to AlertsView",
+      "head_sha": "40d55034adddceec2167722579b5cc32b6a3fc6f",
+      "disposition": "declined",
+      "reason": "Alerts refresh is already implemented. The only remaining change increases empty-state VStack spacing from 8 to 12.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "watch-app/BusWatch/Views/AlertsView.swift"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 424,
+      "url": "https://github.com/mingng18/bus-watch/pull/424",
+      "title": "\ud83d\udee1\ufe0f Sentinel: [security improvement] Prevent caching on admin endpoints",
+      "head_sha": "01ad14d75639f46cc53877ff645a3c9421b82434",
+      "disposition": "already_present",
+      "reason": "Admin middleware already sets no-store before authorization and after successful authorization; remaining conflict is redundant header placement/comments.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/AlertsView.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "backend/src/index.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 425,
+      "url": "https://github.com/mingng18/bus-watch/pull/425",
+      "title": "\u26a1 Bolt: [performance improvement] Fast date math in sampling hot loops",
+      "head_sha": "a987313044171a7f753f15237a426af061670643",
+      "disposition": "already_present",
+      "reason": "Sampling already uses zero-allocation KL day/hour arithmetic from Unix seconds. Residual changes helper names and equivalent formulas.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "backend/src/sampling.ts",
+          "backend/src/time-kl.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 426,
+      "url": "https://github.com/mingng18/bus-watch/pull/426",
+      "title": "\ud83c\udfa8 Palette: Add pull-to-refresh to service alerts",
+      "head_sha": "aeaa316267105d910682e7a7809a8e05091ce39d",
+      "disposition": "declined",
+      "reason": "Alerts already support refresh and empty-state retry. Residual only adds a header accessibility trait; no distinct refresh feature remains.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "watch-app/BusWatch/Views/AlertsView.swift",
+          "watch-app/BusWatch/Views/DeparturesTowardView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift"
+        ],
+        "source_conflicts": [
+          "watch-app/BusWatch/Views/AlertsView.swift"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 428,
+      "url": "https://github.com/mingng18/bus-watch/pull/428",
+      "title": "\u26a1 Bolt: [performance improvement] Optimize GTFS time string sorting",
+      "head_sha": "26959ed395d026cc7d74baffa785a462264f921a",
+      "disposition": "already_present",
+      "reason": "Station and toward-destination schedules already sort GTFS time strings with comparison operators. Remaining conflict is comments/parentheses or equivalent sorted assertions.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "backend/src/departures-toward.ts",
+          "backend/src/station.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 430,
+      "url": "https://github.com/mingng18/bus-watch/pull/430",
+      "title": "\u26a1 Bolt: Optimize sorting by removing localeCompare",
+      "head_sha": "14f21722721584f85d986898f14df9ecf8dcc78e",
+      "disposition": "already_present",
+      "reason": "Station and toward-destination schedules already sort GTFS time strings with comparison operators. Remaining conflict is comments/parentheses or equivalent sorted assertions.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "backend/src/departures-toward.ts",
+          "backend/src/station.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 431,
+      "url": "https://github.com/mingng18/bus-watch/pull/431",
+      "title": "\ud83d\udee1\ufe0f Sentinel: [security improvement]",
+      "head_sha": "e6e912a85f8e40ddfbf716d9709b770ef1db805e",
+      "disposition": "already_present",
+      "reason": "Admin no-store policy is already centralized. Remaining update-comments.js only prints an obsolete acknowledgement and is not application functionality.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "update-comments.js"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 432,
+      "url": "https://github.com/mingng18/bus-watch/pull/432",
+      "title": "\ud83d\udee1\ufe0f Sentinel: [security improvement]",
+      "head_sha": "f6a18dc1b154012126c5edfe8fd11e2998410e97",
+      "disposition": "already_present",
+      "reason": "Admin middleware already sets no-store before authorization and after successful authorization; remaining conflict is redundant header placement/comments.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/AlertsView.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "backend/src/index.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 434,
+      "url": "https://github.com/mingng18/bus-watch/pull/434",
+      "title": "\ud83c\udfa8 Palette: Add pull-to-refresh to Alerts view",
+      "head_sha": "6f83412088aa43df059b518a7211d0e71ff46672",
+      "disposition": "already_present",
+      "reason": "The substantive patch reverse-applies to current master or the three-way merge has no substantive changes. Bot journals and obsolete generated backend bundles are excluded.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [],
+        "source_conflicts": [],
+        "reverse_applies": true
+      }
+    },
+    {
+      "number": 435,
+      "url": "https://github.com/mingng18/bus-watch/pull/435",
+      "title": "\u26a1 Bolt: [Performance] Replace slow localeCompare with string operators for departure times",
+      "head_sha": "094fdc740083fbbe340cc2238f3e772955c8a12c",
+      "disposition": "already_present",
+      "reason": "The substantive patch reverse-applies to current master or the three-way merge has no substantive changes. Bot journals and obsolete generated backend bundles are excluded.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [],
+        "source_conflicts": [],
+        "reverse_applies": true
+      }
+    },
+    {
+      "number": 437,
+      "url": "https://github.com/mingng18/bus-watch/pull/437",
+      "title": "\ud83d\udee1\ufe0f Sentinel: [HIGH] Fix caching vulnerability in admin endpoints",
+      "head_sha": "6c817cce7baa48807a60c5b93948517867c7ce00",
+      "disposition": "already_present",
+      "reason": "Admin middleware already sets no-store before authorization and after successful authorization; remaining conflict is redundant header placement/comments.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/index.ts",
+          "backend/test/admin-cache.test.ts"
+        ],
+        "source_conflicts": [
+          "backend/src/index.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 441,
+      "url": "https://github.com/mingng18/bus-watch/pull/441",
+      "title": "\ud83c\udfa8 Palette: Improve Scheduled Arrivals legibility",
+      "head_sha": "5b2f01d577a7c503ca24ab76b736af40765c0dbe",
+      "disposition": "already_present",
+      "reason": "Current UI already uses clock icons and explicit Scheduled text. Retain that clearer label rather than reverting to icon-only or equivalent composition.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "watch-app/BusWatch/Views/StationArrivalsView.swift"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 442,
+      "url": "https://github.com/mingng18/bus-watch/pull/442",
+      "title": "\u26a1 Bolt: [performance improvement]",
+      "head_sha": "9b79a3668a8233daf5a8e4c66c6d3286c3b675c8",
+      "disposition": "already_present",
+      "reason": "Station and toward-destination schedules already sort GTFS time strings with comparison operators. Remaining conflict is comments/parentheses or equivalent sorted assertions.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "backend/src/departures-toward.ts",
+          "backend/src/station.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 443,
+      "url": "https://github.com/mingng18/bus-watch/pull/443",
+      "title": "\ud83c\udfa8 Palette: Replace \"sched\" abbreviations with clear icons",
+      "head_sha": "4abcc4eda3c4663a1ac7e6ab6ccd72a0de82999a",
+      "disposition": "already_present",
+      "reason": "Current UI already uses clock icons and explicit Scheduled text. Retain that clearer label rather than reverting to icon-only or equivalent composition.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/index.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift"
+        ],
+        "source_conflicts": [
+          "watch-app/BusWatch/Views/NearbyListView.swift"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 444,
+      "url": "https://github.com/mingng18/bus-watch/pull/444",
+      "title": "\u26a1 Bolt: Avoid Date allocations in data aggregation hot paths",
+      "head_sha": "1ea84709ce42fe624979cb4428a5c08005c08d79",
+      "disposition": "already_present",
+      "reason": "The substantive patch reverse-applies to current master or the three-way merge has no substantive changes. Bot journals and obsolete generated backend bundles are excluded.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [],
+        "source_conflicts": [],
+        "reverse_applies": true
+      }
+    },
+    {
+      "number": 446,
+      "url": "https://github.com/mingng18/bus-watch/pull/446",
+      "title": "\ud83c\udfa8 Palette: Replace raw text abbreviations with SF Symbols",
+      "head_sha": "388adaca8c75c9a3225d641f7fc374cdade91bbc",
+      "disposition": "already_present",
+      "reason": "Current UI already uses clock icons and explicit Scheduled text. Retain that clearer label rather than reverting to icon-only or equivalent composition.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "watch-app/BusWatch/Views/NearbyListView.swift"
+        ],
+        "source_conflicts": [
+          "watch-app/BusWatch/Views/NearbyListView.swift"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 448,
+      "url": "https://github.com/mingng18/bus-watch/pull/448",
+      "title": "\u26a1 Bolt: Use faster lexicographical string sort for simple times",
+      "head_sha": "3d1553626f3f0f952251fdfd68c129d38fc3fce9",
+      "disposition": "already_present",
+      "reason": "Station and toward-destination schedules already sort GTFS time strings with comparison operators. Remaining conflict is comments/parentheses or equivalent sorted assertions.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "backend/src/departures-toward.ts",
+          "backend/src/station.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 449,
+      "url": "https://github.com/mingng18/bus-watch/pull/449",
+      "title": "\ud83c\udfa8 Palette: Expand 'sched' abbreviations for better UX and accessibility",
+      "head_sha": "80460a6d1a3eb2a42c06d47eef8fc72c5a4035f0",
+      "disposition": "already_present",
+      "reason": "Current UI already uses clock icons and explicit Scheduled text. Retain that clearer label rather than reverting to icon-only or equivalent composition.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "watch-app/BusWatch/Views/NearbyListView.swift"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 450,
+      "url": "https://github.com/mingng18/bus-watch/pull/450",
+      "title": "\u26a1 Bolt: [Performance] Optimize string sorting overhead in GTFS schedules",
+      "head_sha": "233066a50ee24b0e8ee70a15452e7a98f68f3980",
+      "disposition": "already_present",
+      "reason": "Station and toward-destination schedules already sort GTFS time strings with comparison operators. Remaining conflict is comments/parentheses or equivalent sorted assertions.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "backend/src/departures-toward.ts",
+          "backend/src/station.ts",
+          "backend/test/station.test.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 451,
+      "url": "https://github.com/mingng18/bus-watch/pull/451",
+      "title": "\u26a1 Bolt: Optimize XML sitemap parsing",
+      "head_sha": "479be8a916215c5a3498d1dac22c75bfe911748e",
+      "disposition": "retained",
+      "reason": "Retain XML parser optimization and its tests for a focused parsing compatibility review.",
+      "action": "keep_open",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/test/alerts.test.ts"
+        ],
+        "source_conflicts": [
+          "backend/src/alerts.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 452,
+      "url": "https://github.com/mingng18/bus-watch/pull/452",
+      "title": "\u26a1 Bolt: [performance improvement] Replace localeCompare with simple string comparison for departure times",
+      "head_sha": "047a4a092eedfeae15d06f2417b7ad7892cb9aba",
+      "disposition": "already_present",
+      "reason": "Station and toward-destination schedules already sort GTFS time strings with comparison operators. Remaining conflict is comments/parentheses or equivalent sorted assertions.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "backend/src/departures-toward.ts",
+          "backend/src/station.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 455,
+      "url": "https://github.com/mingng18/bus-watch/pull/455",
+      "title": "\u26a1 Bolt: Replace localeCompare with operator for faster string sorting",
+      "head_sha": "779da572a1afacfa965a73f25b71161077062931",
+      "disposition": "already_present",
+      "reason": "Station and toward-destination schedules already sort GTFS time strings with comparison operators. Remaining conflict is comments/parentheses or equivalent sorted assertions.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/index.ts",
+          "backend/src/nearby.ts",
+          "backend/src/rail-ingest.ts",
+          "backend/src/routes.ts",
+          "backend/src/sampling.ts",
+          "backend/src/station.ts",
+          "backend/src/time-kl.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "backend/test/station.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/BusProgressView.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "backend/src/departures-toward.ts",
+          "backend/src/station.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 457,
+      "url": "https://github.com/mingng18/bus-watch/pull/457",
+      "title": "\u26a1 Bolt: [performance improvement]",
+      "head_sha": "b9f976aed48a38aeaa82a204296b757057d182ee",
+      "disposition": "already_present",
+      "reason": "The substantive patch reverse-applies to current master or the three-way merge has no substantive changes. Bot journals and obsolete generated backend bundles are excluded.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [],
+        "source_conflicts": [],
+        "reverse_applies": true
+      }
+    },
+    {
+      "number": 459,
+      "url": "https://github.com/mingng18/bus-watch/pull/459",
+      "title": "\ud83c\udfa8 Palette: [UX improvement] Expand schedule abbreviation to icon and label",
+      "head_sha": "44d6c09d8694830faad15381272a07ed2a359ea3",
+      "disposition": "already_present",
+      "reason": "The substantive patch reverse-applies to current master or the three-way merge has no substantive changes. Bot journals and obsolete generated backend bundles are excluded.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [],
+        "source_conflicts": [],
+        "reverse_applies": true
+      }
+    },
+    {
+      "number": 472,
+      "url": "https://github.com/mingng18/bus-watch/pull/472",
+      "title": "\u26a1 Bolt: [performance improvement]",
+      "head_sha": "638ff1a62f4f7be334ce48db2c8bbf2941b0ca60",
+      "disposition": "duplicate_proposal",
+      "reason": "Keep #349 as the canonical stop-lookup optimization proposal; defer its duplicate-ID/cache semantics review rather than adding competing linear-loop variants.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/departures-toward.ts",
+          "backend/src/station.ts"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      },
+      "canonical_proposal": 349
+    },
+    {
+      "number": 473,
+      "url": "https://github.com/mingng18/bus-watch/pull/473",
+      "title": "\u26a1 Bolt: [performance improvement]",
+      "head_sha": "f29cfca94af950db45519578aff1ab7c52ba9e6a",
+      "disposition": "already_present",
+      "reason": "Both schedule functions already reuse one Date; the conflict changes comments/whitespace only.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts",
+          "backend/src/csv-parser.ts",
+          "backend/src/departures-toward.ts",
+          "backend/src/gtfs-static.ts",
+          "backend/src/index.ts",
+          "backend/src/routes.ts",
+          "backend/src/station.ts",
+          "backend/test/merge.test.ts",
+          "backend/test/sampling.test.ts",
+          "watch-app/BusWatch/Services/APIClient.swift",
+          "watch-app/BusWatch/Services/ContextEngine.swift",
+          "watch-app/BusWatch/Services/NotificationService.swift",
+          "watch-app/BusWatch/Views/MainView.swift",
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/StationArrivalsView.swift",
+          "watch-app/BusWatchComplications/CountdownWidget.swift",
+          "watch-app/BusWatchTests/NearbyResponseTests.swift",
+          "watch-app/BusWatchTests/NotificationServiceTests.swift"
+        ],
+        "source_conflicts": [
+          "backend/src/departures-toward.ts",
+          "backend/src/station.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 475,
+      "url": "https://github.com/mingng18/bus-watch/pull/475",
+      "title": "\ud83c\udfa8 Palette: Fix dynamic complication sizing for watch faces",
+      "head_sha": "651e06e5a89309a93a257d5cd872231f1dff7629",
+      "disposition": "already_present",
+      "reason": "The substantive patch reverse-applies to current master or the three-way merge has no substantive changes. Bot journals and obsolete generated backend bundles are excluded.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [],
+        "source_conflicts": [],
+        "reverse_applies": true
+      }
+    },
+    {
+      "number": 476,
+      "url": "https://github.com/mingng18/bus-watch/pull/476",
+      "title": "\u26a1 Bolt: Consolidate Date instantiations",
+      "head_sha": "be42b820c0de2637baa5201c3da74b5fd90bc366",
+      "disposition": "declined",
+      "reason": "Reuses a timestamp captured before network I/O as the cache write timestamp. Retain completion-time freshness rather than changing cache semantics for unmeasured Date.now savings.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/index.ts"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 478,
+      "url": "https://github.com/mingng18/bus-watch/pull/478",
+      "title": "\ud83c\udfa8 Palette: Deduplicate Home and Favorite UI indicators",
+      "head_sha": "327aa806b097aaf30d9120c7b70f6462757ac0ec",
+      "disposition": "consolidated",
+      "reason": "Ported mutually exclusive home/favorite indicators and spoken labels, preserving the release feature flags.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "watch-app/BusWatch/Views/ManualPickerView.swift",
+          "watch-app/BusWatch/Views/NearbyListView.swift"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 481,
+      "url": "https://github.com/mingng18/bus-watch/pull/481",
+      "title": "\u26a1 Bolt: Optimize XML sitemap parsing",
+      "head_sha": "4c36ae6e15320bf2287981b429099e7a7acc8fa2",
+      "disposition": "retained",
+      "reason": "Retain alternate XML optimization; compare parsing semantics with #451 before choosing one implementation.",
+      "action": "keep_open",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/alerts.ts"
+        ],
+        "source_conflicts": [
+          "backend/src/alerts.ts"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 482,
+      "url": "https://github.com/mingng18/bus-watch/pull/482",
+      "title": "\ud83d\udee1\ufe0f Sentinel: [HIGH] Fix Array DoS bypass in global query validation",
+      "head_sha": "7ebd0894ab3e275cf180f238adcd65b14be24654",
+      "disposition": "already_present",
+      "reason": "Global query-array validation is already present; the only remaining effective file is an empty ack.txt acknowledgement.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "ack.txt"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 493,
+      "url": "https://github.com/mingng18/bus-watch/pull/493",
+      "title": "\ud83c\udfa8 Palette: Add visual badge for disabled bus stops in Manual Picker",
+      "head_sha": "3a870290ecea6652b2ee9804b91b6e291eb67bf4",
+      "disposition": "already_present",
+      "reason": "The substantive patch reverse-applies to current master or the three-way merge has no substantive changes. Bot journals and obsolete generated backend bundles are excluded.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [],
+        "source_conflicts": [],
+        "reverse_applies": true
+      }
+    },
+    {
+      "number": 494,
+      "url": "https://github.com/mingng18/bus-watch/pull/494",
+      "title": "\u26a1 Bolt: Replace Array.prototype.find with standard for loop",
+      "head_sha": "9ca84261f3ad149c780a79887a10103f1e88a6a8",
+      "disposition": "duplicate_proposal",
+      "reason": "Keep #349 as the canonical stop-lookup optimization proposal; defer its duplicate-ID/cache semantics review rather than adding competing linear-loop variants.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/departures-toward.ts",
+          "backend/src/station.ts"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      },
+      "canonical_proposal": 349
+    },
+    {
+      "number": 495,
+      "url": "https://github.com/mingng18/bus-watch/pull/495",
+      "title": "\u26a1 Bolt: Optimize array find lookups in hot paths",
+      "head_sha": "3d36ba36e38b72262f474ceffcd034a26fe46a5a",
+      "disposition": "duplicate_proposal",
+      "reason": "Keep #349 as the canonical stop-lookup optimization proposal; defer its duplicate-ID/cache semantics review rather than adding competing linear-loop variants.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/departures-toward.ts",
+          "backend/src/station.ts"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      },
+      "canonical_proposal": 349
+    },
+    {
+      "number": 498,
+      "url": "https://github.com/mingng18/bus-watch/pull/498",
+      "title": "\u26a1 Bolt: Prevent lambda allocation in .find() for station schedules",
+      "head_sha": "688aa84f6e5b1a0625453e823391580ee309cbe0",
+      "disposition": "duplicate_proposal",
+      "reason": "Keep #349 as the canonical stop-lookup optimization proposal; defer its duplicate-ID/cache semantics review rather than adding competing linear-loop variants.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "backend/src/departures-toward.ts",
+          "backend/src/station.ts"
+        ],
+        "source_conflicts": [],
+        "reverse_applies": false
+      },
+      "canonical_proposal": 349
+    },
+    {
+      "number": 501,
+      "url": "https://github.com/mingng18/bus-watch/pull/501",
+      "title": "\ud83c\udfa8 Palette: Enhance visual and accessible feedback for disabled bus stops",
+      "head_sha": "e43694ebc230b40ed2164687c90707a8f0fd3fef",
+      "disposition": "already_present",
+      "reason": "The substantive patch reverse-applies to current master or the three-way merge has no substantive changes. Bot journals and obsolete generated backend bundles are excluded.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [],
+        "source_conflicts": [],
+        "reverse_applies": true
+      }
+    },
+    {
+      "number": 502,
+      "url": "https://github.com/mingng18/bus-watch/pull/502",
+      "title": "\ud83c\udfa8 Palette: Add visual indicator for disabled bus stops in Manual Picker",
+      "head_sha": "88e6055fd8069a5ecce7a86d3db77968db9e8a18",
+      "disposition": "already_present",
+      "reason": "The substantive patch reverse-applies to current master or the three-way merge has no substantive changes. Bot journals and obsolete generated backend bundles are excluded.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [],
+        "source_conflicts": [],
+        "reverse_applies": true
+      }
+    },
+    {
+      "number": 504,
+      "url": "https://github.com/mingng18/bus-watch/pull/504",
+      "title": "\u26a1 Bolt: Optimize CSV parsing with charCodeAt",
+      "head_sha": "595d44b106302fb79325c3add2d57c55fb5fcf0c",
+      "disposition": "already_present",
+      "reason": "The substantive patch reverse-applies to current master or the three-way merge has no substantive changes. Bot journals and obsolete generated backend bundles are excluded.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [],
+        "source_conflicts": [],
+        "reverse_applies": true
+      }
+    },
+    {
+      "number": 505,
+      "url": "https://github.com/mingng18/bus-watch/pull/505",
+      "title": "\ud83c\udfa8 Palette: Add visual badge for disabled non-rail stops",
+      "head_sha": "17bf144958340b82b260283bd9eed1a0a890d91f",
+      "disposition": "already_present",
+      "reason": "The substantive patch reverse-applies to current master or the three-way merge has no substantive changes. Bot journals and obsolete generated backend bundles are excluded.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [],
+        "source_conflicts": [],
+        "reverse_applies": true
+      }
+    },
+    {
+      "number": 506,
+      "url": "https://github.com/mingng18/bus-watch/pull/506",
+      "title": "\ud83c\udfa8 Palette: Clarify disabled stops in manual picker",
+      "head_sha": "9ffeb088c098d13a050417551d898e349890ea65",
+      "disposition": "declined",
+      "reason": "Current master already shows the Rail only badge and a rail-only accessibility hint. The remaining change removes badge styling and rewords the same hint.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [
+          "watch-app/BusWatch/Views/ManualPickerView.swift"
+        ],
+        "source_conflicts": [
+          "watch-app/BusWatch/Views/ManualPickerView.swift"
+        ],
+        "reverse_applies": false
+      }
+    },
+    {
+      "number": 507,
+      "url": "https://github.com/mingng18/bus-watch/pull/507",
+      "title": "\u26a1 Bolt: Optimize CSV parser using charCodeAt",
+      "head_sha": "2f3e1f19a4b10967bc1331bbba97533bb5f216f2",
+      "disposition": "already_present",
+      "reason": "The substantive patch reverse-applies to current master or the three-way merge has no substantive changes. Bot journals and obsolete generated backend bundles are excluded.",
+      "action": "close_as_superseded",
+      "evidence": {
+        "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+        "paths": [],
+        "source_conflicts": [],
+        "reverse_applies": true
+      }
+    }
+  ],
+  "closure_status": "planned; canonical source and decision ledger published before closure",
+  "validation": {
+    "backend_tests": 207,
+    "watch_tests": 116,
+    "typescript": "passed",
+    "sqlite_migrations_and_timestamp_index": "passed",
+    "signed_development_archive": "passed"
+  }
+}
