@@ -75,3 +75,14 @@ xcodebuild -project BusWatch.xcodeproj -scheme 'BusWatch AppStore' \
   -destination 'generic/platform=iOS' \
   -archivePath /tmp/BusWatch-release.xcarchive archive
 ```
+
+
+### Remaining 12 PR follow-up
+
+Reviewed all 12 retained heads and ported useful work into the canonical branch. The backend now passes 223 tests across 24 files and TypeScript checking; the watch suite passes 119 tests. A stationary Retry regression failed before the explicit refetch fix and passed afterward. Error pull-to-refresh and empty-alert refresh compile successfully; physical gesture testing remains unverified.
+
+The three XML candidate heads were tested differentially. Their lowercased-document offsets corrupt URLs and dates after U+0130. The current bounded parser was retained with compatibility regressions. Cache tests verify isolation, concurrent reuse, duplicate selection, source expiry/invalidation, and transformation failure recovery. The sampling pipeline's 502-route regression checks batch size, concurrency, and pipe-containing route IDs.
+
+The new device Release archive built successfully and passed `codesign --verify --deep --strict` using the system trust store. Brand assets remain valid. Archive: `/Users/ming/.codex/visualizations/2026/10/21/01a15ed2-e800-7b43-ae00-1e1a713f9850/BusWatch-remaining-reviewed.xcarchive`. Test results/logs: `/tmp/bus-watch-remaining-tests.xcresult`, `/tmp/bus-watch-remaining-tests.log`, `/tmp/bus-watch-remaining-backend-tests.log`, and `/tmp/bus-watch-remaining-archive.log`. The failing baseline regression is in `/tmp/bus-watch-retry-before.xcresult` and `/tmp/bus-watch-retry-before.log`.
+
+Release limitations above still apply: no physical-device validation, distribution export, TestFlight upload, backend deployment, or production database mutation.

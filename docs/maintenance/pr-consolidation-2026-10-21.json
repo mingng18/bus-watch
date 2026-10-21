@@ -4,13 +4,12 @@
   "canonical_pr": 511,
   "baseline_master": "4b458058e510bf437c1acf3e23980845ad2353df",
   "original_open_count": 103,
-  "method": "Review immutable head snapshots; use reverse-apply and three-way merge evidence, excluding bot journals and obsolete backend/dist. Resolve substantive conflicts by inspection and port selected changes without merging stale branches. PR titles are not used as proof. Retain distinct higher-risk proposals.",
+  "method": "Review immutable head snapshots using reverse-apply and three-way merge evidence, excluding bot journals and obsolete backend/dist. Resolve substantive conflicts by inspection, differential experiments, and behavior tests; port useful changes into the canonical PR without merging stale branches. All 103 source PRs now have final dispositions.",
   "counts": {
     "already_present": 58,
-    "declined": 15,
-    "duplicate_proposal": 7,
-    "retained": 12,
-    "consolidated": 11
+    "consolidated": 21,
+    "declined": 17,
+    "duplicate_proposal": 7
   },
   "pull_requests": [
     {
@@ -19,7 +18,7 @@
       "title": "\ud83d\udee1\ufe0f Sentinel: [HIGH] Fix ReDoS in XML parsing",
       "head_sha": "05249f64f93d75ef9c9520acde87cf2a878e07fa",
       "disposition": "already_present",
-      "reason": "XML parsing has already moved to fast-xml-parser. Current residual instead rewrites the existing timing-safe authorization comparison; retain the established tested guard.",
+      "reason": "The reviewed three-way merge has no remaining XML-parser change; current master uses a bounded URL-block scanner. The residual authorization-comparison rewrite was omitted to retain the established guard.",
       "action": "close_as_superseded",
       "evidence": {
         "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
@@ -258,9 +257,9 @@
       "url": "https://github.com/mingng18/bus-watch/pull/316",
       "title": "\u26a1 Bolt: Optimize routeMap instantiation in trip progress endpoint",
       "head_sha": "48c66965e8dfdeaf2beb936b49c6510a60dd0fd9",
-      "disposition": "retained",
-      "reason": "Retain route-map reuse proposal; verify duplicate-route precedence before replacing per-request maps.",
-      "action": "keep_open",
+      "disposition": "consolidated",
+      "reason": "Reused route indexes for trip progress in kv.ts. Added an explicit lastById index to preserve its historical last-duplicate selection; nearby retains first-duplicate selection. Endpoint regression verifies the route and repeated-request cache reuse.",
+      "action": "close_as_superseded",
       "evidence": {
         "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
         "paths": [
@@ -270,7 +269,32 @@
           "backend/src/index.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "review_history": [
+        {
+          "round": 1,
+          "disposition": "retained",
+          "reason": "Retain route-map reuse proposal; verify duplicate-route precedence before replacing per-request maps.",
+          "action": "keep_open",
+          "evidence": {
+            "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+            "paths": [
+              "backend/src/index.ts"
+            ],
+            "source_conflicts": [
+              "backend/src/index.ts"
+            ],
+            "reverse_applies": false
+          }
+        }
+      ],
+      "follow_up_evidence": {
+        "reviewed_against_canonical": "150e57156d41d5d221305c0c31f28a9096ce5923",
+        "verified_head": "48c66965e8dfdeaf2beb936b49c6510a60dd0fd9",
+        "head_ref": "jules-7756139786051891441-3a739379",
+        "round": 2
+      },
+      "remote_outcome": "pending_closure"
     },
     {
       "number": 317,
@@ -437,9 +461,9 @@
       "url": "https://github.com/mingng18/bus-watch/pull/326",
       "title": "\ud83e\uddf9 Code Health: Extract helpers from findNearbyStops",
       "head_sha": "a2f498271c6e757d98cd9120c106b43a9bb67d0f",
-      "disposition": "retained",
-      "reason": "Retain one proposal for decomposing findNearbyStops; requires focused behavior-preservation review.",
-      "action": "keep_open",
+      "disposition": "consolidated",
+      "reason": "Ported the nearby stop filtering, live bus arrivals, and scheduled arrivals helpers while retaining both spatial prefilters, entity maps, arrival order, route deduplication, and the three-arrival cap. Existing and added behavior tests pass.",
+      "action": "close_as_superseded",
       "evidence": {
         "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
         "paths": [
@@ -449,7 +473,32 @@
           "backend/src/nearby.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "review_history": [
+        {
+          "round": 1,
+          "disposition": "retained",
+          "reason": "Retain one proposal for decomposing findNearbyStops; requires focused behavior-preservation review.",
+          "action": "keep_open",
+          "evidence": {
+            "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+            "paths": [
+              "backend/src/nearby.ts"
+            ],
+            "source_conflicts": [
+              "backend/src/nearby.ts"
+            ],
+            "reverse_applies": false
+          }
+        }
+      ],
+      "follow_up_evidence": {
+        "reviewed_against_canonical": "150e57156d41d5d221305c0c31f28a9096ce5923",
+        "verified_head": "a2f498271c6e757d98cd9120c106b43a9bb67d0f",
+        "head_ref": "jules-2732094487005706209-0df23ea1",
+        "round": 2
+      },
+      "remote_outcome": "pending_closure"
     },
     {
       "number": 329,
@@ -692,9 +741,9 @@
       "url": "https://github.com/mingng18/bus-watch/pull/344",
       "title": "\ud83e\uddf9 [Refactor] Extract helper functions to simplify aggregateTravelTimes",
       "head_sha": "76bccae4550b9cc00989b1d5b5a5620cee721da5",
-      "disposition": "retained",
-      "reason": "Retain sampling aggregation helper refactor for separate structural review.",
-      "action": "keep_open",
+      "disposition": "consolidated",
+      "reason": "Split sampling aggregation into private read, group, detect, and upsert helpers. Preserved finite-row filtering, full route IDs containing pipes, outlier and time-bucket behavior, prepared-statement reuse, 100-statement batches, five-batch concurrency, and failure propagation. A 502-route regression exercises the full pipeline.",
+      "action": "close_as_superseded",
       "evidence": {
         "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
         "paths": [
@@ -704,7 +753,32 @@
           "backend/src/sampling.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "review_history": [
+        {
+          "round": 1,
+          "disposition": "retained",
+          "reason": "Retain sampling aggregation helper refactor for separate structural review.",
+          "action": "keep_open",
+          "evidence": {
+            "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+            "paths": [
+              "backend/src/sampling.ts"
+            ],
+            "source_conflicts": [
+              "backend/src/sampling.ts"
+            ],
+            "reverse_applies": false
+          }
+        }
+      ],
+      "follow_up_evidence": {
+        "reviewed_against_canonical": "150e57156d41d5d221305c0c31f28a9096ce5923",
+        "verified_head": "76bccae4550b9cc00989b1d5b5a5620cee721da5",
+        "head_ref": "refactor/sampling-helpers-11009249226222416361",
+        "round": 2
+      },
+      "remote_outcome": "pending_closure"
     },
     {
       "number": 346,
@@ -753,9 +827,9 @@
       "url": "https://github.com/mingng18/bus-watch/pull/349",
       "title": "\u26a1 Replace array scan with O(1) map lookup for stop routing",
       "head_sha": "ba823343317ea387097e62e0ade9ff305f4b0770",
-      "disposition": "retained",
-      "reason": "Retain cached stop lookup proposal; duplicate-ID precedence and cache invalidation need explicit validation.",
-      "action": "keep_open",
+      "disposition": "consolidated",
+      "reason": "Added a snapshot-derived stop index to both station handlers and optional map parameters to their schedule functions. The map keeps the first duplicate, matching the original Array.find behavior. Tests cover parity, missing stops, source expiry, and explicit invalidation.",
+      "action": "close_as_superseded",
       "evidence": {
         "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
         "paths": [
@@ -765,7 +839,32 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "review_history": [
+        {
+          "round": 1,
+          "disposition": "retained",
+          "reason": "Retain cached stop lookup proposal; duplicate-ID precedence and cache invalidation need explicit validation.",
+          "action": "keep_open",
+          "evidence": {
+            "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+            "paths": [
+              "backend/src/departures-toward.ts",
+              "backend/src/index.ts",
+              "backend/src/station.ts"
+            ],
+            "source_conflicts": [],
+            "reverse_applies": false
+          }
+        }
+      ],
+      "follow_up_evidence": {
+        "reviewed_against_canonical": "150e57156d41d5d221305c0c31f28a9096ce5923",
+        "verified_head": "ba823343317ea387097e62e0ade9ff305f4b0770",
+        "head_ref": "perf-stop-lookup-3986101083933204498",
+        "round": 2
+      },
+      "remote_outcome": "pending_closure"
     },
     {
       "number": 350,
@@ -794,9 +893,9 @@
       "url": "https://github.com/mingng18/bus-watch/pull/352",
       "title": "\ud83e\uddf9 [Extract KV logic from index.ts]",
       "head_sha": "6994c3d5cec9867a5b3b4529244b748c1ffc7177",
-      "disposition": "retained",
-      "reason": "Retain KV module extraction; moving shared caches and test mocks needs a dedicated review.",
-      "action": "keep_open",
+      "disposition": "consolidated",
+      "reason": "Extracted KV and transit-data loading into kv.ts, retaining the pure mergeBusRoutes export and current network fallbacks. Isolated caches per KV binding, deduplicated concurrent reads, and tied derived indexes to their exact source snapshots. Static ingestion invalidates local caches after writes. Existing endpoint and new cache tests pass.",
+      "action": "close_as_superseded",
       "evidence": {
         "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
         "paths": [
@@ -810,7 +909,36 @@
           "backend/test/merge.test.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "review_history": [
+        {
+          "round": 1,
+          "disposition": "retained",
+          "reason": "Retain KV module extraction; moving shared caches and test mocks needs a dedicated review.",
+          "action": "keep_open",
+          "evidence": {
+            "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+            "paths": [
+              "backend/src/index.ts",
+              "backend/src/kv.ts",
+              "backend/src/types.ts",
+              "backend/test/merge.test.ts"
+            ],
+            "source_conflicts": [
+              "backend/src/index.ts",
+              "backend/test/merge.test.ts"
+            ],
+            "reverse_applies": false
+          }
+        }
+      ],
+      "follow_up_evidence": {
+        "reviewed_against_canonical": "150e57156d41d5d221305c0c31f28a9096ce5923",
+        "verified_head": "6994c3d5cec9867a5b3b4529244b748c1ffc7177",
+        "head_ref": "refactor/extract-kv-helpers-12933961828365557862",
+        "round": 2
+      },
+      "remote_outcome": "pending_closure"
     },
     {
       "number": 358,
@@ -1003,9 +1131,9 @@
       "url": "https://github.com/mingng18/bus-watch/pull/387",
       "title": "\ud83c\udfa8 Palette: Add pull-to-refresh to Service Alerts",
       "head_sha": "55e4159987433a24fa17e8e42eed7a0837b8ebea",
-      "disposition": "retained",
-      "reason": "Retain error-screen refresh/layout change for focused interaction review.",
-      "action": "keep_open",
+      "disposition": "consolidated",
+      "reason": "The remaining change was the main error screen, not AlertsView. Ported its List and pull-to-refresh layout, then fixed Retry to explicitly refetch using the latest location. Reproduced the stationary failure before fixing it; watch tests verify recovery, no-location restart, and restricted access.",
+      "action": "close_as_superseded",
       "evidence": {
         "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
         "paths": [
@@ -1013,16 +1141,39 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "review_history": [
+        {
+          "round": 1,
+          "disposition": "retained",
+          "reason": "Retain error-screen refresh/layout change for focused interaction review.",
+          "action": "keep_open",
+          "evidence": {
+            "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+            "paths": [
+              "watch-app/BusWatch/Views/MainView.swift"
+            ],
+            "source_conflicts": [],
+            "reverse_applies": false
+          }
+        }
+      ],
+      "follow_up_evidence": {
+        "reviewed_against_canonical": "150e57156d41d5d221305c0c31f28a9096ce5923",
+        "verified_head": "55e4159987433a24fa17e8e42eed7a0837b8ebea",
+        "head_ref": "palette-alerts-refreshable-3090770331047245596",
+        "round": 2
+      },
+      "remote_outcome": "pending_closure"
     },
     {
       "number": 388,
       "url": "https://github.com/mingng18/bus-watch/pull/388",
       "title": "\u26a1 Bolt: Cache canonical stop sequence transformations globally",
       "head_sha": "66d3eafda417901618cdc7d9f364a80f7e90481e",
-      "disposition": "retained",
-      "reason": "Retain canonical-sequence cache proposal; rejected promises and invalidation need a dedicated review.",
-      "action": "keep_open",
+      "disposition": "consolidated",
+      "reason": "Reused typed canonical stop sequences for ETA requests and scheduled aggregation. Cache keys are the exact trip and trip-stop snapshots, rather than a separate global TTL promise. Tests cover concurrent reuse, invalidation, and retry after a transformation throws.",
+      "action": "close_as_superseded",
       "evidence": {
         "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
         "paths": [
@@ -1030,7 +1181,30 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "review_history": [
+        {
+          "round": 1,
+          "disposition": "retained",
+          "reason": "Retain canonical-sequence cache proposal; rejected promises and invalidation need a dedicated review.",
+          "action": "keep_open",
+          "evidence": {
+            "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+            "paths": [
+              "backend/src/index.ts"
+            ],
+            "source_conflicts": [],
+            "reverse_applies": false
+          }
+        }
+      ],
+      "follow_up_evidence": {
+        "reviewed_against_canonical": "150e57156d41d5d221305c0c31f28a9096ce5923",
+        "verified_head": "66d3eafda417901618cdc7d9f364a80f7e90481e",
+        "head_ref": "perf-canonical-seqs-12322601337816755588",
+        "round": 2
+      },
+      "remote_outcome": "pending_closure"
     },
     {
       "number": 390,
@@ -1145,9 +1319,9 @@
       "url": "https://github.com/mingng18/bus-watch/pull/402",
       "title": "\ud83c\udfa8 Palette: Add pull-to-refresh and manual refresh to AlertsView",
       "head_sha": "3238a8ae481c77c016d226d6cf461ac9b84ccdbc",
-      "disposition": "retained",
-      "reason": "Retain refresh-state behavior change in AlertsView for focused interaction review.",
-      "action": "keep_open",
+      "disposition": "consolidated",
+      "reason": "Pull-to-refresh and refresh-state preservation already exist on master. Ported the only remaining useful change: the empty-alert Refresh button uses load(isRefresh: true), keeping its current content visible while fetching. The service-alert feature flag is unchanged.",
+      "action": "close_as_superseded",
       "evidence": {
         "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
         "paths": [
@@ -1157,7 +1331,32 @@
           "watch-app/BusWatch/Views/AlertsView.swift"
         ],
         "reverse_applies": false
-      }
+      },
+      "review_history": [
+        {
+          "round": 1,
+          "disposition": "retained",
+          "reason": "Retain refresh-state behavior change in AlertsView for focused interaction review.",
+          "action": "keep_open",
+          "evidence": {
+            "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+            "paths": [
+              "watch-app/BusWatch/Views/AlertsView.swift"
+            ],
+            "source_conflicts": [
+              "watch-app/BusWatch/Views/AlertsView.swift"
+            ],
+            "reverse_applies": false
+          }
+        }
+      ],
+      "follow_up_evidence": {
+        "reviewed_against_canonical": "150e57156d41d5d221305c0c31f28a9096ce5923",
+        "verified_head": "3238a8ae481c77c016d226d6cf461ac9b84ccdbc",
+        "head_ref": "palette-alerts-refresh-8931082488534142257",
+        "round": 2
+      },
+      "remote_outcome": "pending_closure"
     },
     {
       "number": 403,
@@ -1272,9 +1471,9 @@
       "url": "https://github.com/mingng18/bus-watch/pull/408",
       "title": "\ud83d\udee1\ufe0f Sentinel: [security improvement] Add no-store cache control for admin endpoints",
       "head_sha": "9aa341277e215002707c66d2e4cc7b7fca4278ea",
-      "disposition": "retained",
-      "reason": "Retain distinct header-hardening proposal; current head changes frame/CSP policy rather than the cache behavior in its title.",
-      "action": "keep_open",
+      "disposition": "consolidated",
+      "reason": "Admin no-store was already present. Added the remaining useful framing policy: CSP frame-ancestors none and X-Frame-Options DENY. Retained existing nosniff and no-store behavior, verified on actual responses. Omitted upgrade-insecure-requests because the JSON API has no subresources to upgrade.",
+      "action": "close_as_superseded",
       "evidence": {
         "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
         "paths": [
@@ -1282,16 +1481,39 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "review_history": [
+        {
+          "round": 1,
+          "disposition": "retained",
+          "reason": "Retain distinct header-hardening proposal; current head changes frame/CSP policy rather than the cache behavior in its title.",
+          "action": "keep_open",
+          "evidence": {
+            "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+            "paths": [
+              "backend/src/index.ts"
+            ],
+            "source_conflicts": [],
+            "reverse_applies": false
+          }
+        }
+      ],
+      "follow_up_evidence": {
+        "reviewed_against_canonical": "150e57156d41d5d221305c0c31f28a9096ce5923",
+        "verified_head": "9aa341277e215002707c66d2e4cc7b7fca4278ea",
+        "head_ref": "sentinel-cache-control-2179138802675884613",
+        "round": 2
+      },
+      "remote_outcome": "pending_closure"
     },
     {
       "number": 409,
       "url": "https://github.com/mingng18/bus-watch/pull/409",
       "title": "\u26a1 Bolt: Optimize XML sitemap parsing allocations",
       "head_sha": "46707a4f6b69b2da042d80348f1049a481b702c7",
-      "disposition": "retained",
-      "reason": "Retain alternate XML optimization; compare allocation behavior and parser semantics with #451.",
-      "action": "keep_open",
+      "disposition": "declined",
+      "reason": "Declined the parser rewrite. A differential harness reproduced offset corruption in this immutable head: lowercasing text containing U+0130 expands its length, so offsets slice the original URL and lastmod incorrectly. Retained the existing bounded block scanner and added Unicode/boundary regression coverage in #511.",
+      "action": "close_as_superseded",
       "evidence": {
         "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
         "paths": [
@@ -1302,7 +1524,33 @@
           "backend/src/alerts.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "review_history": [
+        {
+          "round": 1,
+          "disposition": "retained",
+          "reason": "Retain alternate XML optimization; compare allocation behavior and parser semantics with #451.",
+          "action": "keep_open",
+          "evidence": {
+            "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+            "paths": [
+              "backend/src/alerts.ts",
+              "backend/test/alerts.test.ts"
+            ],
+            "source_conflicts": [
+              "backend/src/alerts.ts"
+            ],
+            "reverse_applies": false
+          }
+        }
+      ],
+      "follow_up_evidence": {
+        "reviewed_against_canonical": "150e57156d41d5d221305c0c31f28a9096ce5923",
+        "verified_head": "46707a4f6b69b2da042d80348f1049a481b702c7",
+        "head_ref": "bolt-optimize-xml-sitemap-parsing-13326694384447367249",
+        "round": 2
+      },
+      "remote_outcome": "pending_closure"
     },
     {
       "number": 410,
@@ -2277,9 +2525,9 @@
       "url": "https://github.com/mingng18/bus-watch/pull/451",
       "title": "\u26a1 Bolt: Optimize XML sitemap parsing",
       "head_sha": "479be8a916215c5a3498d1dac22c75bfe911748e",
-      "disposition": "retained",
-      "reason": "Retain XML parser optimization and its tests for a focused parsing compatibility review.",
-      "action": "keep_open",
+      "disposition": "consolidated",
+      "reason": "Carried forward the URL-attribute compatibility test and expanded it with mixed-case tags, namespaced image locations, Unicode offsets, and cross-block isolation. Declined the production parser rewrite because its lowercased-document offsets corrupt URL/date fields after U+0130, reproduced against this head.",
+      "action": "close_as_superseded",
       "evidence": {
         "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
         "paths": [
@@ -2290,7 +2538,33 @@
           "backend/src/alerts.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "review_history": [
+        {
+          "round": 1,
+          "disposition": "retained",
+          "reason": "Retain XML parser optimization and its tests for a focused parsing compatibility review.",
+          "action": "keep_open",
+          "evidence": {
+            "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+            "paths": [
+              "backend/src/alerts.ts",
+              "backend/test/alerts.test.ts"
+            ],
+            "source_conflicts": [
+              "backend/src/alerts.ts"
+            ],
+            "reverse_applies": false
+          }
+        }
+      ],
+      "follow_up_evidence": {
+        "reviewed_against_canonical": "150e57156d41d5d221305c0c31f28a9096ce5923",
+        "verified_head": "479be8a916215c5a3498d1dac22c75bfe911748e",
+        "head_ref": "bolt-optimize-xml-parsing-7316056348413358659",
+        "round": 2
+      },
+      "remote_outcome": "pending_closure"
     },
     {
       "number": 452,
@@ -2548,9 +2822,9 @@
       "url": "https://github.com/mingng18/bus-watch/pull/481",
       "title": "\u26a1 Bolt: Optimize XML sitemap parsing",
       "head_sha": "4c36ae6e15320bf2287981b429099e7a7acc8fa2",
-      "disposition": "retained",
-      "reason": "Retain alternate XML optimization; compare parsing semantics with #451 before choosing one implementation.",
-      "action": "keep_open",
+      "disposition": "declined",
+      "reason": "Declined the alternate indexOf parser. It shares the reproduced Unicode-offset corruption with #409 and #451 and adds a full-document lowercase allocation. Retained the bounded current parser with compatibility regressions instead of publishing a behavior-changing optimization.",
+      "action": "close_as_superseded",
       "evidence": {
         "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
         "paths": [
@@ -2560,7 +2834,32 @@
           "backend/src/alerts.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "review_history": [
+        {
+          "round": 1,
+          "disposition": "retained",
+          "reason": "Retain alternate XML optimization; compare parsing semantics with #451 before choosing one implementation.",
+          "action": "keep_open",
+          "evidence": {
+            "reviewed_against": "4b458058e510bf437c1acf3e23980845ad2353df",
+            "paths": [
+              "backend/src/alerts.ts"
+            ],
+            "source_conflicts": [
+              "backend/src/alerts.ts"
+            ],
+            "reverse_applies": false
+          }
+        }
+      ],
+      "follow_up_evidence": {
+        "reviewed_against_canonical": "150e57156d41d5d221305c0c31f28a9096ce5923",
+        "verified_head": "4c36ae6e15320bf2287981b429099e7a7acc8fa2",
+        "head_ref": "bolt-alerts-perf-9576834222540883383",
+        "round": 2
+      },
+      "remote_outcome": "pending_closure"
     },
     {
       "number": 482,
@@ -2779,13 +3078,17 @@
       "head_verified_before_close": "2f3e1f19a4b10967bc1331bbba97533bb5f216f2"
     }
   ],
-  "closure_status": "completed",
+  "closure_status": "remaining_review_prepared",
   "validation": {
-    "backend_tests": 207,
-    "watch_tests": 116,
+    "backend_tests": 223,
+    "backend_test_files": 24,
+    "watch_tests": 119,
     "typescript": "passed",
-    "sqlite_migrations_and_timestamp_index": "passed",
-    "signed_development_archive": "passed"
+    "sqlite_migrations_and_timestamp_index": "passed in first round; migrations unchanged",
+    "signed_development_archive": "passed",
+    "deep_strict_signature_verification": "passed using system trust store",
+    "stationary_retry_regression": "failed before fix; passed after fix",
+    "parser_differential": "all three candidate heads corrupt Unicode offsets; current scanner preserves them"
   },
   "closed_source_prs": 91,
   "skipped_source_prs": [],
@@ -2903,5 +3206,177 @@
       507
     ]
   },
-  "published_implementation_head": "e31e7743a89d3d1077b0541af2b13fdbfe6d9acc"
+  "published_implementation_head": "7dd973939f76f961317b56aeeb63b7dfe3e02e17",
+  "review_rounds": [
+    {
+      "round": 1,
+      "result": {
+        "counts": {
+          "already_present": 58,
+          "declined": 15,
+          "duplicate_proposal": 7,
+          "retained": 12,
+          "consolidated": 11
+        },
+        "closed_source_prs": 91,
+        "completed_at": "2026-10-21T15:23:04.557343+00:00",
+        "remote_verification": {
+          "verified_at": "2026-10-21T15:23:28.281524+00:00",
+          "open_pr_count": 13,
+          "open_pr_numbers": [
+            316,
+            326,
+            344,
+            349,
+            352,
+            387,
+            388,
+            402,
+            408,
+            409,
+            451,
+            481,
+            511
+          ],
+          "closed_source_pr_count": 91,
+          "closed_source_pr_numbers": [
+            304,
+            308,
+            309,
+            310,
+            311,
+            314,
+            315,
+            317,
+            320,
+            321,
+            323,
+            324,
+            329,
+            330,
+            332,
+            334,
+            336,
+            337,
+            339,
+            340,
+            341,
+            342,
+            346,
+            348,
+            350,
+            358,
+            366,
+            368,
+            374,
+            376,
+            377,
+            378,
+            380,
+            383,
+            390,
+            391,
+            398,
+            400,
+            403,
+            405,
+            406,
+            407,
+            410,
+            411,
+            412,
+            414,
+            415,
+            417,
+            418,
+            419,
+            420,
+            422,
+            423,
+            424,
+            425,
+            426,
+            428,
+            430,
+            431,
+            432,
+            434,
+            435,
+            437,
+            441,
+            442,
+            443,
+            444,
+            446,
+            448,
+            449,
+            450,
+            452,
+            455,
+            457,
+            459,
+            472,
+            473,
+            475,
+            476,
+            478,
+            482,
+            493,
+            494,
+            495,
+            498,
+            501,
+            502,
+            504,
+            505,
+            506,
+            507
+          ]
+        },
+        "validation": {
+          "backend_tests": 207,
+          "watch_tests": 116,
+          "typescript": "passed",
+          "sqlite_migrations_and_timestamp_index": "passed",
+          "signed_development_archive": "passed"
+        },
+        "published_implementation_head": "e31e7743a89d3d1077b0541af2b13fdbfe6d9acc"
+      }
+    },
+    {
+      "round": 2,
+      "starting_canonical_head": "150e57156d41d5d221305c0c31f28a9096ce5923",
+      "reviewed_source_numbers": [
+        316,
+        326,
+        344,
+        349,
+        352,
+        387,
+        388,
+        402,
+        408,
+        409,
+        451,
+        481
+      ],
+      "reviewed_at": "2026-10-21T16:00:26.156834+00:00",
+      "backend_implementation_head": "b54cb007e9ffdb6beb2dd36dc8e9146e8e1919d0",
+      "watch_implementation_head": "7dd973939f76f961317b56aeeb63b7dfe3e02e17",
+      "parser_evidence": {
+        "input": "U+0130 in an XML comment before a URL entry",
+        "heads_tested": [
+          "4c36ae6e15320bf2287981b429099e7a7acc8fa2",
+          "479be8a916215c5a3498d1dac22c75bfe911748e",
+          "46707a4f6b69b2da042d80348f1049a481b702c7"
+        ],
+        "all_candidates": {
+          "loc_prefix": "ttps://",
+          "lastmod_prefix": "026-",
+          "trailing_character": "<"
+        },
+        "current_parser": "Preserved the exact URL and timestamp."
+      }
+    }
+  ]
 }

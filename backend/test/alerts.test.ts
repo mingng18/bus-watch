@@ -391,6 +391,6 @@ describe("sitemap parser compatibility", () => {
       <url><loc>https://myrapid.com.my/info-gangguan-trafik-laluan-777-1/</loc><lastmod>2026-06-10T10:00:00+08:00</lastmod></url>
     </urlset>`);
     expect(alerts).toHaveLength(2);
-    expect(alerts.find(a => a.id === "info-penutupan-jalan-laluan-t201-22")?.date).not.toBe("2026-06-10T10:00:00+08:00");
+    expect(alerts.find(a => a.id === "info-penutupan-jalan-laluan-t201-22")?.date).toBe("1970-01-01T00:00:00.000Z");
   });
 });
