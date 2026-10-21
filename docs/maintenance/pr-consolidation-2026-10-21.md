@@ -6,13 +6,13 @@ Canonical review: [PR #511](https://github.com/mingng18/bus-watch/pull/511). Rev
 
 | Disposition | Count | Action |
 |---|---:|---|
-| Selected changes consolidated | 11 | Preserve in #511, then close source PRs as superseded |
-| Already represented on master | 58 | Close as superseded |
-| Declined residual changes | 15 | Close with a specific rationale |
-| Competing proposals | 7 | Close in favor of retained #326 or #349 |
+| Selected changes consolidated | 11 | Preserved in #511; source PRs closed as superseded |
+| Already represented on master | 58 | Closed as superseded |
+| Declined residual changes | 15 | Closed with a specific rationale |
+| Competing proposals | 7 | Closed in favor of retained #326 or #349 |
 | Distinct proposals retained | 12 | Keep open for focused review |
 
-Closure status: planned. The source changes and this decision ledger are published before changing the original PR states. The JSON ledger records each reviewed head SHA, reason, and final action.
+Verified outcome: all 91 planned source PRs are closed. GitHub now shows 13 open PRs: canonical #511 and the 12 retained proposals below. Each closure preserved the original description and added its specific reason plus the canonical reference. The JSON ledger records each reviewed head SHA, closure timestamp, and remote verification result.
 
 ## Included changes
 

@@ -28,7 +28,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:00Z",
+      "head_verified_before_close": "05249f64f93d75ef9c9520acde87cf2a878e07fa"
     },
     {
       "number": 308,
@@ -43,7 +46,10 @@
         "paths": [],
         "source_conflicts": [],
         "reverse_applies": true
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:02Z",
+      "head_verified_before_close": "d87008da46eebf9df27d30d875a44f7878b41112"
     },
     {
       "number": 309,
@@ -94,7 +100,10 @@
           "backend/src/index.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:04Z",
+      "head_verified_before_close": "124386e5bb23619789f273ed96ceb632100bca5f"
     },
     {
       "number": 310,
@@ -145,7 +154,10 @@
           "watch-app/BusWatch/Views/AlertsView.swift"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:07Z",
+      "head_verified_before_close": "c9df84875022caae138a98a8610262481cce3ece"
     },
     {
       "number": 311,
@@ -196,7 +208,10 @@
           "backend/src/index.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:10Z",
+      "head_verified_before_close": "15f0723d8dd29020592c8327e5dea34a9486ed54"
     },
     {
       "number": 314,
@@ -213,7 +228,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:12Z",
+      "head_verified_before_close": "9376cc2a0095788c5d0c341540e5dfffcf6ebede"
     },
     {
       "number": 315,
@@ -230,7 +248,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:16Z",
+      "head_verified_before_close": "30766ae2007ce479a17dfc4105482ea3c0f4c9fe"
     },
     {
       "number": 316,
@@ -284,7 +305,10 @@
           "watch-app/BusWatch/Views/StationArrivalsView.swift"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:19Z",
+      "head_verified_before_close": "e6ab4494f4910e0e47bf00445650f55672380d63"
     },
     {
       "number": 320,
@@ -303,7 +327,10 @@
           "backend/src/index.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:22Z",
+      "head_verified_before_close": "97d9d186a789d7ba098618409c24ac24d170594d"
     },
     {
       "number": 321,
@@ -322,7 +349,10 @@
           "backend/src/index.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:25Z",
+      "head_verified_before_close": "ce4024f586bc332a5f366e95ed2d0c6bb5d735cb"
     },
     {
       "number": 323,
@@ -341,7 +371,10 @@
           "backend/test/sampling.test.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:28Z",
+      "head_verified_before_close": "749abd10e37fdfbf3eca9deecc3e042868da6c12"
     },
     {
       "number": 324,
@@ -394,7 +427,10 @@
           "backend/test/sampling.test.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:31Z",
+      "head_verified_before_close": "652fa06ba5df3dcfffc518e7189b63d99587c5cd"
     },
     {
       "number": 326,
@@ -428,7 +464,10 @@
         "paths": [],
         "source_conflicts": [],
         "reverse_applies": true
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:33Z",
+      "head_verified_before_close": "409744c6a2a67e231fd36422c7d50444e6963783"
     },
     {
       "number": 330,
@@ -451,7 +490,10 @@
           "watch-app/BusWatch/Views/StationArrivalsView.swift"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:36Z",
+      "head_verified_before_close": "88e47894066442bc6c21fc7df2217a808ba34c8c"
     },
     {
       "number": 332,
@@ -470,7 +512,10 @@
           "watch-app/BusWatch/Views/ManualPickerView.swift"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:38Z",
+      "head_verified_before_close": "0c1e510b4765f36d07fa49bc1ede8e47cadf9e00"
     },
     {
       "number": 334,
@@ -488,7 +533,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:41Z",
+      "head_verified_before_close": "b8f1de3e74fba49cae96f5134de9506c31d7b50a"
     },
     {
       "number": 336,
@@ -505,7 +553,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:44Z",
+      "head_verified_before_close": "cc86a0e61f6a5bce4f71c391ab4512dbf122aa4c"
     },
     {
       "number": 337,
@@ -522,7 +573,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:47Z",
+      "head_verified_before_close": "343b61752dd946fb8b3dc5d697ad354b12e760a1"
     },
     {
       "number": 339,
@@ -539,7 +593,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:49Z",
+      "head_verified_before_close": "36328a4d1c596d966a1f55acbd2187ef341d3bfe"
     },
     {
       "number": 340,
@@ -556,7 +613,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:52Z",
+      "head_verified_before_close": "47c505f675bd5c446e88b9b598d4c3f45b916409"
     },
     {
       "number": 341,
@@ -600,7 +660,10 @@
           "watch-app/BusWatch/Views/StationArrivalsView.swift"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:54Z",
+      "head_verified_before_close": "a401db5d68c33a7e843eacb20b5433db98c26bc4"
     },
     {
       "number": 342,
@@ -619,7 +682,10 @@
           "backend/src/sampling.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:57Z",
+      "head_verified_before_close": "3c44614565495ee87e8da33cd8aa79cb0ba4d237"
     },
     {
       "number": 344,
@@ -656,7 +722,10 @@
         "source_conflicts": [],
         "reverse_applies": false
       },
-      "canonical_proposal": 349
+      "canonical_proposal": 349,
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:19:59Z",
+      "head_verified_before_close": "247c63c942783507a51686494065594b336687bf"
     },
     {
       "number": 348,
@@ -674,7 +743,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:02Z",
+      "head_verified_before_close": "ee33151dc5adf4590a1fcc86e8e16154874aad31"
     },
     {
       "number": 349,
@@ -712,7 +784,10 @@
           "backend/src/sampling.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:04Z",
+      "head_verified_before_close": "54742ff21f4505bd903d1b22fdc1223bcaf7253c"
     },
     {
       "number": 352,
@@ -750,7 +825,10 @@
         "paths": [],
         "source_conflicts": [],
         "reverse_applies": true
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:07Z",
+      "head_verified_before_close": "4410f8962b00900775be80257ef674bdf258581f"
     },
     {
       "number": 366,
@@ -769,7 +847,10 @@
           "backend/scripts/inspect-feeds.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:11Z",
+      "head_verified_before_close": "8e85cf13cab35d9f35818ceb1441e632aeaa171f"
     },
     {
       "number": 368,
@@ -789,7 +870,10 @@
         ],
         "reverse_applies": false
       },
-      "canonical_proposal": 326
+      "canonical_proposal": 326,
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:14Z",
+      "head_verified_before_close": "d2f180580c68023bdf99cbc55793586028397160"
     },
     {
       "number": 374,
@@ -804,7 +888,10 @@
         "paths": [],
         "source_conflicts": [],
         "reverse_applies": true
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:17Z",
+      "head_verified_before_close": "62c7d6784fd6a8480782179d88ae4817870953db"
     },
     {
       "number": 376,
@@ -821,7 +908,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:19Z",
+      "head_verified_before_close": "c951a528793f0bdfbc0877d267b4e052d14afada"
     },
     {
       "number": 377,
@@ -839,7 +929,10 @@
         "source_conflicts": [],
         "reverse_applies": false
       },
-      "canonical_proposal": 349
+      "canonical_proposal": 349,
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:23Z",
+      "head_verified_before_close": "27d481c836375cc6932bad1c3eb2d25650e5e8fe"
     },
     {
       "number": 378,
@@ -858,7 +951,10 @@
           "backend/test/sampling.test.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:25Z",
+      "head_verified_before_close": "f8a8de6e98adc630be72721b3d2e0b403d71ea21"
     },
     {
       "number": 380,
@@ -877,7 +973,10 @@
           "backend/test/nearby.test.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:28Z",
+      "head_verified_before_close": "bc56e5a874de9d6489d1df28018dc07195e18077"
     },
     {
       "number": 383,
@@ -894,7 +993,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:30Z",
+      "head_verified_before_close": "2cdb7a132bbf4dc5e035f77a79a1fc8475f85f41"
     },
     {
       "number": 387,
@@ -943,7 +1045,10 @@
         "paths": [],
         "source_conflicts": [],
         "reverse_applies": true
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:33Z",
+      "head_verified_before_close": "0366982fcf9387b6f89560efbe9f333fe5b3b852"
     },
     {
       "number": 391,
@@ -960,7 +1065,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:37Z",
+      "head_verified_before_close": "801f776afd604added4a478b7bdffcb69eb687f8"
     },
     {
       "number": 398,
@@ -1007,7 +1115,10 @@
           "backend/test/station.test.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:39Z",
+      "head_verified_before_close": "b19e9101c338896e348aa6a7d308caed00ad2d19"
     },
     {
       "number": 400,
@@ -1024,7 +1135,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:42Z",
+      "head_verified_before_close": "a2537c7f9f4104b057a72d3a9434ce417771d98b"
     },
     {
       "number": 402,
@@ -1063,7 +1177,10 @@
           "backend/src/index.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:44Z",
+      "head_verified_before_close": "a9c9ec3311844446b349cbcf7ff1b3e56c59e85b"
     },
     {
       "number": 405,
@@ -1107,7 +1224,10 @@
           "backend/src/station.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:47Z",
+      "head_verified_before_close": "33605e5659c395edffdc1083359af5d27eef0c68"
     },
     {
       "number": 406,
@@ -1124,7 +1244,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:49Z",
+      "head_verified_before_close": "621fb2572d8b77793ccc830837484dfb82c7b3b1"
     },
     {
       "number": 407,
@@ -1139,7 +1262,10 @@
         "paths": [],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:52Z",
+      "head_verified_before_close": "40702acbd765de6220754b0f56231924262d528b"
     },
     {
       "number": 408,
@@ -1220,7 +1346,10 @@
           "backend/src/index.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:54Z",
+      "head_verified_before_close": "3aad6a99ca086229307b83897cb78a1d7548d82d"
     },
     {
       "number": 411,
@@ -1237,7 +1366,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:56Z",
+      "head_verified_before_close": "c6f0700d90dda6257e24d8d32e4c23659b3debba"
     },
     {
       "number": 412,
@@ -1254,7 +1386,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:20:59Z",
+      "head_verified_before_close": "f8d8d1dd12bbc6338df86ac1f1bdc37df0d04ebb"
     },
     {
       "number": 414,
@@ -1269,7 +1404,10 @@
         "paths": [],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:02Z",
+      "head_verified_before_close": "e41d075fdc4655f580b16058530ae28d676eb696"
     },
     {
       "number": 415,
@@ -1284,7 +1422,10 @@
         "paths": [],
         "source_conflicts": [],
         "reverse_applies": true
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:04Z",
+      "head_verified_before_close": "b96f2f3ac0816e7261f6125c590f7eea871a0891"
     },
     {
       "number": 417,
@@ -1329,7 +1470,10 @@
           "backend/test/station.test.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:07Z",
+      "head_verified_before_close": "2716724ef54ff9d3be4794b15473d8b301fe8026"
     },
     {
       "number": 418,
@@ -1373,7 +1517,10 @@
           "backend/src/index.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:09Z",
+      "head_verified_before_close": "ebb6c3b4d5bf2502f5faae2f34c95f87027f38b7"
     },
     {
       "number": 419,
@@ -1417,7 +1564,10 @@
           "watch-app/BusWatch/Views/AlertsView.swift"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:11Z",
+      "head_verified_before_close": "5c17eabf3c9148193fd478bd9c1edad6a69064b7"
     },
     {
       "number": 420,
@@ -1434,7 +1584,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:14Z",
+      "head_verified_before_close": "8f24274caefea2fd748253e48df6631279c70bb5"
     },
     {
       "number": 422,
@@ -1452,7 +1605,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:16Z",
+      "head_verified_before_close": "588e9a7a25d47d1743b432f5f97ce1d247794864"
     },
     {
       "number": 423,
@@ -1469,7 +1625,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:18Z",
+      "head_verified_before_close": "40d55034adddceec2167722579b5cc32b6a3fc6f"
     },
     {
       "number": 424,
@@ -1513,7 +1672,10 @@
           "backend/src/index.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:21Z",
+      "head_verified_before_close": "01ad14d75639f46cc53877ff645a3c9421b82434"
     },
     {
       "number": 425,
@@ -1556,7 +1718,10 @@
           "backend/src/time-kl.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:24Z",
+      "head_verified_before_close": "a987313044171a7f753f15237a426af061670643"
     },
     {
       "number": 426,
@@ -1580,7 +1745,10 @@
           "watch-app/BusWatch/Views/AlertsView.swift"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:26Z",
+      "head_verified_before_close": "aeaa316267105d910682e7a7809a8e05091ce39d"
     },
     {
       "number": 428,
@@ -1624,7 +1792,10 @@
           "backend/src/station.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:28Z",
+      "head_verified_before_close": "26959ed395d026cc7d74baffa785a462264f921a"
     },
     {
       "number": 430,
@@ -1668,7 +1839,10 @@
           "backend/src/station.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:31Z",
+      "head_verified_before_close": "14f21722721584f85d986898f14df9ecf8dcc78e"
     },
     {
       "number": 431,
@@ -1685,7 +1859,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:33Z",
+      "head_verified_before_close": "e6e912a85f8e40ddfbf716d9709b770ef1db805e"
     },
     {
       "number": 432,
@@ -1729,7 +1906,10 @@
           "backend/src/index.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:36Z",
+      "head_verified_before_close": "f6a18dc1b154012126c5edfe8fd11e2998410e97"
     },
     {
       "number": 434,
@@ -1744,7 +1924,10 @@
         "paths": [],
         "source_conflicts": [],
         "reverse_applies": true
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:38Z",
+      "head_verified_before_close": "6f83412088aa43df059b518a7211d0e71ff46672"
     },
     {
       "number": 435,
@@ -1759,7 +1942,10 @@
         "paths": [],
         "source_conflicts": [],
         "reverse_applies": true
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:41Z",
+      "head_verified_before_close": "094fdc740083fbbe340cc2238f3e772955c8a12c"
     },
     {
       "number": 437,
@@ -1779,7 +1965,10 @@
           "backend/src/index.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:44Z",
+      "head_verified_before_close": "6c817cce7baa48807a60c5b93948517867c7ce00"
     },
     {
       "number": 441,
@@ -1817,7 +2006,10 @@
           "watch-app/BusWatch/Views/StationArrivalsView.swift"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:47Z",
+      "head_verified_before_close": "5b2f01d577a7c503ca24ab76b736af40765c0dbe"
     },
     {
       "number": 442,
@@ -1861,7 +2053,10 @@
           "backend/src/station.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:49Z",
+      "head_verified_before_close": "9b79a3668a8233daf5a8e4c66c6d3286c3b675c8"
     },
     {
       "number": 443,
@@ -1891,7 +2086,10 @@
           "watch-app/BusWatch/Views/NearbyListView.swift"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:52Z",
+      "head_verified_before_close": "4abcc4eda3c4663a1ac7e6ab6ccd72a0de82999a"
     },
     {
       "number": 444,
@@ -1906,7 +2104,10 @@
         "paths": [],
         "source_conflicts": [],
         "reverse_applies": true
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:55Z",
+      "head_verified_before_close": "1ea84709ce42fe624979cb4428a5c08005c08d79"
     },
     {
       "number": 446,
@@ -1925,7 +2126,10 @@
           "watch-app/BusWatch/Views/NearbyListView.swift"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:21:57Z",
+      "head_verified_before_close": "388adaca8c75c9a3225d641f7fc374cdade91bbc"
     },
     {
       "number": 448,
@@ -1969,7 +2173,10 @@
           "backend/src/station.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:00Z",
+      "head_verified_before_close": "3d1553626f3f0f952251fdfd68c129d38fc3fce9"
     },
     {
       "number": 449,
@@ -2012,7 +2219,10 @@
           "watch-app/BusWatch/Views/NearbyListView.swift"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:02Z",
+      "head_verified_before_close": "80460a6d1a3eb2a42c06d47eef8fc72c5a4035f0"
     },
     {
       "number": 450,
@@ -2057,7 +2267,10 @@
           "backend/test/station.test.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:05Z",
+      "head_verified_before_close": "233066a50ee24b0e8ee70a15452e7a98f68f3980"
     },
     {
       "number": 451,
@@ -2121,7 +2334,10 @@
           "backend/src/station.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:08Z",
+      "head_verified_before_close": "047a4a092eedfeae15d06f2417b7ad7892cb9aba"
     },
     {
       "number": 455,
@@ -2165,7 +2381,10 @@
           "backend/src/station.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:11Z",
+      "head_verified_before_close": "779da572a1afacfa965a73f25b71161077062931"
     },
     {
       "number": 457,
@@ -2180,7 +2399,10 @@
         "paths": [],
         "source_conflicts": [],
         "reverse_applies": true
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:13Z",
+      "head_verified_before_close": "b9f976aed48a38aeaa82a204296b757057d182ee"
     },
     {
       "number": 459,
@@ -2195,7 +2417,10 @@
         "paths": [],
         "source_conflicts": [],
         "reverse_applies": true
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:17Z",
+      "head_verified_before_close": "44d6c09d8694830faad15381272a07ed2a359ea3"
     },
     {
       "number": 472,
@@ -2214,7 +2439,10 @@
         "source_conflicts": [],
         "reverse_applies": false
       },
-      "canonical_proposal": 349
+      "canonical_proposal": 349,
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:20Z",
+      "head_verified_before_close": "638ff1a62f4f7be334ce48db2c8bbf2941b0ca60"
     },
     {
       "number": 473,
@@ -2251,7 +2479,10 @@
           "backend/src/station.ts"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:23Z",
+      "head_verified_before_close": "f29cfca94af950db45519578aff1ab7c52ba9e6a"
     },
     {
       "number": 475,
@@ -2266,7 +2497,10 @@
         "paths": [],
         "source_conflicts": [],
         "reverse_applies": true
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:26Z",
+      "head_verified_before_close": "651e06e5a89309a93a257d5cd872231f1dff7629"
     },
     {
       "number": 476,
@@ -2283,7 +2517,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:29Z",
+      "head_verified_before_close": "be42b820c0de2637baa5201c3da74b5fd90bc366"
     },
     {
       "number": 478,
@@ -2301,7 +2538,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:31Z",
+      "head_verified_before_close": "327aa806b097aaf30d9120c7b70f6462757ac0ec"
     },
     {
       "number": 481,
@@ -2337,7 +2577,10 @@
         ],
         "source_conflicts": [],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:34Z",
+      "head_verified_before_close": "7ebd0894ab3e275cf180f238adcd65b14be24654"
     },
     {
       "number": 493,
@@ -2352,7 +2595,10 @@
         "paths": [],
         "source_conflicts": [],
         "reverse_applies": true
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:38Z",
+      "head_verified_before_close": "3a870290ecea6652b2ee9804b91b6e291eb67bf4"
     },
     {
       "number": 494,
@@ -2371,7 +2617,10 @@
         "source_conflicts": [],
         "reverse_applies": false
       },
-      "canonical_proposal": 349
+      "canonical_proposal": 349,
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:40Z",
+      "head_verified_before_close": "9ca84261f3ad149c780a79887a10103f1e88a6a8"
     },
     {
       "number": 495,
@@ -2390,7 +2639,10 @@
         "source_conflicts": [],
         "reverse_applies": false
       },
-      "canonical_proposal": 349
+      "canonical_proposal": 349,
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:43Z",
+      "head_verified_before_close": "3d36ba36e38b72262f474ceffcd034a26fe46a5a"
     },
     {
       "number": 498,
@@ -2409,7 +2661,10 @@
         "source_conflicts": [],
         "reverse_applies": false
       },
-      "canonical_proposal": 349
+      "canonical_proposal": 349,
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:46Z",
+      "head_verified_before_close": "688aa84f6e5b1a0625453e823391580ee309cbe0"
     },
     {
       "number": 501,
@@ -2424,7 +2679,10 @@
         "paths": [],
         "source_conflicts": [],
         "reverse_applies": true
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:48Z",
+      "head_verified_before_close": "e43694ebc230b40ed2164687c90707a8f0fd3fef"
     },
     {
       "number": 502,
@@ -2439,7 +2697,10 @@
         "paths": [],
         "source_conflicts": [],
         "reverse_applies": true
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:51Z",
+      "head_verified_before_close": "88e6055fd8069a5ecce7a86d3db77968db9e8a18"
     },
     {
       "number": 504,
@@ -2454,7 +2715,10 @@
         "paths": [],
         "source_conflicts": [],
         "reverse_applies": true
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:54Z",
+      "head_verified_before_close": "595d44b106302fb79325c3add2d57c55fb5fcf0c"
     },
     {
       "number": 505,
@@ -2469,7 +2733,10 @@
         "paths": [],
         "source_conflicts": [],
         "reverse_applies": true
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:56Z",
+      "head_verified_before_close": "17bf144958340b82b260283bd9eed1a0a890d91f"
     },
     {
       "number": 506,
@@ -2488,7 +2755,10 @@
           "watch-app/BusWatch/Views/ManualPickerView.swift"
         ],
         "reverse_applies": false
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:22:59Z",
+      "head_verified_before_close": "9ffeb088c098d13a050417551d898e349890ea65"
     },
     {
       "number": 507,
@@ -2503,15 +2773,135 @@
         "paths": [],
         "source_conflicts": [],
         "reverse_applies": true
-      }
+      },
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T15:23:02Z",
+      "head_verified_before_close": "2f3e1f19a4b10967bc1331bbba97533bb5f216f2"
     }
   ],
-  "closure_status": "planned; canonical source and decision ledger published before closure",
+  "closure_status": "completed",
   "validation": {
     "backend_tests": 207,
     "watch_tests": 116,
     "typescript": "passed",
     "sqlite_migrations_and_timestamp_index": "passed",
     "signed_development_archive": "passed"
-  }
+  },
+  "closed_source_prs": 91,
+  "skipped_source_prs": [],
+  "completed_at": "2026-10-21T15:23:04.557343+00:00",
+  "remote_verification": {
+    "verified_at": "2026-10-21T15:23:28.281524+00:00",
+    "open_pr_count": 13,
+    "open_pr_numbers": [
+      316,
+      326,
+      344,
+      349,
+      352,
+      387,
+      388,
+      402,
+      408,
+      409,
+      451,
+      481,
+      511
+    ],
+    "closed_source_pr_count": 91,
+    "closed_source_pr_numbers": [
+      304,
+      308,
+      309,
+      310,
+      311,
+      314,
+      315,
+      317,
+      320,
+      321,
+      323,
+      324,
+      329,
+      330,
+      332,
+      334,
+      336,
+      337,
+      339,
+      340,
+      341,
+      342,
+      346,
+      348,
+      350,
+      358,
+      366,
+      368,
+      374,
+      376,
+      377,
+      378,
+      380,
+      383,
+      390,
+      391,
+      398,
+      400,
+      403,
+      405,
+      406,
+      407,
+      410,
+      411,
+      412,
+      414,
+      415,
+      417,
+      418,
+      419,
+      420,
+      422,
+      423,
+      424,
+      425,
+      426,
+      428,
+      430,
+      431,
+      432,
+      434,
+      435,
+      437,
+      441,
+      442,
+      443,
+      444,
+      446,
+      448,
+      449,
+      450,
+      452,
+      455,
+      457,
+      459,
+      472,
+      473,
+      475,
+      476,
+      478,
+      482,
+      493,
+      494,
+      495,
+      498,
+      501,
+      502,
+      504,
+      505,
+      506,
+      507
+    ]
+  },
+  "published_implementation_head": "e31e7743a89d3d1077b0541af2b13fdbfe6d9acc"
 }
