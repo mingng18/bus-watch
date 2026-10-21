@@ -52,6 +52,10 @@ final class APIClientTests: XCTestCase {
         super.tearDown()
     }
 
+    func testDefaultBaseURLTargetsProductionWorker() {
+        XCTAssertEqual(APIClient.shared.baseURL, "https://bus-watch.nggihming123.workers.dev")
+    }
+
     func testFetchNearbySuccess() async throws {
         // Given
         let expectedJSON = """
@@ -126,7 +130,7 @@ final class APIClientTests: XCTestCase {
 
     func testInvalidURLHandling() async {
         // Given
-        let invalidClient = APIClient(baseURL: "https://test.api/invalid char", session: session)
+        let invalidClient = APIClient(baseURL: "https://[invalid", session: session)
 
         // When
         do {
@@ -172,5 +176,18 @@ final class APIClientTests: XCTestCase {
         } catch {
             XCTAssertEqual(friendlyMessage(for: error), APIError.badResponse.friendlyMessage)
         }
+    }
+
+    func testFriendlyMessageForAPIError() {
+        XCTAssertEqual(friendlyMessage(for: APIError.invalidURL), "Couldn't load this stop. Try another.")
+        XCTAssertEqual(friendlyMessage(for: APIError.badResponse), "Couldn't reach BusWatch. Check your connection.")
+    }
+
+    func testFriendlyMessageForOtherError() {
+        let nsError = NSError(domain: "test", code: 123, userInfo: nil)
+        XCTAssertEqual(friendlyMessage(for: nsError), "Couldn't reach BusWatch. Check your connection.")
+
+        let urlError = URLError(.notConnectedToInternet)
+        XCTAssertEqual(friendlyMessage(for: urlError), "Couldn't reach BusWatch. Check your connection.")
     }
 }

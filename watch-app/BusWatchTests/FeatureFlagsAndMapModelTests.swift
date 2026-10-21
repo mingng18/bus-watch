@@ -88,7 +88,7 @@ final class FeatureFlagsAndMapModelTests: XCTestCase {
         XCTAssertTrue(AppState.station(stop, schedule, isOffline: false).showsBackNavigation)
         XCTAssertTrue(AppState.onBus(progress).showsBackNavigation)
         XCTAssertFalse(AppState.nearby(NearbyResponse(stops: [])).showsBackNavigation)
-        XCTAssertFalse(AppState.loading.showsBackNavigation)
+        XCTAssertFalse(AppState.loading("Locating...").showsBackNavigation)
     }
 
     func testOnlyGtfsBusEntriesSupportTripProgress() {

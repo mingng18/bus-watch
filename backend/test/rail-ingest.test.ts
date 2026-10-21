@@ -113,4 +113,32 @@ describe('ingestRailTimetables', () => {
     // Empty departure_time fallbacks to arrival_time
     expect(mockStmt.bind).toHaveBeenCalledWith('T1', 'S1', 1, '10:00:00', '10:00:00');
   });
+
+  it('should handle DB insert failure and report partial inserted count', async () => {
+    const mockZip = zipSync({
+      'stops.txt': strToU8('stop_id,stop_name,stop_lat,stop_lon\nS1,Stop 1,3.14,101.68'),
+      'routes.txt': strToU8('route_id,route_short_name,route_long_name,route_type\nR1,R1Short,R1Long,1'),
+      'trips.txt': strToU8('route_id,service_id,trip_id,trip_headsign,direction_id\nR1,Svc1,T1,H1,0'),
+      'stop_times.txt': strToU8('trip_id,arrival_time,departure_time,stop_id,stop_sequence\nT1,10:00:00,10:01:00,S1,1')
+    });
+
+    vi.mocked(global.fetch).mockResolvedValue({
+      ok: true,
+      arrayBuffer: vi.fn().mockResolvedValue(mockZip.buffer)
+    } as any);
+
+    let batchCallCount = 0;
+    mockDb.batch.mockImplementation(async () => {
+      batchCallCount++;
+      if (batchCallCount === 3) {
+        throw new Error('D1 error on trips');
+      }
+      return [{ success: true }];
+    });
+
+    const result = await ingestRailTimetables(mockEnv);
+
+    expect(result.inserted).toBe(2);
+    expect(result.error).toBe('D1 error on trips');
+  });
 });

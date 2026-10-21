@@ -9,9 +9,10 @@ export function getStationSchedule(
   trips: Trip[],
   tripStops: Record<string, TripStopEntry[]>,
   calendar: CalendarEntry[],
-  pRouteMap?: Map<string, Route>
+  pRouteMap?: Map<string, Route>,
+  pStopMap?: Map<string, Stop>
 ): StationScheduleResponse {
-  const stop = stops.find(s => s.id === stopId);
+  const stop = pStopMap ? pStopMap.get(stopId) : stops.find(s => s.id === stopId);
   if (!stop) throw new Error(`Stop not found: ${stopId}`);
 
   const routeMap = pRouteMap || new Map<string, Route>();

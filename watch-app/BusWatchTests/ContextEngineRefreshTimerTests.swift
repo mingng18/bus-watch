@@ -118,7 +118,7 @@ final class ContextEngineRefreshTimerTests: XCTestCase {
         engine.startAutoRefresh(tripId: "trip1")
         XCTAssertTrue(engine.isAutoRefreshing)
 
-        engine.setState(.loading)
+        engine.setState(.loading("Locating..."))
 
         XCTAssertFalse(engine.isAutoRefreshing,
                        "Returning to .loading must stop the refresh timer")

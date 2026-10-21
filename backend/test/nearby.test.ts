@@ -9,7 +9,7 @@ vi.mock("../src/frequency", () => ({
   ],
 }));
 import { describe, it, expect } from "vitest";
-import { findNearbyStops, findNearbyPrasaranaBuses, nearestFromStopOnRoute, findNearbyBusRoutes } from "../src/nearby";
+import { findNearbyStops, findNearbyPrasaranaBuses, nearestFromStopOnRoute, findNearbyBusRoutes, confidenceFromSamples } from "../src/nearby";
 import {
   Stop,
   Route,
@@ -526,4 +526,46 @@ describe("findNearbyBusRoutes", () => {
     expect(result[0].routeId).toBe("r1");
     expect(result[0].destination).toBe("Wangsa Maju");
   });
+});
+
+describe("confidenceFromSamples", () => {
+  it("returns high for >= 8 samples and low spread", () => {
+    expect(confidenceFromSamples(8, 20, 100)).toBe("high");
+    expect(confidenceFromSamples(10, 0, 100)).toBe("high");
+  });
+
+  it("returns high for >= 8 samples when avgSeconds is 0 (edge case)", () => {
+    expect(confidenceFromSamples(8, 0, 0)).toBe("high");
+  });
+
+  it("returns medium for >= 8 samples but high spread", () => {
+    expect(confidenceFromSamples(8, 30, 100)).toBe("medium");
+  });
+
+  it("returns medium for 3 to 7 samples, regardless of spread", () => {
+    expect(confidenceFromSamples(3, 0, 100)).toBe("medium");
+    expect(confidenceFromSamples(7, 50, 100)).toBe("medium");
+  });
+
+  it("returns low for < 3 samples", () => {
+    expect(confidenceFromSamples(2, 0, 100)).toBe("low");
+    expect(confidenceFromSamples(1, 0, 100)).toBe("low");
+    expect(confidenceFromSamples(0, 0, 0)).toBe("low");
+  });
+});
+
+
+it('preserves the bus arrival cap, route deduplication, and radius after helper extraction', () => {
+  const manyRoutes = Array.from({ length: 5 }, (_, i) => ({ ...routes[1], id: `bus${i}`, shortName: `${i}` }));
+  const manyTrips = manyRoutes.map((r, i) => ({ ...trips[1], id: `trip${i}`, routeId: r.id }));
+  const manyVehicles = manyTrips.map(t => ({ ...vehicles[0], tripId: t.id, routeId: t.routeId }));
+  const result = findNearbyStops({
+    stops, routes: manyRoutes, trips: manyTrips, tripStops: {}, calendar: [], frequencies: [],
+    vehicles: [manyVehicles[0], ...manyVehicles, { ...manyVehicles[1], lat: 3.2, lon: 101.7 }],
+    lat: 3.13, lon: 101.676, radiusM: 100,
+    routeMap: new Map(manyRoutes.map(r => [r.id, r])), tripMap: new Map(manyTrips.map(t => [t.id, t])),
+  });
+  expect(result.map(s => s.id)).toEqual(['s2']);
+  expect(result[0].arrivals.map(a => a.route)).toEqual(['0', '1', '2']);
+  expect(result[0].arrivals.every(a => a.isRealtime && a.eta_source === 'live')).toBe(true);
 });

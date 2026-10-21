@@ -1,4 +1,6 @@
 import XCTest
+import Combine
+import CoreLocation
 @testable import BusWatch
 
 class ContextEngineMockURLProtocol: URLProtocol {
@@ -36,10 +38,14 @@ class ContextEngineMockURLProtocol: URLProtocol {
 }
 
 final class ContextEngineTests: XCTestCase {
+    private var session: URLSession!
+    private var cancellables = Set<AnyCancellable>()
 
     override func setUp() {
         super.setUp()
-        URLProtocol.registerClass(ContextEngineMockURLProtocol.self)
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [ContextEngineMockURLProtocol.self]
+        session = URLSession(configuration: configuration)
         ContextEngineMockURLProtocol.mockData.removeAll()
         ContextEngineMockURLProtocol.mockError = nil
 
@@ -48,8 +54,27 @@ final class ContextEngineTests: XCTestCase {
     }
 
     override func tearDown() {
-        URLProtocol.unregisterClass(ContextEngineMockURLProtocol.self)
+        cancellables.removeAll()
+        session.invalidateAndCancel()
+        session = nil
         super.tearDown()
+    }
+
+    private func makeEngine() -> ContextEngine {
+        ContextEngine(api: APIClient(baseURL: "https://test.api", session: session))
+    }
+
+    private func expectState(
+        _ engine: ContextEngine,
+        matching predicate: @escaping (AppState) -> Bool,
+        verify: @escaping (AppState) -> Void
+    ) -> XCTestExpectation {
+        let exp = expectation(description: "Expected state transition")
+        engine.$state.filter(predicate).first().sink { state in
+            verify(state)
+            exp.fulfill()
+        }.store(in: &cancellables)
+        return exp
     }
 
     private func makeNearbyResponse() -> NearbyResponse {
@@ -70,7 +95,7 @@ final class ContextEngineTests: XCTestCase {
     }
 
     func testInitialState() {
-        let engine = ContextEngine()
+        let engine = makeEngine()
         if case .loading = engine.state {
             // Pass
         } else {
@@ -79,7 +104,7 @@ final class ContextEngineTests: XCTestCase {
     }
 
     func testShowNearbyTransitionsState() {
-        let engine = ContextEngine()
+        let engine = makeEngine()
         let nearby = makeNearbyResponse()
         engine.nearbyStops = nearby
 
@@ -93,37 +118,29 @@ final class ContextEngineTests: XCTestCase {
     }
 
     func testSelectStationSuccess() {
-        let engine = ContextEngine()
+        let engine = makeEngine()
         let stop = makeNearbyResponse().stops.first!
         let schedule = makeScheduleResponse()
         let encoder = JSONEncoder()
 
         ContextEngineMockURLProtocol.mockData["/station/stop1/schedule"] = try! encoder.encode(schedule)
 
-        let exp = expectation(description: "State changes to station")
-
-        // Use a background task to allow ContextEngine to process async
-        Task {
-            engine.selectStation(stop)
-
-            // Wait a little for the async URLProtocol response to be processed
-            try? await Task.sleep(nanoseconds: 100_000_000)
-
-            await MainActor.run {
-                if case .station(let receivedStop, let receivedSchedule, let isOffline) = engine.state {
-                    XCTAssertEqual(receivedStop.id, stop.id)
-                    XCTAssertEqual(receivedSchedule.stopId, schedule.stopId)
-                    XCTAssertFalse(isOffline)
-                    exp.fulfill()
-                }
+        let exp = expectState(engine, matching: {
+            if case .station = $0 { return true }
+            return false
+        }) { state in
+            if case .station(let receivedStop, let receivedSchedule, let isOffline) = state {
+                XCTAssertEqual(receivedStop.id, stop.id)
+                XCTAssertEqual(receivedSchedule.stopId, schedule.stopId)
+                XCTAssertFalse(isOffline)
             }
         }
-
+        engine.selectStation(stop)
         wait(for: [exp], timeout: 1.0)
     }
 
     func testSelectStationFailureWithCacheFallback() {
-        let engine = ContextEngine()
+        let engine = makeEngine()
         let stop = makeNearbyResponse().stops.first!
         let schedule = makeScheduleResponse()
 
@@ -134,28 +151,22 @@ final class ContextEngineTests: XCTestCase {
         // Mock a network failure
         ContextEngineMockURLProtocol.mockError = URLError(.notConnectedToInternet)
 
-        let exp = expectation(description: "State changes to station offline")
-
-        Task {
-            engine.selectStation(stop)
-
-            try? await Task.sleep(nanoseconds: 100_000_000)
-
-            await MainActor.run {
-                if case .station(let receivedStop, let receivedSchedule, let isOffline) = engine.state {
-                    XCTAssertEqual(receivedStop.id, stop.id)
-                    XCTAssertEqual(receivedSchedule.stopId, schedule.stopId)
-                    XCTAssertTrue(isOffline)
-                    exp.fulfill()
-                }
+        let exp = expectState(engine, matching: {
+            if case .station = $0 { return true }
+            return false
+        }) { state in
+            if case .station(let receivedStop, let receivedSchedule, let isOffline) = state {
+                XCTAssertEqual(receivedStop.id, stop.id)
+                XCTAssertEqual(receivedSchedule.stopId, schedule.stopId)
+                XCTAssertTrue(isOffline)
             }
         }
-
+        engine.selectStation(stop)
         wait(for: [exp], timeout: 1.0)
     }
 
     func testSelectStationFailureWithoutCache() {
-        let engine = ContextEngine()
+        let engine = makeEngine()
         let stop = makeNearbyResponse().stops.first!
 
         // Clear cache and mock network error
@@ -163,46 +174,88 @@ final class ContextEngineTests: XCTestCase {
         cache.clear()
         ContextEngineMockURLProtocol.mockError = URLError(.notConnectedToInternet)
 
-        let exp = expectation(description: "State changes to error")
-
-        Task {
-            engine.selectStation(stop)
-
-            try? await Task.sleep(nanoseconds: 100_000_000)
-
-            await MainActor.run {
-                if case .error = engine.state {
-                    exp.fulfill()
-                }
+        let exp = expectState(engine, matching: {
+            if case .error = $0 { return true }
+            return false
+        }) { state in
+            if case .error(let message) = state {
+                XCTAssertEqual(message, APIError.badResponse.friendlyMessage)
             }
         }
-
+        engine.selectStation(stop)
         wait(for: [exp], timeout: 1.0)
     }
 
     func testSelectBusTripSuccess() {
-        let engine = ContextEngine()
+        let engine = makeEngine()
         let progress = makeProgressResponse()
         let encoder = JSONEncoder()
 
         ContextEngineMockURLProtocol.mockData["/bus/trip/trip1/progress"] = try! encoder.encode(progress)
 
-        let exp = expectation(description: "State changes to onBus")
-
-        Task {
-            engine.selectBusTrip("trip1")
-
-            try? await Task.sleep(nanoseconds: 100_000_000)
-
-            await MainActor.run {
-                if case .onBus(let receivedProgress) = engine.state {
-                    XCTAssertEqual(receivedProgress.tripId, progress.tripId)
-                    XCTAssertTrue(engine.isAutoRefreshing)
-                    exp.fulfill()
-                }
+        let exp = expectState(engine, matching: {
+            if case .onBus = $0 { return true }
+            return false
+        }) { state in
+            if case .onBus(let receivedProgress) = state {
+                XCTAssertEqual(receivedProgress.tripId, progress.tripId)
+                XCTAssertTrue(engine.isAutoRefreshing)
             }
         }
-
+        engine.selectBusTrip("trip1")
         wait(for: [exp], timeout: 1.0)
     }
+
+    @MainActor
+    func testRefreshRetriesFromTheSameLocationAfterAnError() async throws {
+        let manager = LocationManager(manager: MockCLLocationManager())
+        manager.authorizationStatus = .authorizedWhenInUse
+        let engine = ContextEngine(api: APIClient(baseURL: "https://test.api", session: session), locationManager: manager)
+        ContextEngineMockURLProtocol.mockData["/nearby"] = try JSONEncoder().encode(makeNearbyResponse())
+        let initial = expectState(engine, matching: {
+            if case .nearby = $0 { return true }
+            return false
+        }) { _ in }
+        manager.location = CLLocation(latitude: 3.14, longitude: 101.68)
+        await fulfillment(of: [initial], timeout: 2)
+
+        engine.setState(.error("Connection failed"))
+        // No new location event: Retry must perform the request itself.
+        await engine.refresh()
+        if case .nearby(let response) = engine.state {
+            XCTAssertEqual(response.stops.first?.id, "stop1")
+        } else {
+            XCTFail("Retry must fetch again while the rider is stationary")
+        }
+    }
+
+
+    @MainActor
+    func testRefreshWithoutLocationRestartsLocationUpdates() async {
+        let mock = MockCLLocationManager()
+        let manager = LocationManager(manager: mock)
+        manager.authorizationStatus = .authorizedWhenInUse
+        let engine = ContextEngine(api: APIClient(baseURL: "https://test.api", session: session), locationManager: manager)
+        engine.setState(.error("Connection failed"))
+        await engine.refresh()
+        XCTAssertTrue(mock.startUpdatingLocationCalled)
+        if case .loading(let message) = engine.state {
+            XCTAssertEqual(message, "Locating...")
+        } else {
+            XCTFail("Retry without a location must resume locating")
+        }
+    }
+
+    @MainActor
+    func testRefreshRespectsRestrictedLocationAccess() async {
+        let manager = LocationManager(manager: MockCLLocationManager())
+        manager.authorizationStatus = .restricted
+        let engine = ContextEngine(api: APIClient(baseURL: "https://test.api", session: session), locationManager: manager)
+        await engine.refresh()
+        if case .noLocation = engine.state {} else {
+            XCTFail("Restricted location access must show the location guidance")
+        }
+        XCTAssertFalse(engine.isRefreshing)
+    }
+
 }

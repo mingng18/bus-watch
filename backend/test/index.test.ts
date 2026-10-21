@@ -82,6 +82,55 @@ describe('GET /bus/eta', () => {
   });
 });
 
+describe('GET /nearby historical ETA enrichment', () => {
+  it('keeps nearby usable when optional D1 ETA enrichment fails', async () => {
+    const kv = {
+      get: vi.fn((key: string) => {
+        if (key.startsWith('stops:')) {
+          return Promise.resolve([
+            { id: 's1', name: 'Stop 1', type: 'bus', lat: 3.1478, lon: 101.6953 },
+          ]);
+        }
+        if (key.startsWith('routes:')) {
+          return Promise.resolve([{ id: 'r1', shortName: 'r1', longName: 'Route 1', type: 3 }]);
+        }
+        if (key.startsWith('trips:')) {
+          return Promise.resolve([{ id: 't1', routeId: 'r1', serviceId: 'svc', headsign: 'Downtown', directionId: 0, shapeId: '' }]);
+        }
+        if (key.startsWith('tripStops:')) return Promise.resolve({});
+        if (key.startsWith('calendar:')) return Promise.resolve([]);
+        if (key.startsWith('frequencies:')) return Promise.resolve([]);
+        if (key === 'realtime:vehicles') {
+          return Promise.resolve({
+            ts: Date.now(),
+            vehicles: [{ tripId: 't1', routeId: 'r1', lat: 3.1478, lon: 101.6953, currentStopSequence: 1, timestamp: 0, stopId: 's1' }],
+          });
+        }
+        if (key === 'prasarana:buses') return Promise.resolve({ ts: Date.now(), buses: [] });
+        return Promise.resolve(null);
+      }),
+      put: vi.fn().mockResolvedValue(undefined),
+    } as any;
+    const db = {
+      prepare: vi.fn().mockReturnValue({ bind: vi.fn().mockReturnThis() }),
+      batch: vi.fn().mockRejectedValue(new Error('D1_ERROR: no such column: spread_seconds')),
+    } as any;
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const res = await worker.fetch(
+      new Request('http://localhost/nearby?lat=3.1478&lon=101.6953&radius=500'),
+      { KV: kv, DB: db } as any,
+      {} as any,
+    );
+
+    consoleSpy.mockRestore();
+    expect(res.status).toBe(200);
+    const body = await res.json() as any;
+    expect(body.stops[0].arrivals[0]).toMatchObject({ route: 'r1', eta_source: 'live' });
+    expect(db.batch).toHaveBeenCalled();
+  });
+});
+
 describe('Not-found routes return clean 404 (issue #128)', () => {
   // Empty KV: every getAll* returns empty arrays/objects, so the underlying
   // functions hit their "not found" throw instead of the happy path.
@@ -311,4 +360,39 @@ describe('POST /rail/ingest', () => {
     const body = await res.json();
     expect(body).toEqual({ status: 'error', message: 'Internal Server Error' });
   });
+});
+
+
+describe('response security headers', () => {
+  it('prevents API documents from being framed and retains nosniff', async () => {
+    const res = await worker.fetch(new Request('http://localhost/'), {} as any, {} as any);
+    expect(res.headers.get('Content-Security-Policy')).toContain("frame-ancestors 'none'");
+    expect(res.headers.get('X-Frame-Options')).toBe('DENY');
+    expect(res.headers.get('X-Content-Type-Options')).toBe('nosniff');
+  });
+
+  it('keeps unauthorized admin responses uncacheable', async () => {
+    const res = await worker.fetch(new Request('http://localhost/refresh', { method: 'POST' }), {} as any, {} as any);
+    expect(res.status).toBe(401);
+    expect(res.headers.get('Cache-Control')).toBe('no-store');
+  });
+});
+
+it('trip progress keeps last-duplicate route precedence while reusing cached route indexes', async () => {
+  const kv = {
+    get: vi.fn(async (key: string) => {
+      if (key === 'routes:rapid-bus-kl') return [{ id: 'r1', shortName: 'First', longName: '', type: 3 }];
+      if (key === 'routes:rapid-bus-mrtfeeder') return [{ id: 'r1', shortName: 'Last', longName: '', type: 3 }];
+      if (key === 'tripStops:rapid-bus-kl') return { t1: [{ stopId: 's1', stopName: 'Destination', sequence: 1, arrivalTime: '', lat: 3.14, lon: 101.68 }] };
+      if (key === 'realtime:vehicles') return { ts: Date.now(), vehicles: [{ tripId: 't1', routeId: 'r1', lat: 3.14, lon: 101.68, currentStopSequence: 1 }] };
+      return null;
+    }),
+    put: vi.fn(),
+  };
+  for (let i = 0; i < 2; i++) {
+    const res = await worker.fetch(new Request('http://localhost/bus/trip/t1/progress'), { KV: kv } as any, {} as any);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ routeShortName: 'Last', destination: 'Destination' });
+  }
+  expect(kv.get.mock.calls.filter(([key]) => key === 'routes:rapid-bus-kl')).toHaveLength(1);
 });
