@@ -361,3 +361,38 @@ describe('POST /rail/ingest', () => {
     expect(body).toEqual({ status: 'error', message: 'Internal Server Error' });
   });
 });
+
+
+describe('response security headers', () => {
+  it('prevents API documents from being framed and retains nosniff', async () => {
+    const res = await worker.fetch(new Request('http://localhost/'), {} as any, {} as any);
+    expect(res.headers.get('Content-Security-Policy')).toContain("frame-ancestors 'none'");
+    expect(res.headers.get('X-Frame-Options')).toBe('DENY');
+    expect(res.headers.get('X-Content-Type-Options')).toBe('nosniff');
+  });
+
+  it('keeps unauthorized admin responses uncacheable', async () => {
+    const res = await worker.fetch(new Request('http://localhost/refresh', { method: 'POST' }), {} as any, {} as any);
+    expect(res.status).toBe(401);
+    expect(res.headers.get('Cache-Control')).toBe('no-store');
+  });
+});
+
+it('trip progress keeps last-duplicate route precedence while reusing cached route indexes', async () => {
+  const kv = {
+    get: vi.fn(async (key: string) => {
+      if (key === 'routes:rapid-bus-kl') return [{ id: 'r1', shortName: 'First', longName: '', type: 3 }];
+      if (key === 'routes:rapid-bus-mrtfeeder') return [{ id: 'r1', shortName: 'Last', longName: '', type: 3 }];
+      if (key === 'tripStops:rapid-bus-kl') return { t1: [{ stopId: 's1', stopName: 'Destination', sequence: 1, arrivalTime: '', lat: 3.14, lon: 101.68 }] };
+      if (key === 'realtime:vehicles') return { ts: Date.now(), vehicles: [{ tripId: 't1', routeId: 'r1', lat: 3.14, lon: 101.68, currentStopSequence: 1 }] };
+      return null;
+    }),
+    put: vi.fn(),
+  };
+  for (let i = 0; i < 2; i++) {
+    const res = await worker.fetch(new Request('http://localhost/bus/trip/t1/progress'), { KV: kv } as any, {} as any);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ routeShortName: 'Last', destination: 'Destination' });
+  }
+  expect(kv.get.mock.calls.filter(([key]) => key === 'routes:rapid-bus-kl')).toHaveLength(1);
+});

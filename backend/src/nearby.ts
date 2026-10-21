@@ -51,22 +51,7 @@ export interface FindNearbyStopsContext {
   tripMap?: Map<string, Trip>;
 }
 
-export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
-  const {
-    stops,
-    routes,
-    trips,
-    tripStops,
-    calendar,
-    frequencies,
-    vehicles,
-    lat,
-    lon,
-    radiusM,
-  } = ctx;
-  const now = new Date();
-  // Performance optimization: Replaced chained array methods (.map().filter())
-  // with a standard loop to eliminate intermediate object allocations.
+function filterAndSortStops(stops: Stop[], lat: number, lon: number, radiusM: number) {
   const nearby: { stop: Stop; distance: number }[] = [];
   const box = getBoundingBox(lat, lon, radiusM);
   for (let i = 0; i < stops.length; i++) {
@@ -85,6 +70,94 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
     }
   }
   nearby.sort((a, b) => a.distance - b.distance);
+  return nearby;
+}
+
+function getBusArrivalsForStop(
+  stop: Stop,
+  vehicles: VehiclePosition[],
+  tripMap: Map<string, Trip>,
+  routeMap: Map<string, Route>
+): Arrival[] {
+  const arrivals: Arrival[] = [];
+  const seen = new Set<string>();
+  const stopBox = getBoundingBox(stop.lat, stop.lon, 500);
+  for (const v of vehicles) {
+    if (
+      v.lat < stopBox.minLat ||
+      v.lat > stopBox.maxLat ||
+      v.lon < stopBox.minLon ||
+      v.lon > stopBox.maxLon
+    ) {
+      continue;
+    }
+    const d = haversineDistance(stop.lat, stop.lon, v.lat, v.lon);
+    if (d > 500) continue;
+
+    const trip = tripMap.get(v.tripId);
+    const route = trip ? routeMap.get(trip.routeId) : null;
+    const key = route?.id || v.tripId;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    arrivals.push({
+      route: route?.shortName || "",
+      destination: trip?.headsign || "",
+      minutes: Math.max(1, Math.round(d / 300)),
+      isRealtime: true,
+      tripId: v.tripId,
+      eta_source: "live",
+    });
+  }
+  return arrivals;
+}
+
+function getScheduledArrivalsForStop(
+  stop: Stop,
+  trips: Trip[],
+  tripStops: Record<string, TripStopEntry[]>,
+  routes: Route[],
+  calendar: CalendarEntry[],
+  frequencies: Frequency[],
+  now: Date
+): Arrival[] {
+  const arrivals: Arrival[] = [];
+  const expanded = expandTripsForStop(
+    stop.id,
+    trips,
+    tripStops,
+    routes,
+    calendar,
+    frequencies,
+    now,
+    120,
+  );
+  for (const dep of expanded.slice(0, 3)) {
+    arrivals.push({
+      line: dep.line,
+      destination: dep.destination,
+      minutes: dep.minutesUntil,
+      isRealtime: false,
+    });
+  }
+  return arrivals;
+}
+
+export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
+  const {
+    stops,
+    routes,
+    trips,
+    tripStops,
+    calendar,
+    frequencies,
+    vehicles,
+    lat,
+    lon,
+    radiusM,
+  } = ctx;
+  const now = new Date();
+
+  const nearby = filterAndSortStops(stops, lat, lon, radiusM);
 
   // Performance optimization: Precompute map to avoid O(N^2) lookups in loop
   // and use standard loops instead of array mapping to avoid intermediate allocations
@@ -111,64 +184,9 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
   const result = new Array(nearby.length);
   for (let j = 0; j < nearby.length; j++) {
     const { stop, distance } = nearby[j];
-    const arrivals: Arrival[] = [];
-
-    if (stop.type === "bus") {
-      const seen = new Set<string>();
-      // Performance optimization: Avoid intermediate array allocation from .filter()
-      // and redundant haversineDistance calculations by merging into a single loop.
-      // Additionally, apply a bounding box pre-filter to bypass expensive trigonometric
-      // functions for vehicles that are clearly out of range.
-      const stopBox = getBoundingBox(stop.lat, stop.lon, 500);
-      for (let i = 0; i < nearbyVehicles.length; i++) {
-        const v = nearbyVehicles[i];
-        if (
-          v.lat < stopBox.minLat ||
-          v.lat > stopBox.maxLat ||
-          v.lon < stopBox.minLon ||
-          v.lon > stopBox.maxLon
-        ) {
-          continue;
-        }
-        const d = haversineDistance(stop.lat, stop.lon, v.lat, v.lon);
-        if (d > 500) continue;
-
-        const trip = tripMap.get(v.tripId);
-        const route = trip ? routeMap.get(trip.routeId) : null;
-        const key = route?.id || v.tripId;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        arrivals.push({
-          route: route?.shortName || "",
-          destination: trip?.headsign || "",
-          minutes: Math.max(1, Math.round(d / 300)),
-          isRealtime: true,
-          tripId: v.tripId,
-          // Mark as a live GTFS-realtime position so the client can show the
-          // scheduled-vs-live qualifier (issue #133).
-          eta_source: "live",
-        });
-      }
-    } else {
-      const expanded = expandTripsForStop(
-        stop.id,
-        trips,
-        tripStops,
-        routes,
-        calendar,
-        frequencies,
-        now,
-        120,
-      );
-      for (const dep of expanded.slice(0, 3)) {
-        arrivals.push({
-          line: dep.line,
-          destination: dep.destination,
-          minutes: dep.minutesUntil,
-          isRealtime: false,
-        });
-      }
-    }
+    const arrivals = stop.type === "bus"
+      ? getBusArrivalsForStop(stop, nearbyVehicles, tripMap, routeMap)
+      : getScheduledArrivalsForStop(stop, trips, tripStops, routes, calendar, frequencies, now);
 
     result[j] = {
       id: stop.id,
@@ -180,6 +198,7 @@ export function findNearbyStops(ctx: FindNearbyStopsContext): NearbyStop[] {
       arrivals: arrivals.slice(0, 3),
     };
   }
+
   return result;
 }
 

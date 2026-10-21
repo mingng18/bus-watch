@@ -448,3 +448,35 @@ describe('sampling logic', () => {
     vi.restoreAllMocks();
   });
 });
+
+
+it('aggregates pipe-containing route IDs, filters invalid rows, and bounds D1 batches', async () => {
+  const stops: TripStopEntry[] = [
+    { stopId: 'S1', stopName: 'First', lat: 3.14, lon: 101.68, arrivalTime: '', departureTime: '', sequence: 1 },
+    { stopId: 'S2', stopName: 'Last', lat: 3.15, lon: 101.69, arrivalTime: '', departureTime: '', sequence: 2 },
+  ];
+  const sequences = new Map<string, TripStopEntry[]>();
+  const rows: PositionSample[] = [];
+  for (let i = 0; i < 502; i++) {
+    const route = `R|${i}`;
+    sequences.set(route, stops);
+    rows.push({ bus_no: 'B1', route, lat: 3.14, lon: 101.68, timestamp: 1700000000 });
+    rows.push({ bus_no: 'B1', route, lat: 3.15, lon: 101.69, timestamp: 1700000300 });
+  }
+  rows.push({ bus_no: 'invalid', route: 'R|0', lat: NaN, lon: 101.68, timestamp: 1700000000 });
+  const insert = { bind: vi.fn((...values: unknown[]) => ({ values })) };
+  let active = 0, peak = 0;
+  const db = {
+    prepare: vi.fn((sql: string) => sql.includes('SELECT bus_no')
+      ? { bind: vi.fn().mockReturnValue({ all: vi.fn().mockResolvedValue({ results: rows }) }) }
+      : insert),
+    batch: vi.fn(async () => { active++; peak = Math.max(peak, active); await Promise.resolve(); active--; return []; }),
+  };
+  await aggregateTravelTimes({ DB: db } as any, sequences);
+  expect(insert.bind).toHaveBeenCalledTimes(502);
+  expect(insert.bind.mock.calls.every(values => String(values[0]).startsWith('R|'))).toBe(true);
+  expect(db.prepare).toHaveBeenCalledTimes(2);
+  expect(db.batch.mock.calls).toHaveLength(6);
+  expect(db.batch.mock.calls.map(call => (call as any)[0].length)).toEqual([100, 100, 100, 100, 100, 2]);
+  expect(peak).toBe(5);
+});

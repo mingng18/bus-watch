@@ -362,3 +362,35 @@ describe("getCachedAlerts", () => {
     expect(result.length).toBe(7);
   });
 });
+
+
+describe("sitemap parser compatibility", () => {
+  it("handles attributes and mixed-case URL tags without confusing urlset or image:loc", () => {
+    const alerts = parseAlerts(`<urlset>
+      <URL some-attr="value"><image:loc>https://example.com/image.jpg</image:loc>
+        <LOC>https://myrapid.com.my/info-penutupan-jalan-laluan-t201-22/</LOC>
+        <LASTMOD>2026-06-10T10:00:00+08:00</LASTMOD>
+      </URL></urlset>`);
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0].id).toBe("info-penutupan-jalan-laluan-t201-22");
+  });
+
+  it("preserves offsets after Unicode text whose lowercase expands in length", () => {
+    const url = "https://myrapid.com.my/info-penutupan-jalan-laluan-t201-22/";
+    const alerts = parseAlerts(`<!-- İstanbul -->
+      <urlset><url><loc>${url}</loc><lastmod>2026-06-10T10:00:00+08:00</lastmod></url></urlset>`);
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0].url).toBe(url);
+    expect(new Date(alerts[0].date).toISOString()).toBe("2026-06-10T02:00:00.000Z");
+  });
+
+  it("does not borrow loc or lastmod from a later URL block", () => {
+    const alerts = parseAlerts(`<urlset>
+      <url><lastmod>2026-01-01T00:00:00Z</lastmod></url>
+      <url><loc>https://myrapid.com.my/info-penutupan-jalan-laluan-t201-22/</loc></url>
+      <url><loc>https://myrapid.com.my/info-gangguan-trafik-laluan-777-1/</loc><lastmod>2026-06-10T10:00:00+08:00</lastmod></url>
+    </urlset>`);
+    expect(alerts).toHaveLength(2);
+    expect(alerts.find(a => a.id === "info-penutupan-jalan-laluan-t201-22")?.date).not.toBe("2026-06-10T10:00:00+08:00");
+  });
+});

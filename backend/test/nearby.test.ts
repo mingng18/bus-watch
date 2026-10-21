@@ -553,3 +553,19 @@ describe("confidenceFromSamples", () => {
     expect(confidenceFromSamples(0, 0, 0)).toBe("low");
   });
 });
+
+
+it('preserves the bus arrival cap, route deduplication, and radius after helper extraction', () => {
+  const manyRoutes = Array.from({ length: 5 }, (_, i) => ({ ...routes[1], id: `bus${i}`, shortName: `${i}` }));
+  const manyTrips = manyRoutes.map((r, i) => ({ ...trips[1], id: `trip${i}`, routeId: r.id }));
+  const manyVehicles = manyTrips.map(t => ({ ...vehicles[0], tripId: t.id, routeId: t.routeId }));
+  const result = findNearbyStops({
+    stops, routes: manyRoutes, trips: manyTrips, tripStops: {}, calendar: [], frequencies: [],
+    vehicles: [manyVehicles[0], ...manyVehicles, { ...manyVehicles[1], lat: 3.2, lon: 101.7 }],
+    lat: 3.13, lon: 101.676, radiusM: 100,
+    routeMap: new Map(manyRoutes.map(r => [r.id, r])), tripMap: new Map(manyTrips.map(t => [t.id, t])),
+  });
+  expect(result.map(s => s.id)).toEqual(['s2']);
+  expect(result[0].arrivals.map(a => a.route)).toEqual(['0', '1', '2']);
+  expect(result[0].arrivals.every(a => a.isRealtime && a.eta_source === 'live')).toBe(true);
+});
