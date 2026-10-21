@@ -11,7 +11,7 @@ Canonical review: [PR #511](https://github.com/mingng18/bus-watch/pull/511). Rev
 | Declined residual changes | 17 | Specific rationale recorded per PR |
 | Competing proposals | 7 | Resolved through the selected #326 or #349 approach |
 
-The first round closed 91 source PRs. The remaining 12 reviews are complete and prepared for closure after publishing the validated changes. The JSON ledger records current remote outcomes and preserves the first-round decisions and verification.
+Verified result: all 103 source PRs are closed, including the remaining 12 in this follow-up. GitHub now has one open PR: canonical #511. Each closure preserved the original description, added its specific reason, and retained the source branch. The JSON ledger records reviewed heads and closure timestamps, and preserves the first-round decisions and verification.
 
 ## Included changes
 

@@ -294,7 +294,9 @@
         "head_ref": "jules-7756139786051891441-3a739379",
         "round": 2
       },
-      "remote_outcome": "pending_closure"
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T16:01:46Z",
+      "head_verified_before_close": "48c66965e8dfdeaf2beb936b49c6510a60dd0fd9"
     },
     {
       "number": 317,
@@ -498,7 +500,9 @@
         "head_ref": "jules-2732094487005706209-0df23ea1",
         "round": 2
       },
-      "remote_outcome": "pending_closure"
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T16:01:50Z",
+      "head_verified_before_close": "a2f498271c6e757d98cd9120c106b43a9bb67d0f"
     },
     {
       "number": 329,
@@ -778,7 +782,9 @@
         "head_ref": "refactor/sampling-helpers-11009249226222416361",
         "round": 2
       },
-      "remote_outcome": "pending_closure"
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T16:01:54Z",
+      "head_verified_before_close": "76bccae4550b9cc00989b1d5b5a5620cee721da5"
     },
     {
       "number": 346,
@@ -864,7 +870,9 @@
         "head_ref": "perf-stop-lookup-3986101083933204498",
         "round": 2
       },
-      "remote_outcome": "pending_closure"
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T16:01:58Z",
+      "head_verified_before_close": "ba823343317ea387097e62e0ade9ff305f4b0770"
     },
     {
       "number": 350,
@@ -938,7 +946,9 @@
         "head_ref": "refactor/extract-kv-helpers-12933961828365557862",
         "round": 2
       },
-      "remote_outcome": "pending_closure"
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T16:02:02Z",
+      "head_verified_before_close": "6994c3d5cec9867a5b3b4529244b748c1ffc7177"
     },
     {
       "number": 358,
@@ -1164,7 +1174,9 @@
         "head_ref": "palette-alerts-refreshable-3090770331047245596",
         "round": 2
       },
-      "remote_outcome": "pending_closure"
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T16:02:06Z",
+      "head_verified_before_close": "55e4159987433a24fa17e8e42eed7a0837b8ebea"
     },
     {
       "number": 388,
@@ -1204,7 +1216,9 @@
         "head_ref": "perf-canonical-seqs-12322601337816755588",
         "round": 2
       },
-      "remote_outcome": "pending_closure"
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T16:02:09Z",
+      "head_verified_before_close": "66d3eafda417901618cdc7d9f364a80f7e90481e"
     },
     {
       "number": 390,
@@ -1356,7 +1370,9 @@
         "head_ref": "palette-alerts-refresh-8931082488534142257",
         "round": 2
       },
-      "remote_outcome": "pending_closure"
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T16:02:11Z",
+      "head_verified_before_close": "3238a8ae481c77c016d226d6cf461ac9b84ccdbc"
     },
     {
       "number": 403,
@@ -1504,7 +1520,9 @@
         "head_ref": "sentinel-cache-control-2179138802675884613",
         "round": 2
       },
-      "remote_outcome": "pending_closure"
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T16:02:15Z",
+      "head_verified_before_close": "9aa341277e215002707c66d2e4cc7b7fca4278ea"
     },
     {
       "number": 409,
@@ -1550,7 +1568,9 @@
         "head_ref": "bolt-optimize-xml-sitemap-parsing-13326694384447367249",
         "round": 2
       },
-      "remote_outcome": "pending_closure"
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T16:02:18Z",
+      "head_verified_before_close": "46707a4f6b69b2da042d80348f1049a481b702c7"
     },
     {
       "number": 410,
@@ -2564,7 +2584,9 @@
         "head_ref": "bolt-optimize-xml-parsing-7316056348413358659",
         "round": 2
       },
-      "remote_outcome": "pending_closure"
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T16:02:21Z",
+      "head_verified_before_close": "479be8a916215c5a3498d1dac22c75bfe911748e"
     },
     {
       "number": 452,
@@ -2859,7 +2881,9 @@
         "head_ref": "bolt-alerts-perf-9576834222540883383",
         "round": 2
       },
-      "remote_outcome": "pending_closure"
+      "remote_outcome": "closed",
+      "closed_at": "2026-10-21T16:02:24Z",
+      "head_verified_before_close": "4c36ae6e15320bf2287981b429099e7a7acc8fa2"
     },
     {
       "number": 482,
@@ -3078,7 +3102,7 @@
       "head_verified_before_close": "2f3e1f19a4b10967bc1331bbba97533bb5f216f2"
     }
   ],
-  "closure_status": "remaining_review_prepared",
+  "closure_status": "completed",
   "validation": {
     "backend_tests": 223,
     "backend_test_files": 24,
@@ -3090,28 +3114,16 @@
     "stationary_retry_regression": "failed before fix; passed after fix",
     "parser_differential": "all three candidate heads corrupt Unicode offsets; current scanner preserves them"
   },
-  "closed_source_prs": 91,
+  "closed_source_prs": 103,
   "skipped_source_prs": [],
-  "completed_at": "2026-10-21T15:23:04.557343+00:00",
+  "completed_at": "2026-10-21T16:02:36.253711+00:00",
   "remote_verification": {
-    "verified_at": "2026-10-21T15:23:28.281524+00:00",
-    "open_pr_count": 13,
+    "verified_at": "2026-10-21T16:02:36.254681+00:00",
+    "open_pr_count": 1,
     "open_pr_numbers": [
-      316,
-      326,
-      344,
-      349,
-      352,
-      387,
-      388,
-      402,
-      408,
-      409,
-      451,
-      481,
       511
     ],
-    "closed_source_pr_count": 91,
+    "closed_source_pr_count": 103,
     "closed_source_pr_numbers": [
       304,
       308,
@@ -3120,11 +3132,13 @@
       311,
       314,
       315,
+      316,
       317,
       320,
       321,
       323,
       324,
+      326,
       329,
       330,
       332,
@@ -3135,9 +3149,12 @@
       340,
       341,
       342,
+      344,
       346,
       348,
+      349,
       350,
+      352,
       358,
       366,
       368,
@@ -3147,14 +3164,19 @@
       378,
       380,
       383,
+      387,
+      388,
       390,
       391,
       398,
       400,
+      402,
       403,
       405,
       406,
       407,
+      408,
+      409,
       410,
       411,
       412,
@@ -3184,6 +3206,7 @@
       448,
       449,
       450,
+      451,
       452,
       455,
       457,
@@ -3193,6 +3216,7 @@
       475,
       476,
       478,
+      481,
       482,
       493,
       494,
@@ -3204,7 +3228,8 @@
       505,
       506,
       507
-    ]
+    ],
+    "verification_scope": "First-round 91 closures verified previously; follow-up 12 independently re-read after closure; open collection refreshed."
   },
   "published_implementation_head": "7dd973939f76f961317b56aeeb63b7dfe3e02e17",
   "review_rounds": [
@@ -3376,7 +3401,122 @@
           "trailing_character": "<"
         },
         "current_parser": "Preserved the exact URL and timestamp."
+      },
+      "remote_verification": {
+        "verified_at": "2026-10-21T16:02:36.254681+00:00",
+        "open_pr_count": 1,
+        "open_pr_numbers": [
+          511
+        ],
+        "closed_source_pr_count": 103,
+        "closed_source_pr_numbers": [
+          304,
+          308,
+          309,
+          310,
+          311,
+          314,
+          315,
+          316,
+          317,
+          320,
+          321,
+          323,
+          324,
+          326,
+          329,
+          330,
+          332,
+          334,
+          336,
+          337,
+          339,
+          340,
+          341,
+          342,
+          344,
+          346,
+          348,
+          349,
+          350,
+          352,
+          358,
+          366,
+          368,
+          374,
+          376,
+          377,
+          378,
+          380,
+          383,
+          387,
+          388,
+          390,
+          391,
+          398,
+          400,
+          402,
+          403,
+          405,
+          406,
+          407,
+          408,
+          409,
+          410,
+          411,
+          412,
+          414,
+          415,
+          417,
+          418,
+          419,
+          420,
+          422,
+          423,
+          424,
+          425,
+          426,
+          428,
+          430,
+          431,
+          432,
+          434,
+          435,
+          437,
+          441,
+          442,
+          443,
+          444,
+          446,
+          448,
+          449,
+          450,
+          451,
+          452,
+          455,
+          457,
+          459,
+          472,
+          473,
+          475,
+          476,
+          478,
+          481,
+          482,
+          493,
+          494,
+          495,
+          498,
+          501,
+          502,
+          504,
+          505,
+          506,
+          507
+        ],
+        "verification_scope": "First-round 91 closures verified previously; follow-up 12 independently re-read after closure; open collection refreshed."
       }
     }
-  ]
+  ],
+  "published_follow_up_head": "fad5043cea755d3783c6e626601832a8f3969fdf"
 }
