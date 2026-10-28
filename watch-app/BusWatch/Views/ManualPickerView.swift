@@ -29,7 +29,7 @@ struct ManualPickerView: View {
                 }
             }
 
-            Section("Nearby Stops") {
+            Section {
                 if let nearby = engine.nearbyStops {
                     if nearby.stops.isEmpty {
                         HStack(spacing: 6) {
@@ -49,6 +49,13 @@ struct ManualPickerView: View {
                 } else {
                     ProgressView("Loading...")
                         .foregroundStyle(.secondary)
+                }
+            } header: {
+                HStack {
+                    Image(systemName: "mappin.and.ellipse")
+                        .foregroundStyle(.red)
+                        .accessibilityHidden(true)
+                    Text("Nearby Stops")
                 }
             }
         }
