@@ -25,8 +25,8 @@ export function toKlLocal(date: Date): Date {
  * Use this wherever GTFS HH:MM:SS departure times are compared.
  */
 export function klSecondsSinceMidnight(date: Date): number {
-  const kl = toKlLocal(date);
-  return kl.getUTCHours() * 3600 + kl.getUTCMinutes() * 60 + kl.getUTCSeconds();
+  // perf: Use direct zero-allocation integer math for seconds since midnight
+  return (Math.floor(date.getTime() / 1000) + 28800) % 86400;
 }
 
 /**
@@ -109,6 +109,31 @@ export function parseGtfsTimeParts(t: string): [number, number, number] {
 }
 
 export function parseGtfsTimeSeconds(time: string): number {
-  const [h, m, s] = parseGtfsTimeParts(time);
+  // perf: Direct zero-allocation parsing to compute total seconds directly
+  // avoiding the intermediate [h, m, s] array allocation from parseGtfsTimeParts
+  let h = 0, m = 0, s = 0;
+  let i = 0;
+  const len = time.length;
+
+  while (i < len && time.charCodeAt(i) !== 58) { // ':' is 58
+    const code = time.charCodeAt(i);
+    if (code >= 48 && code <= 57) h = h * 10 + (code - 48);
+    i++;
+  }
+  i++;
+
+  while (i < len && time.charCodeAt(i) !== 58) {
+    const code = time.charCodeAt(i);
+    if (code >= 48 && code <= 57) m = m * 10 + (code - 48);
+    i++;
+  }
+  i++;
+
+  while (i < len) {
+    const code = time.charCodeAt(i);
+    if (code >= 48 && code <= 57) s = s * 10 + (code - 48);
+    i++;
+  }
+
   return h * 3600 + m * 60 + s;
 }
