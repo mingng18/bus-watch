@@ -112,3 +112,6 @@
 ## 2025-02-12 - Add delightful bounce animations to interactive toggles
 **Learning:** Adding `.symbolEffect(.bounce, value: stateVariable)` to SwiftUI `Label`s provides immediate, satisfying visual feedback for state changes, enhancing the perceived responsiveness of the application.
 **Action:** Apply this pattern to interactive icon buttons (like toggles) where appropriate to improve the user experience.
+## 2023-10-29 - Sync accessibility properties with visual loading state
+**Learning:** When conditional loading views like `ProgressView` are displayed in interactive elements, VoiceOver can read the default non-loading text if accessibility modifiers don't match the same state condition, creating confusing contradictions.
+**Action:** Ensure that accessibility modifiers (`.accessibilityLabel`, etc.) using ternary operators always account for the exact same conditional logic that governs the visual state of the parent element.

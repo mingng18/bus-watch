@@ -141,9 +141,9 @@ struct StationArrivalsView: View {
                 }
                 .buttonStyle(.bordered)
                 .disabled(isSchedulingReminder)
-                .accessibilityLabel(scheduledReminderId == nil ? "Set alert" : "Alert set")
-                .accessibilityValue(scheduledReminderId == nil ? "Off" : "On")
-                .accessibilityHint(reminderMinutes == 1 ? "Schedules a notification 1 minute before arrival." : "Schedules a notification \(reminderMinutes) minutes before arrival.")
+                .accessibilityLabel(isSchedulingReminder ? "Setting alert" : (scheduledReminderId == nil ? "Set alert" : "Alert set"))
+                .accessibilityValue(isSchedulingReminder ? "" : (scheduledReminderId == nil ? "Off" : "On"))
+                .accessibilityHint(isSchedulingReminder ? "" : (reminderMinutes == 1 ? "Schedules a notification 1 minute before arrival." : "Schedules a notification \(reminderMinutes) minutes before arrival."))
             }
         }
     }
