@@ -6,6 +6,7 @@ struct AlertsView: View {
     private let api = APIClient.shared
 
     @State private var loadState: LoadState = .loading
+    @State private var isRefreshing = false
 
     enum LoadState {
         case loading
@@ -29,11 +30,21 @@ struct AlertsView: View {
                         .font(.caption)
                         .multilineTextAlignment(.center)
                     Button {
-                        Task { await load(isRefresh: true) }
+                    Task {
+                        isRefreshing = true
+                        await load(isRefresh: true)
+                        isRefreshing = false
+                    }
                     } label: {
+                    if isRefreshing {
+                        ProgressView()
+                    } else {
                         Label("Refresh", systemImage: "arrow.clockwise")
                     }
+                    }
                     .buttonStyle(.bordered)
+                .disabled(isRefreshing)
+                .accessibilityLabel(isRefreshing ? "Refreshing" : "Refresh")
                 }
             case .error(let message):
                 VStack(spacing: 12) {
@@ -45,11 +56,21 @@ struct AlertsView: View {
                         .font(.caption2)
                         .multilineTextAlignment(.center)
                     Button {
-                        Task { await load() }
+                    Task {
+                        isRefreshing = true
+                        await load()
+                        isRefreshing = false
+                    }
                     } label: {
+                    if isRefreshing {
+                        ProgressView()
+                    } else {
                         Label("Retry", systemImage: "arrow.clockwise")
                     }
+                    }
                     .buttonStyle(.bordered)
+                .disabled(isRefreshing)
+                .accessibilityLabel(isRefreshing ? "Retrying" : "Retry")
                 }
             case .loaded(let alerts):
                 List {

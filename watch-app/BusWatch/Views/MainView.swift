@@ -123,10 +123,15 @@ struct MainView: View {
                 Button {
                     Task { await engine.refresh() }
                 } label: {
-                    Label(engine.isRefreshing ? "Retrying..." : "Retry", systemImage: "arrow.clockwise")
+                    if engine.isRefreshing {
+                        ProgressView()
+                    } else {
+                        Label("Retry", systemImage: "arrow.clockwise")
+                    }
                 }
                 .buttonStyle(.bordered)
                 .disabled(engine.isRefreshing)
+                .accessibilityLabel(engine.isRefreshing ? "Retrying" : "Retry")
             }
             .frame(maxWidth: .infinity)
             .listRowBackground(Color.clear)
