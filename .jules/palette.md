@@ -115,3 +115,6 @@
 ## 2023-10-29 - Sync accessibility properties with visual loading state
 **Learning:** When conditional loading views like `ProgressView` are displayed in interactive elements, VoiceOver can read the default non-loading text if accessibility modifiers don't match the same state condition, creating confusing contradictions.
 **Action:** Ensure that accessibility modifiers (`.accessibilityLabel`, etc.) using ternary operators always account for the exact same conditional logic that governs the visual state of the parent element.
+## 2025-03-02 - Add inline loading states to async buttons
+**Learning:** In SwiftUI, buttons triggering asynchronous operations must provide inline visual feedback. Relying purely on full-screen spinners or static text changes (like "Retrying...") leaves the UI feeling unresponsive or broken during the network delay, and can lead to duplicate taps.
+**Action:** Always conditionally replace the `Button`'s `Label` with a `ProgressView()`, apply `.disabled(isRefreshing)`, and update the `.accessibilityLabel` to reflect the loading state when awaiting async work.
