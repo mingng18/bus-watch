@@ -118,3 +118,6 @@
 ## 2025-03-02 - Add inline loading states to async buttons
 **Learning:** In SwiftUI, buttons triggering asynchronous operations must provide inline visual feedback. Relying purely on full-screen spinners or static text changes (like "Retrying...") leaves the UI feeling unresponsive or broken during the network delay, and can lead to duplicate taps.
 **Action:** Always conditionally replace the `Button`'s `Label` with a `ProgressView()`, apply `.disabled(isRefreshing)`, and update the `.accessibilityLabel` to reflect the loading state when awaiting async work.
+## 2025-03-02 - Stationary User Refresh Affordances
+**Learning:** In location-based apps, lists that rely solely on location changes for automatic refreshes leave stationary users stranded with stale ETAs and no obvious way to update the data, leading to a frustrating experience.
+**Action:** Always provide a manual refresh affordance (like a pull-to-refresh gesture via `.refreshable` in SwiftUI) on primary list views, even if automatic refresh mechanisms are present, to ensure users have control over data currency.

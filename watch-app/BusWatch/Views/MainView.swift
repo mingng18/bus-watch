@@ -23,6 +23,7 @@ struct MainView: View {
                 }, onSelectTrip: { tripId in
                     engine.selectBusTrip(tripId)
                 }, favorites: favorites)
+                .refreshable { await engine.refresh() }
             case .error(let message):
                 errorView(message: message)
             }
