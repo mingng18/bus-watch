@@ -15,8 +15,10 @@ struct MainView: View {
                 noLocationView
             case .station(let stop, let schedule, let isOffline):
                 StationArrivalsView(stop: stop, schedule: schedule, favorites: favorites, isOffline: isOffline)
+                    .refreshable { await engine.refreshStation(stop) }
             case .onBus(let progress):
                 BusProgressView(progress: progress)
+                    .refreshable { await engine.refreshBusTrip(progress.tripId) }
             case .nearby(let response):
                 NearbyListView(response: response, onSelectStop: { stop in
                     engine.selectStation(stop)
