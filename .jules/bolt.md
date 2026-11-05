@@ -157,3 +157,6 @@
 ## 2024-11-21 - Optimize GTFS time parsing and KL seconds calculation
 **Learning:** Returning intermediate arrays (like `[h, m, s]`) from low-level parsing functions introduces noticeable garbage collection overhead when invoked hundreds of thousands of times during schedule generation, and creating new `Date` objects to extract hours/minutes for offset calculations is unnecessarily expensive compared to pure integer math on timestamps.
 **Action:** When calculating seconds from time strings or timestamps in hot paths, avoid array destructuring and object instantiation. Perform the final calculation directly within the parsing loop, and use modulo arithmetic on Unix timestamps to determine the time of day.
+## 2024-11-22 - [GTFS Time Parsing]
+**Learning:** While zero-allocation parsing with custom `while` loops is fast, fixed-length strings like 'HH:MM:SS' can be parsed significantly (~6-7x) faster by directly accessing string characters by index, completely removing looping and branching overhead.
+**Action:** When a string format has fixed length and delimiter positions (e.g. HH:MM:SS), use a fast path with explicit character index reads before falling back to generic loop-based parsers.
