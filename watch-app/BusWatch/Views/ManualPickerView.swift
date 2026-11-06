@@ -60,6 +60,7 @@ struct ManualPickerView: View {
             }
         }
         .listStyle(.plain)
+        .refreshable { await engine.refresh() }
     }
 
     @ViewBuilder

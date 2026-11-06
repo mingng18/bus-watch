@@ -121,3 +121,6 @@
 ## 2025-03-02 - Stationary User Refresh Affordances
 **Learning:** In location-based apps, lists that rely solely on location changes for automatic refreshes leave stationary users stranded with stale ETAs and no obvious way to update the data, leading to a frustrating experience.
 **Action:** Always provide a manual refresh affordance (like a pull-to-refresh gesture via `.refreshable` in SwiftUI) on primary list views, even if automatic refresh mechanisms are present, to ensure users have control over data currency.
+## 2025-03-02 - Stationary User Refresh Affordances in Modals
+**Learning:** In watchOS SwiftUI, lists presented in modals or sheets (like a manual station picker) should follow the same stationary user affordance rules as primary views. Users left with stale data and no manual refresh pull gesture in a modal face high friction.
+**Action:** Always provide a manual refresh affordance (such as `.refreshable` calling the engine's silent refresh) on location-based lists, even within secondary navigation flows like sheets or modals.
