@@ -119,20 +119,24 @@ class ContextEngine: ObservableObject {
     func selectStation(_ stop: NearbyStop) {
         Task {
             await MainActor.run { self.setState(.loading("Loading...")) }
-            do {
-                let schedule = try await api.fetchStationSchedule(stopId: stop.id)
-                // Network succeeded — refresh the on-device cache for offline
-                // fallback next time.
-                scheduleCache.store(schedule, for: stop.id)
-                await MainActor.run { self.setState(.station(stop, schedule, isOffline: false)) }
-            } catch {
-                // Network failed — fall back to the last cached timetable so
-                // the rider still sees scheduled times, flagged as offline.
-                if let cached = scheduleCache.schedule(for: stop.id) {
-                    await MainActor.run { self.setState(.station(stop, cached, isOffline: true)) }
-                } else {
-                    await MainActor.run { self.setState(.error(friendlyMessage(for: error))) }
-                }
+            await refreshStation(stop)
+        }
+    }
+
+    func refreshStation(_ stop: NearbyStop) async {
+        do {
+            let schedule = try await api.fetchStationSchedule(stopId: stop.id)
+            // Network succeeded — refresh the on-device cache for offline
+            // fallback next time.
+            scheduleCache.store(schedule, for: stop.id)
+            await MainActor.run { self.setState(.station(stop, schedule, isOffline: false)) }
+        } catch {
+            // Network failed — fall back to the last cached timetable so
+            // the rider still sees scheduled times, flagged as offline.
+            if let cached = scheduleCache.schedule(for: stop.id) {
+                await MainActor.run { self.setState(.station(stop, cached, isOffline: true)) }
+            } else {
+                await MainActor.run { self.setState(.error(friendlyMessage(for: error))) }
             }
         }
     }
@@ -140,15 +144,19 @@ class ContextEngine: ObservableObject {
     func selectBusTrip(_ tripId: String) {
         Task {
             await MainActor.run { self.setState(.loading("Loading...")) }
-            do {
-                let progress = try await api.fetchBusProgress(tripId: tripId)
-                await MainActor.run {
-                    self.startAutoRefresh(tripId: tripId)
-                    self.setState(.onBus(progress))
-                }
-            } catch {
-                await MainActor.run { self.setState(.error(friendlyMessage(for: error))) }
+            await refreshBusTrip(tripId)
+        }
+    }
+
+    func refreshBusTrip(_ tripId: String) async {
+        do {
+            let progress = try await api.fetchBusProgress(tripId: tripId)
+            await MainActor.run {
+                self.startAutoRefresh(tripId: tripId)
+                self.setState(.onBus(progress))
             }
+        } catch {
+            await MainActor.run { self.setState(.error(friendlyMessage(for: error))) }
         }
     }
 
