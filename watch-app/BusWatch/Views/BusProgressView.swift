@@ -158,6 +158,7 @@ private struct TripStopRow: View {
                 Image(systemName: "location.circle.fill")
                     .font(.caption)
                     .foregroundStyle(.green)
+                    .symbolEffect(.pulse)
             } else if stop.passed {
                 Circle()
                     .fill(Color.gray)
