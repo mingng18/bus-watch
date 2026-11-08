@@ -124,3 +124,6 @@
 ## 2025-03-02 - Stationary User Refresh Affordances in Modals
 **Learning:** In watchOS SwiftUI, lists presented in modals or sheets (like a manual station picker) should follow the same stationary user affordance rules as primary views. Users left with stale data and no manual refresh pull gesture in a modal face high friction.
 **Action:** Always provide a manual refresh affordance (such as `.refreshable` calling the engine's silent refresh) on location-based lists, even within secondary navigation flows like sheets or modals.
+## 2025-03-02 - Add pulse animation to active live states
+**Learning:** In SwiftUI, static indicators for active or current states (like a live location pin) can lack a sense of liveness or activity, making them less scannable.
+**Action:** Apply `.symbolEffect(.pulse)` to the corresponding SF Symbol (`Image(systemName: ...)` or `Label`) for active live states. This adds a subtle, native breathing animation that improves scannability and conveys liveness without being distracting.

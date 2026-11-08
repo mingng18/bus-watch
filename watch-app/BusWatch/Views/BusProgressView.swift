@@ -125,6 +125,7 @@ private struct RealtimeBusLocationMap: View {
             Label("Live location", systemImage: "location.fill")
                 .font(.caption2)
                 .foregroundStyle(.green)
+                .symbolEffect(.pulse)
 
             Map(position: $cameraPosition, interactionModes: [.pan, .zoom]) {
                 Marker(
@@ -158,6 +159,7 @@ private struct TripStopRow: View {
                 Image(systemName: "location.circle.fill")
                     .font(.caption)
                     .foregroundStyle(.green)
+                    .symbolEffect(.pulse)
             } else if stop.passed {
                 Circle()
                     .fill(Color.gray)
