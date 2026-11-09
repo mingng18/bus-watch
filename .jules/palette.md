@@ -127,6 +127,3 @@
 ## 2025-03-02 - Add pulse animation to active live states
 **Learning:** In SwiftUI, static indicators for active or current states (like a live location pin) can lack a sense of liveness or activity, making them less scannable.
 **Action:** Apply `.symbolEffect(.pulse)` to the corresponding SF Symbol (`Image(systemName: ...)` or `Label`) for active live states. This adds a subtle, native breathing animation that improves scannability and conveys liveness without being distracting.
-## 2025-03-02 - Add pulse animation to active live states
-**Learning:** In SwiftUI, static indicators for active or current states (like a live location pin) can lack a sense of liveness or activity, making them less scannable.
-**Action:** Apply `.symbolEffect(.pulse)` to the corresponding SF Symbol (`Image(systemName: ...)` or `Label`) for active live states. This adds a subtle, native breathing animation that improves scannability and conveys liveness without being distracting.
