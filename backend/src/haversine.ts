@@ -11,12 +11,12 @@ export function haversineDistance(
   lon2: number
 ): number {
   // Inline lambda removed to prevent closure allocation per call.
-  const dLat = (lat2 - lat1) * TO_RAD;
-  const dLon = (lon2 - lon1) * TO_RAD;
+  const sinDLat2 = Math.sin((lat2 - lat1) * TO_RAD * 0.5);
+  const sinDLon2 = Math.sin((lon2 - lon1) * TO_RAD * 0.5);
   const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * TO_RAD) * Math.cos(lat2 * TO_RAD) * Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    sinDLat2 * sinDLat2 +
+    Math.cos(lat1 * TO_RAD) * Math.cos(lat2 * TO_RAD) * sinDLon2 * sinDLon2;
+  return 12742000 * Math.asin(Math.sqrt(a)); // R * 2 = 12742000
 }
 
 

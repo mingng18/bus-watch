@@ -125,6 +125,7 @@ private struct RealtimeBusLocationMap: View {
             Label("Live location", systemImage: "location.fill")
                 .font(.caption2)
                 .foregroundStyle(.green)
+                .symbolEffect(.pulse)
 
             Map(position: $cameraPosition, interactionModes: [.pan, .zoom]) {
                 Marker(
