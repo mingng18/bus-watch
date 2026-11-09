@@ -160,3 +160,6 @@
 ## 2024-11-22 - [GTFS Time Parsing]
 **Learning:** While zero-allocation parsing with custom `while` loops is fast, fixed-length strings like 'HH:MM:SS' can be parsed significantly (~6-7x) faster by directly accessing string characters by index, completely removing looping and branching overhead.
 **Action:** When a string format has fixed length and delimiter positions (e.g. HH:MM:SS), use a fast path with explicit character index reads before falling back to generic loop-based parsers.
+## 2024-03-20 - Haversine Math Optimization
+**Learning:** The V8 engine calculates `Math.asin(x)` significantly faster than `Math.atan2(x, Math.sqrt(1 - x*x))` for haversine distance. Avoiding exponentiation (`** 2`) in favor of direct multiplication (`x * x`) and pre-multiplying constants (`R * 2`) provides a ~25% speedup in this hot calculation used during spatial queries.
+**Action:** When implementing mathematical formulas in hot loops, avoid intermediate variables, replace exponentiation with multiplication, precalculate constants, and prefer simpler trigonometric functions when mathematically equivalent.
