@@ -28,7 +28,7 @@ app.use('*', secureHeaders({
   },
   xFrameOptions: 'DENY',
 }));
-app.use('*', cors({ origin: (origin, c) => c.env.FRONTEND_URL ?? null }));
+app.use('*', cors({ origin: (origin, c) => c.env.FRONTEND_URL ?? 'https://bus-watch.invalid' }));
 
 // Security: Global input length validation to prevent DoS via excessively large payloads
 app.use('*', async (c, next) => {

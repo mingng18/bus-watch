@@ -101,3 +101,8 @@
 **Vulnerability:** HTTP Parameter Pollution (HPP) / Array DoS bypass in input validation because `c.req.query()` only validates the first parameter value.
 **Learning:** In Hono, `c.req.query()` only returns the first string value of a query parameter. When enforcing payload size limits, attackers can bypass checks by passing multiple values (e.g., `?foo=short&foo=looooooooooooong`), leading to DoS.
 **Prevention:** Always use `c.req.queries()` to retrieve the array and validate all elements when enforcing payload size limits.
+## 2024-12-01 - Overly permissive CORS configuration
+
+**Vulnerability:** Returning the literal `null` when `FRONTEND_URL` is undefined caused the API to reflect `Access-Control-Allow-Origin: null`.
+**Learning:** Returning `null` as a CORS origin permits any site using a sandboxed iframe (which inherits a `null` origin) to execute authenticated cross-origin requests.
+**Prevention:** Fallback to a non-routable dummy origin (e.g., `https://invalid.domain`) rather than `null` when an environment variable defining the allowed origin is unset.
