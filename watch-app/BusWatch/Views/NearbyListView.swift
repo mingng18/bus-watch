@@ -34,6 +34,7 @@ struct NearbyListView: View {
                             HStack {
                                 Image(systemName: "bus.fill")
                                     .foregroundStyle(.orange)
+                                    .symbolEffect(.pulse)
                                 Text(bus.routeShortName.isEmpty ? "Live bus" : bus.routeShortName)
                                     .font(.caption)
                                 Spacer()
@@ -55,6 +56,7 @@ struct NearbyListView: View {
                     HStack {
                         Image(systemName: "bus.fill")
                             .foregroundStyle(.orange)
+                            .symbolEffect(.pulse)
                             .accessibilityHidden(true)
                         Text("Live buses")
                     }
